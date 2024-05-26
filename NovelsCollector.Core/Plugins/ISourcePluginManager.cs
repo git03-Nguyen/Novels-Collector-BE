@@ -6,5 +6,6 @@ namespace NovelsCollector.Core.Plugins
     {
         //Task<List<Novel>> ExecuteSearch(string? keyword, string? author, string? year);
         Task<string> ExecuteSearch(string? keyword, string? author, string? year);
+        Task<string> GetNovel(string url);
     }
 }

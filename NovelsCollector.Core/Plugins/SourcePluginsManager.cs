@@ -66,5 +66,19 @@ namespace NovelsCollector.Core.Plugins
             }
             return result;
         }
+
+        public Task<string> GetNovel(string url)
+        {
+            string result = string.Empty;
+            foreach (var plugin in plugins)
+            {
+                if (plugin.Value is ISourcePlugin sourcePlugin)
+                {
+                    Console.WriteLine($"Getting novel from {plugin.Key}...");
+                    result += sourcePlugin.GetNovel(url);
+                }
+            }
+            return Task.FromResult(result);
+        }
     }
 }
