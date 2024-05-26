@@ -1,6 +1,5 @@
 using NovelsCollector.Core.Extensions;
 using NovelsCollector.Core.Models.Plugins;
-using NovelsCollector.Core.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 

@@ -1,9 +1,10 @@
 ﻿using NovelsCollector.SDK;
+using NovelsCollector.SDK.SourcePlugins;
 using System.Reflection;
 
 namespace NovelsCollector.Core.Plugins
 {
-    public class SourcePluginsManager : IPluginManager
+    public class SourcePluginsManager : ISourcePluginManager
     {
         private static readonly Dictionary<string, IPlugin> plugins = new Dictionary<string, IPlugin>();
 
@@ -11,7 +12,7 @@ namespace NovelsCollector.Core.Plugins
 
         public SourcePluginsManager() 
         {
-            LoadPlugins();
+            ReloadPlugins();
         }
 
         public void AddPlugin(string pluginName, IPlugin plugin)
@@ -19,16 +20,7 @@ namespace NovelsCollector.Core.Plugins
             plugins.Add(pluginName, plugin);
         }
 
-        public string ExecutePlugin(string pluginName)
-        {
-            if (plugins.ContainsKey(pluginName))
-            {
-                return plugins[pluginName].ExecuteCommand();
-            }
-            return "Plugin not found";
-        }
-
-        public void LoadPlugins()
+        public void ReloadPlugins()
         {
             Console.WriteLine("Loading plugins...");
 
@@ -56,6 +48,23 @@ namespace NovelsCollector.Core.Plugins
                     }
                 }
             }
+        }
+
+        public async Task<string> ExecuteSearch(string? keyword, string? author, string? year)
+        {
+            string result = string.Empty;
+            if (keyword != null)
+            {
+                foreach (var plugin in plugins)
+                {
+                    if (plugin.Value is ISourcePlugin sourcePlugin)
+                    {
+                        Console.WriteLine($"Searching in {plugin.Key}...");
+                        result += await sourcePlugin.Search(keyword, author, year);
+                    }
+                }
+            }
+            return result;
         }
     }
 }

@@ -16,16 +16,16 @@ namespace NovelsCollector.Core.Controllers
 
         // GET: api/v1/sources: a list of all source plugins
         [HttpGet]
-        public IActionResult Get([FromServices] IPluginManager pluginManager)
+        public IActionResult Get([FromServices] ISourcePluginManager pluginManager)
         {
             return Ok(pluginManager.Plugins);
         }
 
         // GET: api/v1/sources/reload: reload source plugins
         [HttpGet("reload")]
-        public IActionResult Reload([FromServices] IPluginManager pluginManager)
+        public IActionResult Reload([FromServices] ISourcePluginManager pluginManager)
         {
-            pluginManager.LoadPlugins();
+            pluginManager.ReloadPlugins();
             return Ok(pluginManager.Plugins);
         }
 

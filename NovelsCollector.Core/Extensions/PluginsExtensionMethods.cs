@@ -6,14 +6,14 @@ namespace NovelsCollector.Core.Extensions
     {
         public static IServiceCollection AddPluginManager(this IServiceCollection services)
         {
-            services.AddSingleton<IPluginManager, SourcePluginsManager>();
+            services.AddSingleton<ISourcePluginManager, SourcePluginsManager>();
             return services;
         }
 
         public static IApplicationBuilder UsePluginManager(this IApplicationBuilder app)
         {
-            IPluginManager pluginManager = app.ApplicationServices.GetService<IPluginManager>();
-            pluginManager.LoadPlugins();
+            ISourcePluginManager pluginManager = app.ApplicationServices.GetService<ISourcePluginManager>();
+            pluginManager.ReloadPlugins();
             return app;
         }
 
