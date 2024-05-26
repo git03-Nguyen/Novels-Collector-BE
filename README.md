@@ -22,7 +22,7 @@
 - **Vietnamese name:** Website Tổng hợp và đọc tiểu thuyết trực tuyến
 - **Front-end:** React
 - **Back-end:** ASP.NET Core
-- **Database:** Microsoft SQL Server
+- **Database:** MongoDB
 
 *This is only the back-end part of the project. Please refer to https://github.com/thienan2003bt/Novels-Collector-FE for the front-end part. Thank you!*
 
