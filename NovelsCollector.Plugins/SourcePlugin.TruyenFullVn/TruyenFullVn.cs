@@ -78,7 +78,7 @@ namespace SourcePlugin.TruyenFullVn
 
             novel.Title = document.DocumentNode.QuerySelector("h3.title").InnerText;
             novel.Rating = float.Parse(document.DocumentNode.QuerySelector("span[itemprop='ratingValue']").InnerText);
-            novel.Description = document.DocumentNode.QuerySelector("div[itemprop='description']").InnerText;
+            novel.Description = document.DocumentNode.QuerySelector("div[itemprop='description']").InnerHtml;
 
             // get authors
             var authorElements = document.DocumentNode.QuerySelectorAll("a[itemprop='author']");

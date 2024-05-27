@@ -2,10 +2,10 @@
 {
     public class Novel
     {
-        public int? Id { get; set; }
+        public string? Slug { get; set; }
+        // TODO: Identifier = { Source, Slug }, then each Novel can have multiple identifiers
         public string? Cover { get; set; }
         public string? Title { get; set; }
-        public string? Slug { get; set; }
         public string? Description { get; set; }
         public int? Year { get; set; }
         public bool? Status { get; set; }
