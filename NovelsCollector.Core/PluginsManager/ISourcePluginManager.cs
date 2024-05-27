@@ -9,7 +9,7 @@ namespace NovelsCollector.Core.PluginsManager
 
         Task<Novel[]> Search(string? keyword, string? author, string? year);
 
-        Task<Novel> GetNovelDetail(string novelSlug);
+        Task<Novel> GetNovelDetail(Novel novel);
 
         Task<string> GetChapter(string novelSlug, string chapterSlug);
     }
