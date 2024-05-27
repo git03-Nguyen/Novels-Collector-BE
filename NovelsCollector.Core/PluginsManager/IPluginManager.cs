@@ -1,6 +1,4 @@
-﻿using NovelsCollector.SDK;
-
-namespace NovelsCollector.Core.PluginsManager
+﻿namespace NovelsCollector.Core.PluginsManager
 {
     public interface IPluginManager
     {

@@ -1,6 +1,5 @@
-﻿using NovelsCollector.SDK;
-using NovelsCollector.SDK.Models;
-using NovelsCollector.SDK.SourcePlugins;
+﻿using NovelsCollector.SDK.Models;
+using NovelsCollector.SDK.Plugins.SourcePlugins;
 using System.Reflection;
 
 namespace NovelsCollector.Core.PluginsManager
