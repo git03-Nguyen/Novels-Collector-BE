@@ -9,12 +9,9 @@ namespace NovelsCollector.Core.Controllers
 
         private readonly ILogger<HomeController> _logger;
 
-        public HomeController(ILogger<HomeController> logger)
-        {
-            _logger = logger;
-        }
+        public HomeController(ILogger<HomeController> logger) => _logger = logger;
 
-        // GET, POST, PUT, DELETE: /api/v1/ => return a json object: { "message": "Hello World", "method": "GET" }
+        [EndpointSummary("Check if the server is running")]
         [AcceptVerbs("GET", "POST", "PUT", "DELETE")]
         public IActionResult Index()
         {

@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using NovelsCollector.Core.PluginsManager;
+using NovelsCollector.SDK.Models;
 
 namespace NovelsCollector.Core.Controllers
 {
@@ -9,15 +10,16 @@ namespace NovelsCollector.Core.Controllers
     {
         private readonly ILogger<NovelsController> _logger;
 
-        public NovelsController(ILogger<NovelsController> logger)
-        {
-            _logger = logger;
-        }
+        public NovelsController(ILogger<NovelsController> logger) => _logger = logger;
 
-        // GET: api/v1/novel/{id}: view the novel information 
+        // GET: api/v1/novel/{id}
         [HttpGet("{id}")]
+        [EndpointDescription("View brief information of a novel")]
         async public Task<IActionResult> Get([FromServices] ISourcePluginManager sourcePluginManager, [FromRoute] string id)
         {
+            // id maybe a slug or an id
+            //Novel novel = await sourcePluginManager.GetNovelDetail(id);
+            //return Ok(novel);
             return BadRequest("Not implemented yet");
 
         }

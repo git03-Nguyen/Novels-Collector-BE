@@ -8,6 +8,8 @@ namespace NovelsCollector.Core.PluginsManager
     {
         private static readonly Dictionary<string, ISourcePlugin> plugins = new Dictionary<string, ISourcePlugin>();
 
+        private static readonly string pluginsPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Plugins");
+
         public Dictionary<string, ISourcePlugin> Plugins => plugins;
 
         public SourcePluginsManager()
@@ -21,13 +23,12 @@ namespace NovelsCollector.Core.PluginsManager
 
             plugins.Clear();
 
-            string path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Plugins");
-            Console.WriteLine(path);
-            if (!Directory.Exists(path))
+            Console.WriteLine(pluginsPath);
+            if (!Directory.Exists(pluginsPath))
             {
-                Directory.CreateDirectory(path);
+                Directory.CreateDirectory(pluginsPath);
             }
-            string[] files = Directory.GetFiles(path, "*.dll");
+            string[] files = Directory.GetFiles(pluginsPath, "*.dll");
 
             foreach (string file in files)
             {
@@ -45,6 +46,49 @@ namespace NovelsCollector.Core.PluginsManager
             }
         }
 
+        public async Task AddPluginAsync(IFormFile file)
+        {
+            if (file == null)
+            {
+                throw new Exception("No file uploaded");
+            }
+
+            string path = Path.Combine(pluginsPath, file.FileName);
+
+            // if exists, throw exception
+            if (File.Exists(path))
+            {
+                throw new Exception("Plugin already exists");
+            }
+
+            using (FileStream stream = new FileStream(path, FileMode.Create))
+            {
+                await file.CopyToAsync(stream);
+            }
+
+            Assembly assembly = Assembly.LoadFile(path);
+            Type[] types = assembly.GetTypes();
+
+            foreach (Type type in types)
+            {
+                if (type.GetInterface("IPlugin") != null)
+                {
+                    ISourcePlugin plugin = (ISourcePlugin)Activator.CreateInstance(type);
+                    plugins.Add(plugin.Name, plugin);
+                }
+            }
+        }
+
+        public async Task RemovePlugin(string name)
+        {
+            if (!plugins.ContainsKey(name))
+            {
+                throw new Exception("Plugin not found");
+            }
+
+            plugins.Remove(name);
+        }
+
         public async Task<Novel[]> Search(string? keyword, string? author, string? year)
         {
             if (plugins.Count == 0)
@@ -53,7 +97,7 @@ namespace NovelsCollector.Core.PluginsManager
             }
 
             var novels = new List<Novel>();
-            int totalPage = 0;
+            //int totalPage = 0;
 
             foreach (var plugin in plugins.Values)
             {
