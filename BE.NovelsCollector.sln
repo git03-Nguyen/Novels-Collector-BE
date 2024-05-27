@@ -11,6 +11,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "NovelsCollector.Plugins", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SourcePlugin.TruyenFullVn", "NovelsCollector.Plugins\SourcePlugin.TruyenFullVn\SourcePlugin.TruyenFullVn.csproj", "{9AA8221E-399A-4E8C-8224-F72B8E43E596}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Plugins", "Plugins", "{9B1E8CE5-4A35-4F14-A9CB-5FEC35DD6897}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
