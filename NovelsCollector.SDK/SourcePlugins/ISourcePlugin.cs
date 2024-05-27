@@ -11,6 +11,5 @@ namespace NovelsCollector.SDK.SourcePlugins
         string Url { get; }
         Task<string> Search(string? keyword, string? author, string? year);
         Task<string> GetNovel(string url);
-
     }
 }

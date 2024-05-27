@@ -1,4 +1,4 @@
-﻿namespace NovelsCollector.Core.Models.Novels
+﻿namespace PluginCrawlTruyenFull.Models
 {
     public class Novel
     {
@@ -13,6 +13,5 @@
         public Author[] Authors { get; set; }
         public Category[] Categories { get; set; }
         public Chapter[] Chapters { get; set; } 
-        public Plugins.Source[] Sources { get; set; }
     }
 }

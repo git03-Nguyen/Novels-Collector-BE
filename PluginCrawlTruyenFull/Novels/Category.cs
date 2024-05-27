@@ -1,4 +1,4 @@
-﻿namespace NovelsCollector.Core.Models.Novels
+﻿namespace PluginCrawlTruyenFull.Models
 {
     public class Category
     {
