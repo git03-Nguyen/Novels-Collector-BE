@@ -20,20 +20,22 @@ namespace SourcePlugin.TruyenFullVn
             var document = await web.LoadFromWebAsync($"{Url}tim-kiem/?tukhoa={keyword}&page={page}");
 
             // Get Pagination
-            var paginationElement = document.DocumentNode.QuerySelector("ul.pagination");
-            paginationElement.RemoveChild(paginationElement.LastChild);
-
-            var lastChild = paginationElement.LastChild.QuerySelector("a");
-
             int totalPage = 1;
-            Regex regex = new Regex(@"\d+");
-
-            if (lastChild == null)
+            var paginationElement = document.DocumentNode.QuerySelector("ul.pagination");
+            if (paginationElement != null)
             {
-                MatchCollection matches = regex.Matches(paginationElement.LastChild.InnerText);
-                totalPage = int.Parse(matches[0].Value);
+                paginationElement.RemoveChild(paginationElement.LastChild);
+                var lastChild = paginationElement.LastChild.QuerySelector("a");
+
+                Regex regex = new Regex(@"\d+");
+
+                if (lastChild == null)
+                {
+                    MatchCollection matches = regex.Matches(paginationElement.LastChild.InnerText);
+                    totalPage = int.Parse(matches[0].Value);
+                }
+                else totalPage = int.Parse(lastChild.Attributes["href"].Value.Replace($"{Url}tim-kiem/?tukhoa={keyword}&page=", ""));
             }
-            else totalPage = int.Parse(lastChild.Attributes["href"].Value.Replace($"{Url}tim-kiem/?tukhoa={keyword}&page=", ""));
 
             // Get novels
             var novelElements = document.DocumentNode.QuerySelectorAll(" div.col-truyen-main div.list-truyen div.row");
@@ -101,20 +103,23 @@ namespace SourcePlugin.TruyenFullVn
             novel.Cover = document.DocumentNode.QuerySelector("div.books img").Attributes["src"].Value;
 
             // get totalPage
-            var paginationElement = document.DocumentNode.QuerySelector("ul.pagination");
-            paginationElement.RemoveChild(paginationElement.LastChild);
-            var lastChild = paginationElement.LastChild.QuerySelector("a");
             int totalPage = 1;
-            Regex regex = new Regex(@"\d+");
-            if (lastChild == null)
+            var paginationElement = document.DocumentNode.QuerySelector("ul.pagination");
+            if (paginationElement != null)
             {
-                MatchCollection matches = regex.Matches(paginationElement.LastChild.InnerText);
-                totalPage = int.Parse(matches[0].Value);
-            }
-            else
-            {
-                MatchCollection matches = regex.Matches(lastChild.Attributes["href"].Value);
-                totalPage = int.Parse(matches[0].Value);
+                paginationElement.RemoveChild(paginationElement.LastChild);
+                var lastChild = paginationElement.LastChild.QuerySelector("a");
+                Regex regex = new Regex(@"\d+");
+                if (lastChild == null)
+                {
+                    MatchCollection matches = regex.Matches(paginationElement.LastChild.InnerText);
+                    totalPage = int.Parse(matches[0].Value);
+                }
+                else
+                {
+                    MatchCollection matches = regex.Matches(lastChild.Attributes["href"].Value);
+                    totalPage = int.Parse(matches[0].Value);
+                }
             }
 
             // list chapter

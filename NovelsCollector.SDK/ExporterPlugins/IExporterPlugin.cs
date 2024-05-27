@@ -1,4 +1,6 @@
-﻿namespace NovelsCollector.SDK.ExporterPlugins
+﻿using NovelsCollector.SDK.Plugins;
+
+namespace NovelsCollector.SDK.ExporterPlugins
 {
     public interface IExporterPlugin : IPlugin
     {
