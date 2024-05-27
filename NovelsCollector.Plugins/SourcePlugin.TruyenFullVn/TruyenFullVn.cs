@@ -13,54 +13,60 @@ namespace SourcePlugin.TruyenFullVn
         public string Url => "https://truyenfull.vn/";
 
         // ----------------------------------------------------------------
-        public async Task<Tuple<Novel[], int>> CrawlSearch(string? keyword, int page = 1)
+        public async Task<Novel[]> CrawlSearch(string? keyword)
         {
             // fetch https://truyenfull.vn/tim-kiem/?tukhoa=keyword by HttpClient
             var web = new HtmlWeb();
-            var document = await web.LoadFromWebAsync($"{Url}tim-kiem/?tukhoa={keyword}&page={page}");
+            var document = await web.LoadFromWebAsync($"{Url}tim-kiem/?tukhoa={keyword}");
 
             // Get Pagination
-            var paginationElement = document.DocumentNode.QuerySelector("ul.pagination");
-            paginationElement.RemoveChild(paginationElement.LastChild);
-
-            var lastChild = paginationElement.LastChild.QuerySelector("a");
-
             int totalPage = 1;
-            Regex regex = new Regex(@"\d+");
-
-            if (lastChild == null)
+            var paginationElement = document.DocumentNode.QuerySelector("ul.pagination");
+            if (paginationElement != null)
             {
-                MatchCollection matches = regex.Matches(paginationElement.LastChild.InnerText);
-                totalPage = int.Parse(matches[0].Value);
+                paginationElement.RemoveChild(paginationElement.LastChild);
+                var lastChild = paginationElement.LastChild.QuerySelector("a");
+
+                Regex regex = new Regex(@"\d+");
+
+                if (lastChild == null)
+                {
+                    MatchCollection matches = regex.Matches(paginationElement.LastChild.InnerText);
+                    totalPage = int.Parse(matches[0].Value);
+                }
+                else totalPage = int.Parse(lastChild.Attributes["href"].Value.Replace($"{Url}tim-kiem/?tukhoa={keyword}&page=", ""));
             }
-            else totalPage = int.Parse(lastChild.Attributes["href"].Value.Replace($"{Url}tim-kiem/?tukhoa={keyword}&page=", ""));
 
             // Get novels
-            var novelElements = document.DocumentNode.QuerySelectorAll(" div.col-truyen-main div.list-truyen div.row");
             var listNovel = new List<Novel>();
 
-            foreach (var novelElement in novelElements)
+            for (int i = 1; i <= totalPage; i++)
             {
-                Novel novel = new Novel();
-                novel.Title = novelElement.QuerySelector("h3.truyen-title").InnerText;
-                novel.Slug = novelElement.QuerySelector("h3.truyen-title a").Attributes["href"].Value.Replace(Url, "").Replace("/", "");
-
-                var strAuthor = novelElement.QuerySelector("span.author").InnerText;
-                var authorNames = strAuthor?.Split(',').Select(author => author.Trim()).ToArray();
-                List<Author> listAuthor = new List<Author>();
-                foreach (var name in authorNames)
+                document = await web.LoadFromWebAsync($"{Url}tim-kiem/?tukhoa={keyword}&page={i}");
+                var novelElements = document.DocumentNode.QuerySelectorAll(" div.col-truyen-main div.list-truyen div.row");
+                foreach (var novelElement in novelElements)
                 {
-                    var author = new Author();
-                    author.Name = name;
-                    listAuthor.Add(author);
-                }
-                novel.Authors = listAuthor.ToArray();
-                novel.Cover = novelElement.QuerySelector("div[data-image]").Attributes["data-image"].Value;
+                    Novel novel = new Novel();
+                    novel.Title = novelElement.QuerySelector("h3.truyen-title").InnerText;
+                    novel.Slug = novelElement.QuerySelector("h3.truyen-title a").Attributes["href"].Value.Replace(Url, "").Replace("/", "");
 
-                listNovel.Add(novel);
+                    var strAuthor = novelElement.QuerySelector("span.author").InnerText;
+                    var authorNames = strAuthor?.Split(',').Select(author => author.Trim()).ToArray();
+                    List<Author> listAuthor = new List<Author>();
+                    foreach (var name in authorNames)
+                    {
+                        var author = new Author();
+                        author.Name = name;
+                        listAuthor.Add(author);
+                    }
+                    novel.Authors = listAuthor.ToArray();
+                    novel.Cover = novelElement.QuerySelector("div[data-image]").Attributes["data-image"].Value;
+
+                    listNovel.Add(novel);
+                }
             }
 
-            return new Tuple<Novel[], int>(listNovel.ToArray(), totalPage);
+            return listNovel.ToArray();
         }
 
         public async Task<Novel> CrawlDetail(string novelSlug)
@@ -101,20 +107,23 @@ namespace SourcePlugin.TruyenFullVn
             novel.Cover = document.DocumentNode.QuerySelector("div.books img").Attributes["src"].Value;
 
             // get totalPage
-            var paginationElement = document.DocumentNode.QuerySelector("ul.pagination");
-            paginationElement.RemoveChild(paginationElement.LastChild);
-            var lastChild = paginationElement.LastChild.QuerySelector("a");
             int totalPage = 1;
-            Regex regex = new Regex(@"\d+");
-            if (lastChild == null)
+            var paginationElement = document.DocumentNode.QuerySelector("ul.pagination");
+            if (paginationElement != null)
             {
-                MatchCollection matches = regex.Matches(paginationElement.LastChild.InnerText);
-                totalPage = int.Parse(matches[0].Value);
-            }
-            else
-            {
-                MatchCollection matches = regex.Matches(lastChild.Attributes["href"].Value);
-                totalPage = int.Parse(matches[0].Value);
+                paginationElement.RemoveChild(paginationElement.LastChild);
+                var lastChild = paginationElement.LastChild.QuerySelector("a");
+                Regex regex = new Regex(@"\d+");
+                if (lastChild == null)
+                {
+                    MatchCollection matches = regex.Matches(paginationElement.LastChild.InnerText);
+                    totalPage = int.Parse(matches[0].Value);
+                }
+                else
+                {
+                    MatchCollection matches = regex.Matches(lastChild.Attributes["href"].Value);
+                    totalPage = int.Parse(matches[0].Value);
+                }
             }
 
             // list chapter
@@ -155,6 +164,5 @@ namespace SourcePlugin.TruyenFullVn
 
             return content;
         }
-
     }
 }

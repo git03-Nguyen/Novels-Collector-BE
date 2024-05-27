@@ -7,7 +7,7 @@ namespace NovelsCollector.Core.PluginsManager
     {
         public Dictionary<string, ISourcePlugin> Plugins { get; }
 
-        Task<Tuple<Novel[], int>> Search(string? keyword, string? author, string? year);
+        Task<Novel[]> Search(string? keyword, string? author, string? year);
 
         Task<Novel> GetNovelDetail(string novelSlug);
 
