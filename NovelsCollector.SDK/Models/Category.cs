@@ -1,4 +1,4 @@
-﻿namespace NovelsCollector.Core.Models.Novels
+﻿namespace NovelsCollector.SDK.Models
 {
     public class Category
     {

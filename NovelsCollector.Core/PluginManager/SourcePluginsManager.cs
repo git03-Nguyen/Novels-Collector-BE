@@ -1,8 +1,8 @@
-﻿using NovelsCollector.SDK;
-using NovelsCollector.SDK.SourcePlugins;
+﻿using NovelsCollector.SDK.Plugins;
+using NovelsCollector.SDK.Plugins.SourcePlugins;
 using System.Reflection;
 
-namespace NovelsCollector.Core.Plugins
+namespace NovelsCollector.Core.PluginManager
 {
     public class SourcePluginsManager : ISourcePluginManager
     {
@@ -10,7 +10,7 @@ namespace NovelsCollector.Core.Plugins
 
         public Dictionary<string, IPlugin> Plugins => plugins;
 
-        public SourcePluginsManager() 
+        public SourcePluginsManager()
         {
             ReloadPlugins();
         }

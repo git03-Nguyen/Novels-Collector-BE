@@ -1,4 +1,5 @@
-﻿using NovelsCollector.SDK.SourcePlugins;
+﻿using NovelsCollector.SDK.Models;
+using NovelsCollector.SDK.Plugins.SourcePlugins;
 
 namespace PluginA
 {
@@ -7,22 +8,67 @@ namespace PluginA
         public string Name => "PluginA";
         public string Url => "https://truyenfull.vn/";
 
-        public async Task<string> GetNovel(string url)
+        public async Task<Novel> GetNovel(string url)
         {
-            // fetch url by HttpClient
-            var httpClient = new HttpClient();
-            var response = await httpClient.GetAsync(url);
-            var content = await response.Content.ReadAsStringAsync();
-            return content;
+            return new Novel
+            {
+                Title = "Title",
+                Description = "Description",
+                Year = 2021,
+                Status = true,
+                Rating = 4.5f,
+                Authors = new Author[]
+                {
+                    new Author
+                    {
+                        Name = "Author"
+                    }
+                },
+                Categories = new Category[]
+                {
+                    new Category
+                    {
+                        Name = "Category"
+                    }
+                },
+                Plugins = new ISourcePlugin[]
+                {
+                    this
+                }
+            };
         }
 
-        public async Task<string> Search(string? keyword, string? author, string? year)
+        public async Task<Novel[]> Search(string? keyword, string? author, string? year)
         {
-            // fetch https://truyenfull.vn/tim-kiem/?tukhoa=keyword&tacgia=author&nam=year by HttpClient
-            var httpClient = new HttpClient();
-            var response = await httpClient.GetAsync($"{Url}tim-kiem/?tukhoa={keyword}");
-            var content = await response.Content.ReadAsStringAsync();
-            return content;
+            return new Novel[]
+            {
+                new Novel
+                {
+                    Title = "Title",
+                    Description = "Description",
+                    Year = 2021,
+                    Status = true,
+                    Rating = 4.5f,
+                    Authors = new Author[]
+                    {
+                        new Author
+                        {
+                            Name = "Author"
+                        }
+                    },
+                    Categories = new Category[]
+                    {
+                        new Category
+                        {
+                            Name = "Category"
+                        }
+                    },
+                    Plugins = new ISourcePlugin[]
+                    {
+                        this
+                    }
+                }
+            };
         }
     }
 }

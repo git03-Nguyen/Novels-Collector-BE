@@ -1,4 +1,6 @@
-﻿namespace NovelsCollector.Core.Models.Novels
+﻿using NovelsCollector.SDK.Plugins.SourcePlugins;
+
+namespace NovelsCollector.SDK.Models
 {
     public class Novel
     {
@@ -11,6 +13,6 @@
         public float Rating { get; set; }
         public Author[] Authors { get; set; }
         public Category[] Categories { get; set; }
-        public Plugins.Source[] Sources { get; set; }
+        public ISourcePlugin[] Plugins { get; set; }
     }
 }

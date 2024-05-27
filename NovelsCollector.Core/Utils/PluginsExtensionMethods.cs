@@ -1,6 +1,6 @@
-﻿using NovelsCollector.Core.Plugins;
+﻿using NovelsCollector.Core.PluginManager;
 
-namespace NovelsCollector.Core.Extensions
+namespace NovelsCollector.Core.Utils
 {
     public static class PluginsExtensionMethods
     {
