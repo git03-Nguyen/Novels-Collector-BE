@@ -18,7 +18,7 @@ namespace NovelsCollector.Core.Controllers
         [AcceptVerbs("GET", "POST", "PUT", "DELETE")]
         public IActionResult Index()
         {
-            return Ok(new { message = "Hello World", method = HttpContext.Request.Method });
+            return Ok(new { message = "Hello, World", method = HttpContext.Request.Method });
         }
     }
 }

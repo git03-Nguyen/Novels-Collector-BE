@@ -1,4 +1,4 @@
-﻿using NovelsCollector.Core.Plugins;
+﻿using NovelsCollector.Core.PluginsManager;
 
 namespace NovelsCollector.Core.Extensions
 {

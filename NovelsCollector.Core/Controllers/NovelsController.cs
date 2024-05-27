@@ -1,6 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using NovelsCollector.Core.Plugins;
+﻿using Microsoft.AspNetCore.Mvc;
+using NovelsCollector.Core.PluginsManager;
 
 namespace NovelsCollector.Core.Controllers
 {
@@ -19,12 +18,7 @@ namespace NovelsCollector.Core.Controllers
         [HttpGet("{id}")]
         async public Task<IActionResult> Get([FromServices] ISourcePluginManager sourcePluginManager, [FromRoute] string id)
         {
-            if (id == null)
-            {
-                return BadRequest("The id parameter must be provided");
-            }
-            string result = await sourcePluginManager.GetNovel(id);
-            return Ok(result);
+            return BadRequest("Not implemented yet");
 
         }
 

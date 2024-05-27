@@ -1,39 +1,23 @@
-﻿using HtmlAgilityPack;
+﻿
+
+using HtmlAgilityPack;
+using NovelsCollector.SDK.Models;
 using NovelsCollector.SDK.SourcePlugins;
-using PluginCrawlTruyenFull.Models;
 using System.Text.RegularExpressions;
 
-namespace PluginCrawlTruyenFull
+namespace SourcePlugin.TruyenFullVn
 {
-    public class PluginCrawlTruyenFull : ISourcePlugin
+    public class TruyenFullVn : ISourcePlugin
     {
         public string Name => "PluginCrawlTruyenFull";
         public string Url => "https://truyenfull.vn/";
 
-        public async Task<string> GetNovel(string url)
-        {
-            // fetch url by HttpClient
-            var httpClient = new HttpClient();
-            var response = await httpClient.GetAsync(url);
-            var content = await response.Content.ReadAsStringAsync();
-            return content;
-        }
-
-        public async Task<string> Search(string? keyword, string? author, string? year)
-        {
-            // fetch https://truyenfull.vn/tim-kiem/?tukhoa=keyword&tacgia=author&nam=year by HttpClient
-            var httpClient = new HttpClient();
-            var response = await httpClient.GetAsync($"{Url}tim-kiem/?tukhoa={keyword}");
-            var content = await response.Content.ReadAsStringAsync();
-            return content;
-        }
-
         // ----------------------------------------------------------------
-        public Tuple<Novel[], int> CrawlSearch(string? keyword, int page = 1)
+        public async Task<Tuple<Novel[], int>> CrawlSearch(string? keyword, int page = 1)
         {
             // fetch https://truyenfull.vn/tim-kiem/?tukhoa=keyword by HttpClient
             var web = new HtmlWeb();
-            var document = web.Load($"{Url}tim-kiem/?tukhoa={keyword}&page={page}");
+            var document = await web.LoadFromWebAsync($"{Url}tim-kiem/?tukhoa={keyword}&page={page}");
 
             // Get Pagination
             var paginationElement = document.DocumentNode.QuerySelector("ul.pagination");
@@ -79,10 +63,10 @@ namespace PluginCrawlTruyenFull
             return new Tuple<Novel[], int>(listNovel.ToArray(), totalPage);
         }
 
-        public Novel CrawlDetail(string novelSlug)
+        public async Task<Novel> CrawlDetail(string novelSlug)
         {
             var web = new HtmlWeb();
-            var document = web.Load($"{Url}{novelSlug}/");
+            var document = await web.LoadFromWebAsync($"{Url}{novelSlug}/");
 
             var novel = new Novel();
             novel.Title = document.DocumentNode.QuerySelector("h3.title").InnerText;
@@ -153,10 +137,10 @@ namespace PluginCrawlTruyenFull
             return novel;
         }
 
-        public string CrawChapter(Novel novel, Chapter chapter)
+        public async Task<string> CrawChapter(Novel novel, Chapter chapter)
         {
             var web = new HtmlWeb();
-            var document = web.Load($"{Url}{novel.Slug}/{chapter.Slug}/");
+            var document = await web.LoadFromWebAsync($"{Url}{novel.Slug}/{chapter.Slug}/");
             var contentElement = document.DocumentNode.QuerySelector("#chapter-c");
 
             // Remove all ads
@@ -170,6 +154,11 @@ namespace PluginCrawlTruyenFull
             string content = contentElement.InnerHtml;
 
             return content;
+        }
+
+        public Task<Chapter> CrawlChapter(string novelSlug, string chapterSlug)
+        {
+            throw new NotImplementedException();
         }
     }
 }
