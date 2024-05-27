@@ -1,4 +1,6 @@
-﻿namespace NovelsCollector.SDK.Models
+﻿using NovelsCollector.SDK.Plugins.SourcePlugins;
+
+namespace NovelsCollector.SDK.Models
 {
     public class Chapter
     {
@@ -7,5 +9,6 @@
         public string? Title { get; set; }
         public string? Slug { get; set; }
         public string? Content { get; set; }
+        public ISourcePlugin[]? Sources { get; set; }
     }
 }
