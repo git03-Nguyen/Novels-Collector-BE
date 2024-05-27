@@ -45,7 +45,7 @@ namespace NovelsCollector.Core.PluginsManager
             }
         }
 
-        public async Task<Tuple<Novel[], int>> Search(string? keyword, string? author, string? year)
+        public async Task<Novel[]> Search(string? keyword, string? author, string? year)
         {
             if (plugins.Count == 0)
             {
@@ -57,12 +57,11 @@ namespace NovelsCollector.Core.PluginsManager
 
             foreach (var plugin in plugins.Values)
             {
-                var (novelsResult, totalPageResult) = await plugin.CrawlSearch(keyword, 1);
+                var novelsResult = await plugin.CrawlSearch(keyword);
                 novels.AddRange(novelsResult);
-                totalPage += totalPageResult;
             }
 
-            return new Tuple<Novel[], int>(novels.ToArray(), totalPage);
+            return novels.ToArray();
         }
 
         public async Task<Novel> GetNovelDetail(string novelSlug)
