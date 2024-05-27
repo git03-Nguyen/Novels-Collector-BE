@@ -115,16 +115,15 @@ namespace NovelsCollector.Core.PluginsManager
                 throw new Exception("No plugins loaded");
             }
 
-            foreach (var plugin in plugins.Values)
+            if (novel.Sources == null || novel.Sources.Length == 0)
             {
-                try
-                {
-                    return await plugin.CrawlDetail(novel);
-                }
-                catch (Exception)
-                {
-                    continue;
-                }
+                throw new Exception("No source found");
+            }
+
+            foreach (var plugin in novel.Sources)
+            {
+                try { return await plugins[plugin].CrawlDetail(novel); }
+                catch (Exception) { continue; }
             }
 
             throw new Exception("Novel not found");

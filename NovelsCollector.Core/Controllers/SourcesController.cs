@@ -35,20 +35,22 @@ namespace NovelsCollector.Core.Controllers
         // POST: api/v1/sources: add a new source plugin, which is a zip file
         [HttpPost]
         [EndpointSummary("Add a new source plugin")]
-        public async Task<IActionResult> Post([FromServices] ISourcePluginManager pluginManager, [FromForm] IFormFile file)
+        //public async Task<IActionResult> Post([FromServices] ISourcePluginManager pluginManager, [FromForm] IFormFile file)
+        public async Task<IActionResult> Post([FromServices] ISourcePluginManager pluginManager, [FromBody] string file)
         {
-            if (file == null)
-                return BadRequest(new { message = "No file uploaded" });
+            //if (file == null)
+            //    return BadRequest(new { message = "No file uploaded" });
 
-            try
-            {
-                await pluginManager.AddPluginAsync(file);
-                return Ok(pluginManager.Plugins);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = ex.Message });
-            }
+            //try
+            //{
+            //    await pluginManager.AddPluginAsync(file);
+            //    return Ok(pluginManager.Plugins);
+            //}
+            //catch (Exception ex)
+            //{
+            //    return StatusCode(500, new { message = ex.Message });
+            //}
+            return BadRequest(new { message = "Not implemented" });
         }
 
         // DELETE: api/v1/sources/{name}: remove a source plugin

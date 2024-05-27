@@ -12,16 +12,24 @@ namespace NovelsCollector.Core.Controllers
 
         public NovelsController(ILogger<NovelsController> logger) => _logger = logger;
 
-        // GET: api/v1/novel/{id}
-        [HttpGet("{id}")]
+        // GET: api/v1/novel/{source}/{id}
+        [HttpGet("{source}/{slug}")]
         [EndpointDescription("View brief information of a novel")]
-        async public Task<IActionResult> Get([FromServices] ISourcePluginManager sourcePluginManager, [FromRoute] string id)
+        async public Task<IActionResult> Get([FromServices] ISourcePluginManager sourcePluginManager,
+            [FromRoute] string source, [FromRoute] string slug)
         {
-            // id maybe a slug or an id
-            //Novel novel = await sourcePluginManager.GetNovelDetail(id);
-            //return Ok(novel);
-            return BadRequest("Not implemented yet");
-
+            Novel novel = new Novel { Sources = new string[] { source }, Slug = slug };
+            try
+            {
+                novel = await sourcePluginManager.GetNovelDetail(novel);
+                if (novel == null)
+                    return NotFound(new { message = "Novel not found" });
+                return Ok(novel);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         // GET: api/v1/novel/{id}/chapters: view the novel chapters

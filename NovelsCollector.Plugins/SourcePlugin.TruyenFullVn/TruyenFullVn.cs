@@ -62,6 +62,8 @@ namespace SourcePlugin.TruyenFullVn
                     novel.Authors = listAuthor.ToArray();
                     novel.Cover = novelElement.QuerySelector("div[data-image]").Attributes["data-image"].Value;
 
+                    novel.Sources = new string[] { Name };
+
                     listNovel.Add(novel);
                 }
             }
@@ -102,7 +104,6 @@ namespace SourcePlugin.TruyenFullVn
             }
             novel.Categories = listCategory.ToArray();
 
-            novel.Status = document.DocumentNode.QuerySelector("span.text-success").InnerText.Trim() == "Full"; // check is completed
             novel.Cover = document.DocumentNode.QuerySelector("div.books img").Attributes["src"].Value;
 
             // get totalPage
@@ -129,7 +130,7 @@ namespace SourcePlugin.TruyenFullVn
             List<Chapter> listChapter = new List<Chapter>();
             for (int i = 1; i <= totalPage; i++)
             {
-                document = web.Load($"{Url}{novel.Slug}/trang-{i}/#list-chapter");
+                document = await web.LoadFromWebAsync($"{Url}{novel.Slug}/trang-{i}/#list-chapter");
 
                 var chapterElements = document.DocumentNode.QuerySelectorAll("ul.list-chapter li");
                 foreach (var element in chapterElements)

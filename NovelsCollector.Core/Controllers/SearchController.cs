@@ -11,7 +11,7 @@ namespace NovelsCollector.Core.Controllers
 
         public SearchController(ILogger<SearchController> logger) => _logger = logger;
 
-        // GET: api/v1/search?keyword=keyword&author=author&year=year: 
+        // GET: api/v1/search?keyword=keyword&author=author&year=year
         [HttpGet]
         [EndpointSummary("Search novels by keyword, author, and year queries")]
         public async Task<IActionResult> Get([FromServices] ISourcePluginManager pluginManager,

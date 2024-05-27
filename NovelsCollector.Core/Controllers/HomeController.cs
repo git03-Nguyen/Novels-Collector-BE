@@ -12,7 +12,8 @@ namespace NovelsCollector.Core.Controllers
         public HomeController(ILogger<HomeController> logger) => _logger = logger;
 
         [EndpointSummary("Check if the server is running")]
-        [AcceptVerbs("GET", "POST", "PUT", "DELETE")]
+        //[AcceptVerbs("GET", "POST", "PUT", "DELETE")]
+        [HttpGet]
         public IActionResult Index()
         {
             return Ok(new { message = "Hello, World", method = HttpContext.Request.Method });
