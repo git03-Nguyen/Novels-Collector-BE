@@ -4,3 +4,7 @@ GET {{NovelsCollector.Core_HostAddress}}/api/v1/
 Accept: application/json
 
 ###
+
+### Search "anh dao"
+GET {{NovelsCollector.Core_HostAddress}}/api/v1/search?keyword=anh%20dao
+Accept: application/json
