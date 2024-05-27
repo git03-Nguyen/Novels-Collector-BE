@@ -1,6 +1,6 @@
 ## ✨ Novels Collector Website (Backend) - Group 12 ✨
 #### *📖 A platform for searching and reading novels from multiple websites using hot-plugins in ASP.NET Core.* 
-
+*This is only the back-end part of the project. Please refer to https://github.com/thienan2003bt/Novels-Collector-FE for the front-end part. Thank you!*
 ### 1. Course information:
 - **Course name:** Software Design
 - **Course ID:** CSC13010
@@ -24,5 +24,5 @@
 - **Back-end:** ASP.NET Core
 - **Database:** MongoDB
 
-*This is only the back-end part of the project. Please refer to https://github.com/thienan2003bt/Novels-Collector-FE for the front-end part. Thank you!*
+
 
