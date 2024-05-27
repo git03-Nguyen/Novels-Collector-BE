@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using NovelsCollector.Core.PluginManager;
+using NovelsCollector.Core.PluginsManager;
 
 namespace NovelsCollector.Core.Controllers
 {
@@ -19,12 +19,15 @@ namespace NovelsCollector.Core.Controllers
         public async Task<IActionResult> Get([FromServices] ISourcePluginManager pluginManager,
             [FromQuery] string? keyword, [FromQuery] string? author, [FromQuery] string? year)
         {
-            if (keyword == null && author == null && year == null)
+            try
             {
-                return BadRequest(new { message = "At least one of the following query parameters must be provided: keyword, author, year" });
+                var result = await pluginManager.Search(keyword, author, year);
+                return Ok(result);
             }
-            string result = await pluginManager.ExecuteSearch(keyword, author, year);
-            return Ok(result);
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
 

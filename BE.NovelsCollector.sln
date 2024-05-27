@@ -5,9 +5,11 @@ VisualStudioVersion = 17.9.34728.123
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NovelsCollector.Core", "NovelsCollector.Core\NovelsCollector.Core.csproj", "{92D460B1-FEE2-4EC7-88F5-D975993EE2DC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NovelsCollector.SDK", "NovelsCollector.SDK\NovelsCollector.SDK.csproj", "{B29AA953-987B-4ED5-BD3A-29F6FC61E591}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NovelsCollector.SDK", "NovelsCollector.SDK\NovelsCollector.SDK.csproj", "{B29AA953-987B-4ED5-BD3A-29F6FC61E591}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PluginA", "PluginA\PluginA.csproj", "{31936E70-4E03-4B8F-8336-E699CE77E186}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "NovelsCollector.Plugins", "NovelsCollector.Plugins", "{B0CA3981-960E-4C9B-AFB0-7949AB9EA8BF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SourcePlugin.TruyenFullVn", "NovelsCollector.Plugins\SourcePlugin.TruyenFullVn\SourcePlugin.TruyenFullVn.csproj", "{9AA8221E-399A-4E8C-8224-F72B8E43E596}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Plugins", "Plugins", "{9B1E8CE5-4A35-4F14-A9CB-5FEC35DD6897}"
 EndProject
@@ -25,16 +27,16 @@ Global
 		{B29AA953-987B-4ED5-BD3A-29F6FC61E591}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B29AA953-987B-4ED5-BD3A-29F6FC61E591}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B29AA953-987B-4ED5-BD3A-29F6FC61E591}.Release|Any CPU.Build.0 = Release|Any CPU
-		{31936E70-4E03-4B8F-8336-E699CE77E186}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{31936E70-4E03-4B8F-8336-E699CE77E186}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{31936E70-4E03-4B8F-8336-E699CE77E186}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{31936E70-4E03-4B8F-8336-E699CE77E186}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9AA8221E-399A-4E8C-8224-F72B8E43E596}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9AA8221E-399A-4E8C-8224-F72B8E43E596}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9AA8221E-399A-4E8C-8224-F72B8E43E596}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9AA8221E-399A-4E8C-8224-F72B8E43E596}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{31936E70-4E03-4B8F-8336-E699CE77E186} = {9B1E8CE5-4A35-4F14-A9CB-5FEC35DD6897}
+		{9AA8221E-399A-4E8C-8224-F72B8E43E596} = {B0CA3981-960E-4C9B-AFB0-7949AB9EA8BF}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {C44A57C5-455B-4780-99D3-B1063694980F}
