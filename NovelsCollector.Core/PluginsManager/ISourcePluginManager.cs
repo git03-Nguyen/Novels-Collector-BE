@@ -11,6 +11,6 @@ namespace NovelsCollector.Core.PluginsManager
 
         Task<Novel> GetNovelDetail(Novel novel);
 
-        Task<string> GetChapter(string novelSlug, string chapterSlug);
+        Task<string> GetChapter(Novel novel, Chapter chapter);
     }
 }

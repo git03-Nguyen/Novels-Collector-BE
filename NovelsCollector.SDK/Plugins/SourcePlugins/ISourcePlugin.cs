@@ -7,7 +7,7 @@ namespace NovelsCollector.SDK.Plugins.SourcePlugins
         public string Url { get; }
         public Task<Novel[]> CrawlSearch(string? keyword);
         public Task<Novel> CrawlDetail(Novel novel);
-        public Task<string> CrawChapter(Novel novel, Chapter chapter);
+        public Task<string> CrawlChapter(Novel novel, Chapter chapter);
 
         // ... More
     }

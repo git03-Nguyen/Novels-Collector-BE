@@ -146,7 +146,7 @@ namespace SourcePlugin.TruyenFullVn
             return novel;
         }
 
-        public async Task<string> CrawChapter(Novel novel, Chapter chapter)
+        public async Task<string> CrawlChapter(Novel novel, Chapter chapter)
         {
             var web = new HtmlWeb();
             var document = await web.LoadFromWebAsync($"{Url}{novel.Slug}/{chapter.Slug}/");

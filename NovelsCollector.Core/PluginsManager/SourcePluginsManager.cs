@@ -131,29 +131,24 @@ namespace NovelsCollector.Core.PluginsManager
 
         public async Task<string> GetChapter(Novel novel, Chapter chapter)
         {
-            //if (plugins.Count == 0)
-            //{
-            //    throw new Exception("No plugins loaded");
-            //}
+            if (plugins.Count == 0)
+            {
+                throw new Exception("No plugins loaded");
+            }
 
-            //foreach (var plugin in plugins.Values)
-            //{
-            //    try
-            //    {
-            //        return await plugin.CrawlChapter(novel.Slug, chapter.Slug);
-            //    }
-            //    catch (Exception)
-            //    {
-            //        continue;
-            //    }
-            //}
+            if (novel.Sources == null || novel.Sources.Length == 0)
+            {
+                throw new Exception("No source found");
+            }
+
+            foreach (var plugin in novel.Sources)
+            {
+                try { return await plugins[plugin].CrawlChapter(novel, chapter); }
+                catch (Exception) { continue; }
+            }
 
             throw new Exception("Chapter not found");
         }
 
-        public Task<string> GetChapter(string novelSlug, string chapterSlug)
-        {
-            throw new NotImplementedException();
-        }
     }
 }
