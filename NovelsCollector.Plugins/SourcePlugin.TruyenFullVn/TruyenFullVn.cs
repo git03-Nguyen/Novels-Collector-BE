@@ -2,7 +2,7 @@
 
 using HtmlAgilityPack;
 using NovelsCollector.SDK.Models;
-using NovelsCollector.SDK.SourcePlugins;
+using NovelsCollector.SDK.Plugins.SourcePlugins;
 using System.Text.RegularExpressions;
 
 namespace SourcePlugin.TruyenFullVn
@@ -156,9 +156,5 @@ namespace SourcePlugin.TruyenFullVn
             return content;
         }
 
-        public Task<Chapter> CrawlChapter(string novelSlug, string chapterSlug)
-        {
-            throw new NotImplementedException();
-        }
     }
 }

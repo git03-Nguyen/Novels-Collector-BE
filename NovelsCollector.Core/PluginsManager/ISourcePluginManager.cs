@@ -1,5 +1,5 @@
 ﻿using NovelsCollector.SDK.Models;
-using NovelsCollector.SDK.SourcePlugins;
+using NovelsCollector.SDK.Plugins.SourcePlugins;
 
 namespace NovelsCollector.Core.PluginsManager
 {
