@@ -69,12 +69,11 @@ namespace SourcePlugin.TruyenFullVn
             return listNovel.ToArray();
         }
 
-        public async Task<Novel> CrawlDetail(string novelSlug)
+        public async Task<Novel> CrawlDetail(Novel novel)
         {
             var web = new HtmlWeb();
-            var document = await web.LoadFromWebAsync($"{Url}{novelSlug}/");
+            var document = await web.LoadFromWebAsync($"{Url}{novel.Slug}/");
 
-            var novel = new Novel();
             novel.Title = document.DocumentNode.QuerySelector("h3.title").InnerText;
             novel.Rating = float.Parse(document.DocumentNode.QuerySelector("span[itemprop='ratingValue']").InnerText);
             novel.Description = document.DocumentNode.QuerySelector("div[itemprop='description']").InnerText;
@@ -130,14 +129,14 @@ namespace SourcePlugin.TruyenFullVn
             List<Chapter> listChapter = new List<Chapter>();
             for (int i = 1; i <= totalPage; i++)
             {
-                document = web.Load($"{Url}{novelSlug}/trang-{i}/#list-chapter");
+                document = web.Load($"{Url}{novel.Slug}/trang-{i}/#list-chapter");
 
                 var chapterElements = document.DocumentNode.QuerySelectorAll("ul.list-chapter li");
                 foreach (var element in chapterElements)
                 {
                     var chapter = new Chapter();
                     chapter.Title = element.QuerySelector("a").Attributes["title"].Value;
-                    chapter.Slug = element.QuerySelector("a").Attributes["href"].Value.Replace($"{Url}{novelSlug}/", "").Replace("/", "");
+                    chapter.Slug = element.QuerySelector("a").Attributes["href"].Value.Replace($"{Url}{novel.Slug}/", "").Replace("/", "");
                     listChapter.Add(chapter);
                 }
             }

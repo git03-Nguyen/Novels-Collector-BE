@@ -64,7 +64,7 @@ namespace NovelsCollector.Core.PluginsManager
             return novels.ToArray();
         }
 
-        public async Task<Novel> GetNovelDetail(string novelSlug)
+        public async Task<Novel> GetNovelDetail(Novel novel)
         {
             if (plugins.Count == 0)
             {
@@ -75,7 +75,7 @@ namespace NovelsCollector.Core.PluginsManager
             {
                 try
                 {
-                    return await plugin.CrawlDetail(novelSlug);
+                    return await plugin.CrawlDetail(novel);
                 }
                 catch (Exception)
                 {
