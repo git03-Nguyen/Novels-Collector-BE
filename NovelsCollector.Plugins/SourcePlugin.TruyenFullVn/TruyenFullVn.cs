@@ -12,6 +12,29 @@ namespace SourcePlugin.TruyenFullVn
         public string Name => "PluginCrawlTruyenFull";
         public string Url => "https://truyenfull.vn/";
 
+        /// <summary>
+        /// Crawl Detail All Novels. Note: Takes a lot of time and ram
+        /// </summary>
+        /// <returns></returns>
+        public async Task<Novel[]> CrawlDetailAllNovels()
+        {
+            var (novels, totalPage) = await CrawlNovels($"{Url}danh-sach/truyen-hot/trang-<page>/");
+
+            List<Novel> listNovel = new List<Novel>();
+            for (int i = 1; i <= totalPage; i++)
+            {
+                var (tempNovels, tempTotalPage) = await CrawlNovels($"{Url}danh-sach/truyen-hot/trang-<page>/", i);
+
+                foreach (var element in tempNovels)
+                {
+                    var result = await CrawlDetail(element);
+                    listNovel.Add(result);
+                }
+            }
+
+            return listNovel.ToArray();
+        }
+
         public async Task<Novel[]> CrawlSearch(string? keyword)
         {
             // fetch https://truyenfull.vn/tim-kiem/?tukhoa=keyword
@@ -19,7 +42,7 @@ namespace SourcePlugin.TruyenFullVn
             var (novels, totalPage) = await CrawlNovels($"{Url}tim-kiem/?tukhoa={keyword}&page=<page>");
 
             List<Novel> listNovel = new List<Novel>();
-            for (int i = 0; i < totalPage; i++)
+            for (int i = 1; i <= totalPage; i++)
             {
                 var (tempNovels, tempTotalPage) = await CrawlNovels($"{Url}tim-kiem/?tukhoa={keyword}&page=<page>");
                 listNovel.AddRange(tempNovels);
