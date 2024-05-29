@@ -18,12 +18,12 @@ namespace SourcePlugin.TruyenFullVn
         /// <returns></returns>
         public async Task<Novel[]> CrawlDetailAllNovels()
         {
-            var (novels, totalPage) = await CrawlNovels($"{Url}danh-sach/truyen-hot/trang-<page>/");
+            var (novels, totalPage) = await CrawlNovels($"{Url}danh-sach/truyen-moi/trang-<page>/");
 
             List<Novel> listNovel = new List<Novel>();
             for (int i = 1; i <= totalPage; i++)
             {
-                var (tempNovels, tempTotalPage) = await CrawlNovels($"{Url}danh-sach/truyen-hot/trang-<page>/", i);
+                var (tempNovels, tempTotalPage) = await CrawlNovels($"{Url}danh-sach/truyen-moi/trang-<page>/", i);
 
                 foreach (var element in tempNovels)
                 {
@@ -77,9 +77,12 @@ namespace SourcePlugin.TruyenFullVn
             var web = new HtmlWeb();
             var document = await web.LoadFromWebAsync($"{Url}{novel.Slug}/");
 
-            novel.Title = document.DocumentNode.QuerySelector("h3.title").InnerText;
-            novel.Rating = float.Parse(document.DocumentNode.QuerySelector("span[itemprop='ratingValue']").InnerText);
-            novel.Description = document.DocumentNode.QuerySelector("div[itemprop='description']").InnerHtml;
+            novel.Title = document.DocumentNode.QuerySelector("h3.title")?.InnerText;
+
+            var ratingElement = document.DocumentNode.QuerySelector("span[itemprop='ratingValue']");
+            if (ratingElement != null) novel.Rating = float.Parse(ratingElement.InnerText);
+
+            novel.Description = document.DocumentNode.QuerySelector("div[itemprop='description']")?.InnerText;
 
             // get authors
             var authorElements = document.DocumentNode.QuerySelectorAll("a[itemprop='author']");
@@ -105,7 +108,8 @@ namespace SourcePlugin.TruyenFullVn
             }
             novel.Categories = listCategory.ToArray();
 
-            novel.Cover = document.DocumentNode.QuerySelector("div.books img").Attributes["src"].Value;
+            novel.Status = document.DocumentNode.QuerySelector("span.text-success")?.InnerText.Trim() == "Full"; // check is completed
+            novel.Cover = document.DocumentNode.QuerySelector("div.books img")?.Attributes["src"].Value;
 
             // get totalPage
             int totalPage = 1;
@@ -205,20 +209,24 @@ namespace SourcePlugin.TruyenFullVn
             foreach (var novelElement in novelElements)
             {
                 Novel novel = new Novel();
-                novel.Title = novelElement.QuerySelector("h3.truyen-title").InnerText;
-                novel.Slug = novelElement.QuerySelector("h3.truyen-title a").Attributes["href"].Value.Replace(Url, "").Replace("/", "");
+                novel.Title = novelElement.QuerySelector("h3.truyen-title")?.InnerText;
+                novel.Slug = novelElement.QuerySelector("h3.truyen-title a")?.Attributes["href"].Value.Replace(Url, "").Replace("/", "");
 
-                var strAuthor = novelElement.QuerySelector("span.author").InnerText;
+                var strAuthor = novelElement.QuerySelector("span.author")?.InnerText;
                 var authorNames = strAuthor?.Split(',').Select(author => author.Trim()).ToArray();
-                List<Author> listAuthor = new List<Author>();
-                foreach (var name in authorNames)
+                if (authorNames != null)
                 {
-                    var author = new Author();
-                    author.Name = name;
-                    listAuthor.Add(author);
+                    List<Author> listAuthor = new List<Author>();
+                    foreach (var name in authorNames)
+                    {
+                        var author = new Author();
+                        author.Name = name;
+                        listAuthor.Add(author);
+                    }
+                    novel.Authors = listAuthor.ToArray();
                 }
-                novel.Authors = listAuthor.ToArray();
-                novel.Cover = novelElement.QuerySelector("div[data-image]").Attributes["data-image"].Value;
+
+                novel.Cover = novelElement.QuerySelector("div[data-image]")?.Attributes["data-image"].Value;
 
                 listNovel.Add(novel);
             }
