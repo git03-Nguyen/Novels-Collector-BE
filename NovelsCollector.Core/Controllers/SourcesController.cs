@@ -14,7 +14,13 @@ namespace NovelsCollector.Core.Controllers
         // GET: api/v1/sources
         [HttpGet]
         [EndpointSummary("Get a list of all source plugins")]
-        public IActionResult Get([FromServices] ISourcePluginManager pluginManager) => Ok(pluginManager.Plugins);
+        public IActionResult Get([FromServices] ISourcePluginManager pluginManager) 
+        {
+            return Ok(new
+            {
+                data = pluginManager.Plugins.Values.ToArray()
+            });
+        } 
 
         // GET: api/v1/sources/reload
         [HttpGet("reload")]
@@ -24,7 +30,11 @@ namespace NovelsCollector.Core.Controllers
             try
             {
                 pluginManager.ReloadPlugins();
-                return Ok(pluginManager.Plugins);
+                return Ok(new 
+                {
+                    message = "Plugins reloaded",
+                    data = pluginManager.Plugins.Values.ToArray()
+                });
             }
             catch (Exception ex)
             {
@@ -61,7 +71,11 @@ namespace NovelsCollector.Core.Controllers
             try
             {
                 pluginManager.RemovePlugin(name);
-                return Ok(pluginManager.Plugins);
+                return Ok(new 
+                {
+                    message = $"Plugin {name} removed",
+                    data = pluginManager.Plugins.ToArray()
+                });
             }
             catch (Exception ex)
             {

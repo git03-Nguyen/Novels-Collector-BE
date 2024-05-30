@@ -20,7 +20,10 @@ namespace NovelsCollector.Core.Controllers
             try
             {
                 var result = await pluginManager.Search(keyword, author, year);
-                return Ok(result);
+                return Ok(new 
+                {
+                    data = result
+                });
             }
             catch (Exception ex)
             {

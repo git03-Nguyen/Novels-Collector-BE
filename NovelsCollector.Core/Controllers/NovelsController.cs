@@ -14,8 +14,9 @@ namespace NovelsCollector.Core.Controllers
 
         // GET: api/v1/novel/{source}/{slug}
         [HttpGet("{source}/{slug}")]
-        [EndpointDescription("View brief information of a novel")]
-        async public Task<IActionResult> Get([FromServices] ISourcePluginManager sourcePluginManager,
+        [EndpointSummary("View brief information of a novel")]
+        async public Task<IActionResult> Get(
+            [FromServices] ISourcePluginManager sourcePluginManager,
             [FromRoute] string source, [FromRoute] string slug)
         {
             Novel novel = new Novel { Sources = new string[] { source }, Slug = slug };
@@ -24,7 +25,7 @@ namespace NovelsCollector.Core.Controllers
                 novel = await sourcePluginManager.GetNovelDetail(novel);
                 if (novel == null)
                     return NotFound(new { message = "Novel not found" });
-                return Ok(novel);
+                return Ok(new { data = novel });
             }
             catch (Exception ex)
             {
@@ -50,7 +51,10 @@ namespace NovelsCollector.Core.Controllers
                 string chapter = await sourcePluginManager.GetChapter(novel, new Chapter { Slug = chapterSlug });
                 if (chapter == null)
                     return NotFound(new { message = "Chapter not found" });
-                return Ok(new { content = chapter });
+                return Ok(new 
+                { 
+                    data = new { content = chapter } 
+                });
             }
             catch (Exception ex)
             {
