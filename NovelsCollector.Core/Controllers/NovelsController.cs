@@ -4,8 +4,9 @@ using NovelsCollector.SDK.Models;
 
 namespace NovelsCollector.Core.Controllers
 {
-    [Route("api/v1/novel")]
     [ApiController]
+    [Tags("03. Novels")]
+    [Route("api/v1/novel")]
     public class NovelsController : ControllerBase
     {
         private readonly ILogger<NovelsController> _logger;
@@ -42,25 +43,7 @@ namespace NovelsCollector.Core.Controllers
         //    return BadRequest("Not implemented yet");
         //}
 
-        [HttpGet("{source}/{slug}/{chapterSlug}")]
-        async public Task<IActionResult> GetChapter([FromRoute] string source, [FromRoute] string slug, [FromRoute] string chapterSlug)
-        {
-            Novel novel = new Novel { Sources = new string[] { source }, Slug = slug };
-            try
-            {
-                string chapter = await _sourcePluginManager.GetChapter(novel, new Chapter { Slug = chapterSlug });
-                if (chapter == null)
-                    return NotFound(new { message = "Chapter not found" });
-                return Ok(new 
-                { 
-                    data = new { content = chapter } 
-                });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
-        }
+        
 
         // GET: api/v1/novel/{id}/export?extension=extension: export the novel to a file
         [HttpGet("{id}/export")]
