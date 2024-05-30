@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using System.ComponentModel.DataAnnotations;
 
 namespace NovelsCollector.Core.Controllers
 {
@@ -17,11 +18,13 @@ namespace NovelsCollector.Core.Controllers
         {
             return Ok(new 
             { 
-                message = "The server is running!", 
-                data = new 
+                data = new { 
+                    message = "The server is running!", 
+                },
+                meta = new 
                 { 
                     method = "GET",
-                    serverTime = DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss")
+                    timestamp = DateTime.UtcNow
                 } });
         }
     }

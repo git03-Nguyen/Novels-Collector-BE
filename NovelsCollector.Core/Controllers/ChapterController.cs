@@ -2,8 +2,6 @@
 using NovelsCollector.Core.Services.Plugins.Sources;
 using NovelsCollector.SDK.Models;
 
-// For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-
 namespace NovelsCollector.Core.Controllers
 {
     [ApiController]
@@ -29,10 +27,11 @@ namespace NovelsCollector.Core.Controllers
             {
                 string chapter = await _sourcePluginManager.GetChapter(novel, new Chapter { Slug = chapterSlug });
                 if (chapter == null)
-                    return NotFound(new { message = "Chapter not found" });
+                    return NotFound(new { error = new { message = "Không tìm thấy chapter" } });
                 return Ok(new
                 {
-                    data = new { content = chapter }
+                    data = new { content = chapter },
+                    meta = new { type = "html", encoding = false }
                 });
             }
             catch (Exception ex)

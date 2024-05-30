@@ -31,7 +31,7 @@ namespace NovelsCollector.Core.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new { message = ex.Message });
+                return StatusCode(500, new { error = new { code = ex.HResult, message = ex.Message } });
             }
         }
 

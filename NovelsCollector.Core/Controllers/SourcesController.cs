@@ -20,11 +20,12 @@ namespace NovelsCollector.Core.Controllers
         // GET: api/v1/sources
         [HttpGet]
         [EndpointSummary("Get a list of all source plugins")]
-        public IActionResult Get() 
+        public IActionResult GetSources()
         {
             return Ok(new
             {
-                data = _sourcePluginManager.Plugins.Values.ToArray()
+                data = _sourcePluginManager.Plugins.Values.ToArray(),
+                meta = new { count = _sourcePluginManager.Plugins.Count }
             });
         } 
 
@@ -38,13 +39,13 @@ namespace NovelsCollector.Core.Controllers
                 _sourcePluginManager.ReloadPlugins();
                 return Ok(new 
                 {
-                    message = "Plugins reloaded",
-                    data = _sourcePluginManager.Plugins.Values.ToArray()
+                    data = _sourcePluginManager.Plugins.Values.ToArray(),
+                    meta = new { count = _sourcePluginManager.Plugins.Count }
                 });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = ex.Message });
+                return StatusCode(500, new { error = new { code = ex.HResult, message = ex.Message } });
             }
         }
 
@@ -66,7 +67,7 @@ namespace NovelsCollector.Core.Controllers
             //{
             //    return StatusCode(500, new { message = ex.Message });
             //}
-            return BadRequest(new { message = "Not implemented" });
+            return BadRequest(new { error = new { code = 501, message = "Not implemented yet" } });
         }
 
         // DELETE: api/v1/sources/{name}: remove a source plugin
@@ -79,13 +80,13 @@ namespace NovelsCollector.Core.Controllers
                 _sourcePluginManager.RemovePlugin(name);
                 return Ok(new 
                 {
-                    message = $"Plugin {name} removed",
-                    data = _sourcePluginManager.Plugins.ToArray()
+                    data = _sourcePluginManager.Plugins.ToArray(),
+                    meta = new { count = _sourcePluginManager.Plugins.Count, message = $"Plugin {name} removed" }
                 });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = ex.Message });
+                return StatusCode(500, new { error = new { code = ex.HResult, message = ex.Message } });
             }
         }
 
