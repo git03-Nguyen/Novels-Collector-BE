@@ -3,6 +3,7 @@
 using HtmlAgilityPack;
 using NovelsCollector.SDK.Models;
 using NovelsCollector.SDK.Plugins.SourcePlugins;
+using System.Globalization;
 using System.Text.RegularExpressions;
 
 namespace SourcePlugin.TruyenFullVn
@@ -35,43 +36,103 @@ namespace SourcePlugin.TruyenFullVn
             return listNovel.ToArray();
         }
 
-        public async Task<Novel[]> CrawlSearch(string? keyword)
+        /// <summary>
+        /// Crawl novels by search
+        /// </summary>
+        /// <param name="keyword"></param>
+        /// <param name="page"></param>
+        /// <returns>First: Novels, Second: total page</returns>
+        public async Task<Tuple<Novel[], int>> CrawlSearch(string? keyword, int page = 1)
         {
             // fetch https://truyenfull.vn/tim-kiem/?tukhoa=keyword
-
-            var (novels, totalPage) = await CrawlNovels($"{Url}tim-kiem/?tukhoa={keyword}&page=<page>");
-
-            List<Novel> listNovel = new List<Novel>();
-            for (int i = 1; i <= totalPage; i++)
-            {
-                var (tempNovels, tempTotalPage) = await CrawlNovels($"{Url}tim-kiem/?tukhoa={keyword}&page=<page>");
-                listNovel.AddRange(tempNovels);
-            }
-
-            return listNovel.ToArray();
+            var result = await CrawlNovels($"{Url}tim-kiem/?tukhoa={keyword}&page=<page>", page);
+            return result;
         }
 
-        public async Task<Tuple<Novel[], int>> CrawlHot(int page)
+        /// <summary>
+        /// Crawl hot novels
+        /// </summary>
+        /// <param name="page"></param>
+        /// <returns>First: Novels, Second: total page</returns>
+        public async Task<Tuple<Novel[], int>> CrawlHot(int page = 1)
         {
             // fetch https://truyenfull.vn/danh-sach/truyen-hot/ 
             var result = await CrawlNovels($"{Url}danh-sach/truyen-hot/trang-<page>/", page);
             return result;
         }
 
-        public async Task<Tuple<Novel[], int>> CrawlLatest(int page)
+        /// <summary>
+        /// Crawl latest novles
+        /// </summary>
+        /// <param name="page"></param>
+        /// <returns>First: Novels, Second: total page</returns>
+        public async Task<Tuple<Novel[], int>> CrawlLatest(int page = 1)
         {
             // fetch https://truyenfull.vn/danh-sach/truyen-moi/
             var result = await CrawlNovels($"{Url}danh-sach/truyen-moi/trang-<page>/", page);
             return result;
         }
 
-        public async Task<Tuple<Novel[], int>> CrawlCompleted(int page)
+        /// <summary>
+        /// Crawl completed novels
+        /// </summary>
+        /// <param name="page"></param>
+        /// <returns>First: Novels, Second: total page</returns>
+        public async Task<Tuple<Novel[], int>> CrawlCompleted(int page = 1)
         {
             // fetch https://truyenfull.vn/danh-sach/truyen-full/
             var result = await CrawlNovels($"{Url}danh-sach/truyen-full/trang-<page>/", page);
             return result;
         }
 
+        /// <summary>
+        /// Crawl novels which are written by this author
+        /// </summary>
+        /// <param name="author"></param>
+        /// <param name="page"></param>
+        /// <returns>First: Novels, Second: total page</returns>
+        public async Task<Tuple<Novel[], int>> CrawlByAuthor(Author author, int page = 1)
+        {
+            // fetch https://truyenfull.vn/tac-gia/
+            var result = await CrawlNovels($"{Url}tac-gia/{author.Slug}/trang-<page>/", page);
+            return result;
+        }
+
+        /// <summary>
+        /// Crawl novels which have the same category
+        /// </summary>
+        /// <param name="category"></param>
+        /// <param name="page"></param>
+        /// <returns>First: Novels, Second: total page</returns>
+        public async Task<Tuple<Novel[], int>> CrawlByCategory(Category category, int page = 1)
+        {
+            // fetch https://truyenfull.vn/the-loai/
+            var result = await CrawlNovels($"{Url}the-loai/{category.Slug}/trang-<page>/", page);
+            return result;
+        }
+
+        public async Task<Category[]> CrawlCategories()
+        {
+            List<Category> listCategory = new List<Category>();
+            var web = new HtmlWeb();
+            var document = await web.LoadFromWebAsync(Url);
+
+            var categoryElements = document.DocumentNode.QuerySelectorAll("ul.navbar-nav a[href*='https://truyenfull.vn/the-loai/']");
+            foreach (var categoryElement in categoryElements)
+            {
+                Category category = new Category();
+                category.Name = categoryElement?.InnerText;
+                category.Slug = categoryElement?.Attributes["href"].Value.Replace("https://truyenfull.vn/the-loai/'", "").Replace("/", "");
+
+                if (listCategory.Count(x => (x.Slug == category.Slug)) == 0)
+                { 
+                    listCategory.Add(category);
+                }
+            }
+
+            return listCategory.ToArray();
+        }
+        
         public async Task<Novel> CrawlDetail(Novel novel)
         {
             var web = new HtmlWeb();
@@ -82,7 +143,7 @@ namespace SourcePlugin.TruyenFullVn
             var ratingElement = document.DocumentNode.QuerySelector("span[itemprop='ratingValue']");
             if (ratingElement != null) novel.Rating = float.Parse(ratingElement.InnerText);
 
-            novel.Description = document.DocumentNode.QuerySelector("div[itemprop='description']")?.InnerText;
+            novel.Description = document.DocumentNode.QuerySelector("div[itemprop='description']")?.InnerHtml;
 
             // get authors
             var authorElements = document.DocumentNode.QuerySelectorAll("a[itemprop='author']");
@@ -204,6 +265,12 @@ namespace SourcePlugin.TruyenFullVn
             }
 
             // Get novels
+            // remove empty div in list-truyen
+            var adsElements = document.DocumentNode.QuerySelectorAll("div.col-truyen-main div.list-truyen div[id]");
+            foreach (var element in adsElements)
+            {
+                element.Remove();
+            }
             var listNovel = new List<Novel>();
             var novelElements = document.DocumentNode.QuerySelectorAll(" div.col-truyen-main div.list-truyen div.row");
             foreach (var novelElement in novelElements)
