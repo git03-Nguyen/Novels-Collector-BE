@@ -3,8 +3,9 @@ using NovelsCollector.Core.Services.Plugins.Sources;
 
 namespace NovelsCollector.Core.Controllers
 {
-    [Route("api/v1/search")]
     [ApiController]
+    [Tags("02. Search")]
+    [Route("api/v1/search")]
     public class SearchController : ControllerBase
     {
         private readonly ILogger<SearchController> _logger;
@@ -16,7 +17,6 @@ namespace NovelsCollector.Core.Controllers
             _sourcePluginManager = sourcePluginManager;
         }
 
-        // GET: api/v1/search?keyword=keyword&author=author&year=year
         [HttpGet]
         [EndpointSummary("Search novels by keyword, author, and year queries")]
         public async Task<IActionResult> Get([FromQuery] string? keyword, [FromQuery] string? author, [FromQuery] string? year)
@@ -31,7 +31,7 @@ namespace NovelsCollector.Core.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new { message = ex.Message });
+                return StatusCode(500, new { error = new { code = ex.HResult, message = ex.Message } });
             }
         }
 

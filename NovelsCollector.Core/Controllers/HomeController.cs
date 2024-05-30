@@ -1,8 +1,10 @@
 using Microsoft.AspNetCore.Mvc;
+using System.ComponentModel.DataAnnotations;
 
 namespace NovelsCollector.Core.Controllers
 {
     [ApiController]
+    [Tags("01. Test")]
     [Route("/api/v1/")]
     public class HomeController : ControllerBase
     {
@@ -10,20 +12,20 @@ namespace NovelsCollector.Core.Controllers
 
         public HomeController(ILogger<HomeController> logger) => _logger = logger;
 
-        #region GET api/v1/
         [EndpointSummary("Check if the server is running")]
         [HttpGet]
         public IActionResult Get()
         {
             return Ok(new 
             { 
-                message = "The server is running!", 
-                data = new 
+                data = new { 
+                    message = "The server is running!", 
+                },
+                meta = new 
                 { 
                     method = "GET",
-                    serverTime = DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss")
+                    timestamp = DateTime.UtcNow
                 } });
         }
-        #endregion
     }
 }

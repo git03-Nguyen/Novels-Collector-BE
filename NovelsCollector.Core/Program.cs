@@ -1,9 +1,13 @@
 using NovelsCollector.Core.Utils;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container
-builder.Services.AddControllers();
+builder.Services.AddControllers().AddJsonOptions(options =>
+{
+    options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+});
 builder.Services.AddPlugins();
 
 //builder.Services.Configure<PluginsDbSettings>(builder.Configuration.GetSection("PluginsDatabase"));
