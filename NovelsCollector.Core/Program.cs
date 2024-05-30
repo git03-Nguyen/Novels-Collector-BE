@@ -4,7 +4,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container
 builder.Services.AddControllers();
-builder.Services.AddPluginManager();
+builder.Services.AddPlugins();
 
 //builder.Services.Configure<PluginsDbSettings>(builder.Configuration.GetSection("PluginsDatabase"));
 //builder.Services.AddSingleton<PluginsService>();
@@ -34,7 +34,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UsePluginManager();
+app.UsePlugins();
 
 app.UseCors(corsName);
 

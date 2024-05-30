@@ -10,9 +10,10 @@ namespace NovelsCollector.Core.Controllers
 
         public HomeController(ILogger<HomeController> logger) => _logger = logger;
 
+        #region GET api/v1/
         [EndpointSummary("Check if the server is running")]
         [HttpGet]
-        public IActionResult Index()
+        public IActionResult Get()
         {
             return Ok(new 
             { 
@@ -23,5 +24,6 @@ namespace NovelsCollector.Core.Controllers
                     serverTime = DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss")
                 } });
         }
+        #endregion
     }
 }

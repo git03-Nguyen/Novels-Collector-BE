@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using NovelsCollector.Core.PluginsManager;
+using NovelsCollector.Core.Services.Plugins.Sources;
 using NovelsCollector.SDK.Models;
 
 namespace NovelsCollector.Core.Controllers
@@ -9,20 +9,22 @@ namespace NovelsCollector.Core.Controllers
     public class NovelsController : ControllerBase
     {
         private readonly ILogger<NovelsController> _logger;
+        private readonly ISourcePluginManager _sourcePluginManager;
 
-        public NovelsController(ILogger<NovelsController> logger) => _logger = logger;
+        public NovelsController(ILogger<NovelsController> logger, ISourcePluginManager sourcePluginManager)
+        {
+            _logger = logger;
+            _sourcePluginManager = sourcePluginManager;
+        }
 
-        // GET: api/v1/novel/{source}/{slug}
         [HttpGet("{source}/{slug}")]
         [EndpointSummary("View brief information of a novel")]
-        async public Task<IActionResult> Get(
-            [FromServices] ISourcePluginManager sourcePluginManager,
-            [FromRoute] string source, [FromRoute] string slug)
+        async public Task<IActionResult> GetNovel([FromRoute] string source, [FromRoute] string slug)
         {
             Novel novel = new Novel { Sources = new string[] { source }, Slug = slug };
             try
             {
-                novel = await sourcePluginManager.GetNovelDetail(novel);
+                novel = await _sourcePluginManager.GetNovelDetail(novel);
                 if (novel == null)
                     return NotFound(new { message = "Novel not found" });
                 return Ok(new { data = novel });
@@ -40,15 +42,13 @@ namespace NovelsCollector.Core.Controllers
         //    return BadRequest("Not implemented yet");
         //}
 
-        // GET: api/v1/novel/{source}/{slug}/{chapterSlug}
         [HttpGet("{source}/{slug}/{chapterSlug}")]
-        async public Task<IActionResult> GetChapter([FromServices] ISourcePluginManager sourcePluginManager,
-            [FromRoute] string source, [FromRoute] string slug, [FromRoute] string chapterSlug)
+        async public Task<IActionResult> GetChapter([FromRoute] string source, [FromRoute] string slug, [FromRoute] string chapterSlug)
         {
             Novel novel = new Novel { Sources = new string[] { source }, Slug = slug };
             try
             {
-                string chapter = await sourcePluginManager.GetChapter(novel, new Chapter { Slug = chapterSlug });
+                string chapter = await _sourcePluginManager.GetChapter(novel, new Chapter { Slug = chapterSlug });
                 if (chapter == null)
                     return NotFound(new { message = "Chapter not found" });
                 return Ok(new 
@@ -64,7 +64,7 @@ namespace NovelsCollector.Core.Controllers
 
         // GET: api/v1/novel/{id}/export?extension=extension: export the novel to a file
         [HttpGet("{id}/export")]
-        async public Task<IActionResult> Export([FromServices] ISourcePluginManager sourcePluginManager, [FromRoute] string id, [FromQuery] string extension)
+        async public Task<IActionResult> Export([FromRoute] string id, [FromQuery] string extension)
         {
             return BadRequest("Not implemented yet");
         }

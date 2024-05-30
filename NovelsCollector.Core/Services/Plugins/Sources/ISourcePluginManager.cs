@@ -1,7 +1,7 @@
 ﻿using NovelsCollector.SDK.Models;
 using NovelsCollector.SDK.Plugins.SourcePlugins;
 
-namespace NovelsCollector.Core.PluginsManager
+namespace NovelsCollector.Core.Services.Plugins.Sources
 {
     public interface ISourcePluginManager : IPluginManager
     {

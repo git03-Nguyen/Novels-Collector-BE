@@ -1,4 +1,4 @@
-﻿namespace NovelsCollector.Core.PluginsManager
+﻿namespace NovelsCollector.Core.Services.Plugins
 {
     public interface IPluginManager
     {

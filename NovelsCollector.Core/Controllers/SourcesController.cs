@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using NovelsCollector.Core.PluginsManager;
+using NovelsCollector.Core.Services.Plugins.Sources;
 
 namespace NovelsCollector.Core.Controllers
 {
@@ -8,32 +8,37 @@ namespace NovelsCollector.Core.Controllers
     public class SourcesController : ControllerBase
     {
         private readonly ILogger<SourcesController> _logger;
+        private readonly ISourcePluginManager _sourcePluginManager;
 
-        public SourcesController(ILogger<SourcesController> logger) => _logger = logger;
+        public SourcesController(ILogger<SourcesController> logger, ISourcePluginManager sourcePluginManager)
+        {
+            _logger = logger;
+            _sourcePluginManager = sourcePluginManager;
+        }
 
         // GET: api/v1/sources
         [HttpGet]
         [EndpointSummary("Get a list of all source plugins")]
-        public IActionResult Get([FromServices] ISourcePluginManager pluginManager) 
+        public IActionResult Get() 
         {
             return Ok(new
             {
-                data = pluginManager.Plugins.Values.ToArray()
+                data = _sourcePluginManager.Plugins.Values.ToArray()
             });
         } 
 
         // GET: api/v1/sources/reload
         [HttpGet("reload")]
         [EndpointSummary("Reload source plugins")]
-        public IActionResult Reload([FromServices] ISourcePluginManager pluginManager)
+        public IActionResult Reload()
         {
             try
             {
-                pluginManager.ReloadPlugins();
+                _sourcePluginManager.ReloadPlugins();
                 return Ok(new 
                 {
                     message = "Plugins reloaded",
-                    data = pluginManager.Plugins.Values.ToArray()
+                    data = _sourcePluginManager.Plugins.Values.ToArray()
                 });
             }
             catch (Exception ex)
@@ -46,7 +51,7 @@ namespace NovelsCollector.Core.Controllers
         [HttpPost]
         [EndpointSummary("Add a new source plugin")]
         //public async Task<IActionResult> Post([FromServices] ISourcePluginManager pluginManager, [FromForm] IFormFile file)
-        public async Task<IActionResult> Post([FromServices] ISourcePluginManager pluginManager, [FromBody] string file)
+        public async Task<IActionResult> Post([FromBody] string file)
         {
             //if (file == null)
             //    return BadRequest(new { message = "No file uploaded" });
@@ -66,15 +71,15 @@ namespace NovelsCollector.Core.Controllers
         // DELETE: api/v1/sources/{name}: remove a source plugin
         [HttpDelete("{name}")]
         [EndpointSummary("Remove a source plugin")]
-        public IActionResult Delete([FromServices] ISourcePluginManager pluginManager, [FromRoute] string name)
+        public IActionResult Delete([FromRoute] string name)
         {
             try
             {
-                pluginManager.RemovePlugin(name);
+                _sourcePluginManager.RemovePlugin(name);
                 return Ok(new 
                 {
                     message = $"Plugin {name} removed",
-                    data = pluginManager.Plugins.ToArray()
+                    data = _sourcePluginManager.Plugins.ToArray()
                 });
             }
             catch (Exception ex)

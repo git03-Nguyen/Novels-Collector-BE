@@ -2,7 +2,7 @@
 using NovelsCollector.SDK.Plugins.SourcePlugins;
 using System.Reflection;
 
-namespace NovelsCollector.Core.PluginsManager
+namespace NovelsCollector.Core.Services.Plugins.Sources
 {
     public class SourcePluginsManager : ISourcePluginManager
     {
