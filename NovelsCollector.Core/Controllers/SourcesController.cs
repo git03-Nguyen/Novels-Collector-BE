@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using NovelsCollector.Core.Services.Plugins;
+using NovelsCollector.SDK.Plugins.SourcePlugins;
 
 namespace NovelsCollector.Core.Controllers
 {
@@ -38,7 +39,6 @@ namespace NovelsCollector.Core.Controllers
             try
             {
                 _sourcePluginManager.Reload();
-                _logger.LogInformation($"Source plugins reloaded: {_sourcePluginManager.Plugins.Count} plugins loaded");
                 return Ok(new
                 {
                     data = _sourcePluginManager.Plugins.Values.ToArray(),
@@ -54,8 +54,14 @@ namespace NovelsCollector.Core.Controllers
         [HttpPost]
         [EndpointSummary("Add a new source plugin")]
         //public async Task<IActionResult> Post([FromServices] ISourcePluginManager pluginManager, [FromForm] IFormFile file)
-        public Task<IActionResult> Post([FromBody] string file)
+        public async Task<IActionResult> Post([FromBody] string file)
         {
+            //SourcePlugin plugin = _sourcePluginManager.Plugins["PluginCrawlTruyenFull"];
+            //_sourcePluginManager.Add(plugin);
+            //return Ok(new
+            //{
+            //    data = plugin,
+            //});
             throw new NotImplementedException();
         }
 

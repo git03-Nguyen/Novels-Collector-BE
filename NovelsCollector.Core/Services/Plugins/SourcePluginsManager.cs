@@ -1,4 +1,6 @@
-﻿using NovelsCollector.SDK.Models;
+﻿using MongoDB.Driver;
+using NovelsCollector.Core.Utils;
+using NovelsCollector.SDK.Models;
 using NovelsCollector.SDK.Plugins.SourcePlugins;
 using System.Reflection;
 
@@ -6,34 +8,34 @@ namespace NovelsCollector.Core.Services.Plugins
 {
     public class SourcePluginsManager
     {
-        private static readonly Dictionary<string, SourcePlugin> plugins = new Dictionary<string, SourcePlugin>();
+        // A dictionary to store the plugins
+        private static readonly Dictionary<string, SourcePlugin> _plugins = new Dictionary<string, SourcePlugin>();
 
-        private static readonly string pluginsPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Plugins");
+        // The path to the plugins folder
+        private static readonly string _pluginsPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Plugins");
 
-        public Dictionary<string, SourcePlugin> Plugins => plugins;
+        // The collection of plugins in the database
+        private static IMongoCollection<SourcePlugin> _pluginsCollection = null;
 
-        public SourcePluginsManager() => Reload();
+        public Dictionary<string, SourcePlugin> Plugins => _plugins;
+
+        public SourcePluginsManager(MongoDbContext mongoDbContext)
+        {
+            _pluginsCollection = mongoDbContext.SourcePlugins;
+            Reload();
+        }
 
         public void LoadPlugin(string pluginName)
         {
-            if (plugins.ContainsKey(pluginName))
-            {
-                return;
-            }
+            if (_plugins.ContainsKey(pluginName)) return;
 
-            string pluginPath = Path.Combine(pluginsPath, $"{pluginName}");
-            if (!Directory.Exists(pluginPath))
-            {
-                return;
-            }
+            string pluginPath = Path.Combine(_pluginsPath, $"{pluginName}");
+            if (!Directory.Exists(pluginPath)) return;
 
             //var dlls = Directory.GetFiles(pluginPath, "*.dll");
             var dll = Directory.GetFiles(pluginPath, "*.dll").FirstOrDefault();
 
-            if (!File.Exists(dll))
-            {
-                return;
-            }
+            if (!File.Exists(dll)) return;
 
             Assembly assembly = Assembly.LoadFile(dll);
             Type[] types = assembly.GetTypes();
@@ -43,18 +45,25 @@ namespace NovelsCollector.Core.Services.Plugins
                 if (typeof(SourcePlugin).IsAssignableFrom(type) && !type.IsAbstract)
                 {
                     var plugin = (SourcePlugin)Activator.CreateInstance(type);
-                    plugins.Add(pluginName, plugin);
+                    _plugins.Add(pluginName, plugin);
                 }
             }
         }
 
         public void Reload()
         {
-            plugins.Clear();
-
-            if (!Directory.Exists(pluginsPath))
+            Console.WriteLine("Reloading plugins...");
+            // print the collection of plugins
+            var all_plugins = _pluginsCollection.Find(_ => true).ToList();
+            foreach (var plugin in all_plugins)
             {
-                Directory.CreateDirectory(pluginsPath);
+                Console.WriteLine(plugin.Name);
+            }
+            _plugins.Clear();
+
+            if (!Directory.Exists(_pluginsPath))
+            {
+                Directory.CreateDirectory(_pluginsPath);
             }
 
             // For test:
@@ -67,17 +76,17 @@ namespace NovelsCollector.Core.Services.Plugins
 
         public async Task<Tuple<Novel[]?, int>> Search(string source, string keyword, string? author, string? year, int page = 1)
         {
-            if (plugins.Count == 0)
+            if (_plugins.Count == 0)
             {
                 throw new Exception("No plugins loaded");
             }
 
-            if (!plugins.ContainsKey(source))
+            if (!_plugins.ContainsKey(source))
             {
                 throw new Exception("Source not found");
             }
 
-            var plugin = plugins[source];
+            var plugin = _plugins[source];
             Novel[]? novels = null;
             int totalPage = -1;
 
@@ -96,17 +105,17 @@ namespace NovelsCollector.Core.Services.Plugins
 
         public async Task<Novel?> GetNovelDetail(string source, string novelSlug)
         {
-            if (plugins.Count == 0)
+            if (_plugins.Count == 0)
             {
                 throw new Exception("No plugins loaded");
             }
 
-            if (!plugins.ContainsKey(source))
+            if (!_plugins.ContainsKey(source))
             {
                 throw new Exception("Source not found");
             }
 
-            var plugin = plugins[source];
+            var plugin = _plugins[source];
 
             Novel? novel = null;
 
@@ -125,17 +134,17 @@ namespace NovelsCollector.Core.Services.Plugins
 
         public async Task<Tuple<Chapter[]?, int>> GetChapters(string source, string novelSlug, int page = -1)
         {
-            if (plugins.Count == 0)
+            if (_plugins.Count == 0)
             {
                 throw new Exception("No plugins loaded");
             }
 
-            if (!plugins.ContainsKey(source))
+            if (!_plugins.ContainsKey(source))
             {
                 throw new Exception("Source not found");
             }
 
-            var plugin = plugins[source];
+            var plugin = _plugins[source];
 
             Chapter[]? chapters = null;
             int totalPage = -1;
@@ -155,17 +164,17 @@ namespace NovelsCollector.Core.Services.Plugins
 
         public async Task<Chapter?> GetChapter(string source, string novelSlug, string chapterSlug)
         {
-            if (plugins.Count == 0)
+            if (_plugins.Count == 0)
             {
                 throw new Exception("No plugins loaded");
             }
 
-            if (!plugins.ContainsKey(source))
+            if (!_plugins.ContainsKey(source))
             {
                 throw new Exception("Source not found");
             }
 
-            var plugin = plugins[source];
+            var plugin = _plugins[source];
 
             Chapter? chapter = null;
             if (plugin is ISourcePlugin executablePlugin)
@@ -179,6 +188,24 @@ namespace NovelsCollector.Core.Services.Plugins
             }
 
             return chapter;
+        }
+
+        public async Task Add(SourcePlugin plugin)
+        {
+            //if (_plugins.ContainsKey(plugin.))
+            //{
+            //    throw new Exception("Plugin already exists");
+            //}
+
+            //string pluginPath = Path.Combine(_pluginsPath, $"{plugin.Name}");
+            //if (Directory.Exists(pluginPath))
+            //{
+            //    throw new Exception("Plugin folder already exists");
+            //}
+            //if (!Directory.Exists(pluginPath)) Directory.CreateDirectory(pluginPath);
+
+            //await _pluginsCollection.InsertOneAsync(plugin);
+
         }
 
     }

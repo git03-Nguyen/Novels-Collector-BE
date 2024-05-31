@@ -10,9 +10,6 @@ builder.Services.AddControllers().AddJsonOptions(options =>
 });
 builder.Services.AddPlugins();
 
-//builder.Services.Configure<PluginsDbSettings>(builder.Configuration.GetSection("PluginsDatabase"));
-//builder.Services.AddSingleton<PluginsService>();
-
 // Add CORS for frontend: http://localhost:3000         TODO: move to config
 var corsName = "Frontend";
 builder.Services.AddCors(options =>
