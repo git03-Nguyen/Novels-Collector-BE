@@ -43,7 +43,7 @@ namespace NovelsCollector.Core.Controllers
         //    return BadRequest("Not implemented yet");
         //}
 
-        
+
 
         // GET: api/v1/novel/{id}/export?extension=extension: export the novel to a file
         [HttpGet("{id}/export")]

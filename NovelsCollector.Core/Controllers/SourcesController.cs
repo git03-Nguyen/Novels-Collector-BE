@@ -27,7 +27,7 @@ namespace NovelsCollector.Core.Controllers
                 data = _sourcePluginManager.Plugins.Values.ToArray(),
                 meta = new { count = _sourcePluginManager.Plugins.Count }
             });
-        } 
+        }
 
         // GET: api/v1/sources/reload
         [HttpGet("reload")]
@@ -37,7 +37,7 @@ namespace NovelsCollector.Core.Controllers
             try
             {
                 _sourcePluginManager.ReloadPlugins();
-                return Ok(new 
+                return Ok(new
                 {
                     data = _sourcePluginManager.Plugins.Values.ToArray(),
                     meta = new { count = _sourcePluginManager.Plugins.Count }
@@ -78,7 +78,7 @@ namespace NovelsCollector.Core.Controllers
             try
             {
                 _sourcePluginManager.RemovePlugin(name);
-                return Ok(new 
+                return Ok(new
                 {
                     data = _sourcePluginManager.Plugins.ToArray(),
                     meta = new { count = _sourcePluginManager.Plugins.Count, message = $"Plugin {name} removed" }

@@ -1,9 +1,7 @@
-﻿
-
-using HtmlAgilityPack;
+﻿using HtmlAgilityPack;
+using HtmlAgilityPack.CssSelectors.NetCore;
 using NovelsCollector.SDK.Models;
 using NovelsCollector.SDK.Plugins.SourcePlugins;
-using System.Globalization;
 using System.Text.RegularExpressions;
 
 namespace SourcePlugin.TruyenFullVn
@@ -125,14 +123,14 @@ namespace SourcePlugin.TruyenFullVn
                 category.Slug = categoryElement?.Attributes["href"].Value.Replace("https://truyenfull.vn/the-loai/'", "").Replace("/", "");
 
                 if (listCategory.Count(x => (x.Slug == category.Slug)) == 0)
-                { 
+                {
                     listCategory.Add(category);
                 }
             }
 
             return listCategory.ToArray();
         }
-        
+
         public async Task<Novel> CrawlDetail(Novel novel)
         {
             var web = new HtmlWeb();

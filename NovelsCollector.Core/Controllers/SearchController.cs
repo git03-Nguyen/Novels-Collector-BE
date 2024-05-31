@@ -24,7 +24,7 @@ namespace NovelsCollector.Core.Controllers
             try
             {
                 var result = await _sourcePluginManager.Search(keyword, author, year);
-                return Ok(new 
+                return Ok(new
                 {
                     data = result
                 });
