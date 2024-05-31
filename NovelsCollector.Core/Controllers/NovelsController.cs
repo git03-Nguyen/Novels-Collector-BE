@@ -22,13 +22,20 @@ namespace NovelsCollector.Core.Controllers
         [EndpointSummary("View brief information of a novel")]
         public async Task<IActionResult> GetNovel([FromRoute] string source, [FromRoute] string slug)
         {
-            Novel novel = new Novel { Sources = new string[] { source }, Slug = slug };
             try
             {
-                novel = await _sourcePluginManager.GetNovelDetail(novel);
+                var novel = await _sourcePluginManager.GetNovelDetail(source, slug);
                 if (novel == null)
                     return NotFound(new { error = new { message = "Không tìm thấy truyện" } });
-                return Ok(new { data = novel });
+                return Ok(new 
+                { 
+                    data = novel,
+                    meta = new 
+                    {
+                        source = source,
+                        //otherSources = novel.Sources.Where(s => s != source).ToArray()
+                    }
+                });
             }
             catch (Exception ex)
             {
@@ -36,21 +43,6 @@ namespace NovelsCollector.Core.Controllers
             }
         }
 
-        //// GET: api/v1/novel/{id}/chapters: view the novel chapters
-        //[HttpGet("{id}/chapters")]
-        //async public Task<IActionResult> GetChapters([FromServices] ISourcePluginManager sourcePluginManager, [FromRoute] string id)
-        //{
-        //    return BadRequest("Not implemented yet");
-        //}
-
-
-
-        // GET: api/v1/novel/{id}/export?extension=extension: export the novel to a file
-        [HttpGet("{id}/export")]
-        public async Task<IActionResult> Export([FromRoute] string id, [FromQuery] string extension)
-        {
-            return BadRequest("Not implemented yet");
-        }
 
 
 

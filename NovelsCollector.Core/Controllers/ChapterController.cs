@@ -18,20 +18,24 @@ namespace NovelsCollector.Core.Controllers
             _sourcePluginManager = sourcePluginManager;
         }
 
-        [HttpGet("{source}/{slug}/{chapterSlug}")]
+        [HttpGet("{source}/{novelSlug}/{chapterSlug}")]
         [EndpointSummary("View a chapter of a novel")]
-        async public Task<IActionResult> Get([FromRoute] string source, [FromRoute] string slug, [FromRoute] string chapterSlug)
+        async public Task<IActionResult> Get([FromRoute] string source, [FromRoute] string novelSlug, [FromRoute] string chapterSlug)
         {
-            Novel novel = new Novel { Sources = new string[] { source }, Slug = slug };
             try
             {
-                string chapter = await _sourcePluginManager.GetChapter(novel, new Chapter { Slug = chapterSlug });
+                var chapter = await _sourcePluginManager.GetChapter(source, novelSlug, chapterSlug);
                 if (chapter == null)
                     return NotFound(new { error = new { message = "Không tìm thấy chapter" } });
                 return Ok(new
                 {
-                    data = new { content = chapter },
-                    meta = new { type = "html", encoding = false }
+                    data = chapter,
+                    meta = new 
+                    {
+                        source = source,
+                        novelSlug = novelSlug,
+                        chapterSlug = chapterSlug
+                    }
                 });
             }
             catch (Exception ex)

@@ -7,10 +7,10 @@ namespace NovelsCollector.Core.Services.Plugins.Sources
     {
         public Dictionary<string, ISourcePlugin> Plugins { get; }
 
-        Task<Novel[]> Search(string? keyword, string? author, string? year);
+        Task<Tuple<Novel[]?, int>> Search(string source, string keyword, string? author, string? year, int page = 1);
 
-        Task<Novel> GetNovelDetail(Novel novel);
+        Task<Novel?> GetNovelDetail(string source, string novelSlug);
 
-        Task<string> GetChapter(Novel novel, Chapter chapter);
+        Task<Chapter?> GetChapter(string source, string novelSlug, string chapterSlug);
     }
 }

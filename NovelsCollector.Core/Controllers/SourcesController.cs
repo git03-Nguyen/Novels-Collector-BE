@@ -25,7 +25,6 @@ namespace NovelsCollector.Core.Controllers
             return Ok(new
             {
                 data = _sourcePluginManager.Plugins.Values.ToArray(),
-                meta = new { count = _sourcePluginManager.Plugins.Count }
             });
         }
 
@@ -40,7 +39,6 @@ namespace NovelsCollector.Core.Controllers
                 return Ok(new
                 {
                     data = _sourcePluginManager.Plugins.Values.ToArray(),
-                    meta = new { count = _sourcePluginManager.Plugins.Count }
                 });
             }
             catch (Exception ex)
@@ -81,7 +79,7 @@ namespace NovelsCollector.Core.Controllers
                 return Ok(new
                 {
                     data = _sourcePluginManager.Plugins.ToArray(),
-                    meta = new { count = _sourcePluginManager.Plugins.Count, message = $"Plugin {name} removed" }
+                    meta = new { removed = name }
                 });
             }
             catch (Exception ex)

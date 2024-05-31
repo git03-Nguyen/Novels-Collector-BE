@@ -18,15 +18,23 @@ namespace NovelsCollector.Core.Controllers
         }
 
         [HttpGet]
-        [EndpointSummary("Search novels by keyword, author, and year queries")]
-        public async Task<IActionResult> Get([FromQuery] string? keyword, [FromQuery] string? author, [FromQuery] string? year)
+        [EndpointSummary("Search novels by source, keyword, author, year and page queries")]
+        public async Task<IActionResult> Get(   
+            [FromQuery] string source, 
+            [FromQuery] string? keyword, [FromQuery] string? author, [FromQuery] string? year, 
+            [FromQuery] int page = 1)
         {
             try
             {
-                var result = await _sourcePluginManager.Search(keyword, author, year);
+                var (novels, totalPage) = await _sourcePluginManager.Search(source, keyword, author, year, page);
                 return Ok(new
                 {
-                    data = result
+                    data = novels,
+                    meta = new 
+                    {
+                        totalPage = totalPage,
+                        source = source,
+                    }
                 });
             }
             catch (Exception ex)

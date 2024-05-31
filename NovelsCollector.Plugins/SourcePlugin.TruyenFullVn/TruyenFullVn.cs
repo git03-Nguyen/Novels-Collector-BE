@@ -12,7 +12,7 @@ namespace SourcePlugin.TruyenFullVn
         public string Url => "https://truyenfull.vn/";
 
         /// <summary>
-        /// Crawl Detail All Novels. Note: Takes a lot of time and ram
+        /// Crawl Detail All Novels. Note: Takes a lot of time and RAM
         /// </summary>
         /// <returns></returns>
         public async Task<Novel[]> CrawlDetailAllNovels()
@@ -26,7 +26,7 @@ namespace SourcePlugin.TruyenFullVn
 
                 foreach (var element in tempNovels)
                 {
-                    var result = await CrawlDetail(element);
+                    var result = await CrawlDetail(element.Slug);
                     listNovel.Add(result);
                 }
             }
@@ -40,10 +40,15 @@ namespace SourcePlugin.TruyenFullVn
         /// <param name="keyword"></param>
         /// <param name="page"></param>
         /// <returns>First: Novels, Second: total page</returns>
-        public async Task<Tuple<Novel[], int>> CrawlSearch(string? keyword, int page = 1)
+        public async Task<Tuple<Novel[]?, int>> CrawlSearch(string? keyword, int page = 1)
         {
             // fetch https://truyenfull.vn/tim-kiem/?tukhoa=keyword
-            var result = await CrawlNovels($"{Url}tim-kiem/?tukhoa={keyword}&page=<page>", page);
+            var reqStr = $"{Url}tim-kiem/?tukhoa={keyword}";
+            if (page > 1)
+            {
+                reqStr += $"&page={page}";
+            }
+            var result = await CrawlNovels(reqStr, page);
             return result;
         }
 
@@ -131,10 +136,14 @@ namespace SourcePlugin.TruyenFullVn
             return listCategory.ToArray();
         }
 
-        public async Task<Novel> CrawlDetail(Novel novel)
+        public async Task<Novel?> CrawlDetail(string novelSlug)
         {
             var web = new HtmlWeb();
-            var document = await web.LoadFromWebAsync($"{Url}{novel.Slug}/");
+            var document = await web.LoadFromWebAsync($"{Url}{novelSlug}/");
+
+            // TODO: Check if novel is not found
+
+            var novel = new Novel();
 
             novel.Title = document.DocumentNode.QuerySelector("h3.title")?.InnerText;
 
@@ -210,10 +219,13 @@ namespace SourcePlugin.TruyenFullVn
             return novel;
         }
 
-        public async Task<string> CrawlChapter(Novel novel, Chapter chapter)
+        public async Task<Chapter?> CrawlChapter(string novelSlug, string chapterSlug)
         {
             var web = new HtmlWeb();
-            var document = await web.LoadFromWebAsync($"{Url}{novel.Slug}/{chapter.Slug}/");
+            var document = await web.LoadFromWebAsync($"{Url}{novelSlug}/{chapterSlug}/");
+
+            // TODO: Check if chapter is not found
+
             var contentElement = document.DocumentNode.QuerySelector("#chapter-c");
 
             // Remove all ads
@@ -226,7 +238,11 @@ namespace SourcePlugin.TruyenFullVn
             // Get content of chapter in html format
             string content = contentElement.InnerHtml;
 
-            return content;
+            var chapter = new Chapter();
+            chapter.Title = "Chapter Title";
+            chapter.Content = content;
+
+            return chapter;
         }
 
         #region helper method
@@ -240,6 +256,8 @@ namespace SourcePlugin.TruyenFullVn
             var web = new HtmlWeb();
             var document = await web.LoadFromWebAsync(url.Replace("<page>", page.ToString()));
             Regex regex = new Regex(@"\d+");
+
+            Console.WriteLine(url.Replace("<page>", page.ToString()));
 
             // Get Pagination
             int totalPage = 1;

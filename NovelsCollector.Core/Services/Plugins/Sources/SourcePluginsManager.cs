@@ -12,10 +12,8 @@ namespace NovelsCollector.Core.Services.Plugins.Sources
 
         public Dictionary<string, ISourcePlugin> Plugins => plugins;
 
-        public SourcePluginsManager()
-        {
-            ReloadPlugins();
-        }
+        #region Management
+        public SourcePluginsManager() => ReloadPlugins();
 
         public void ReloadPlugins()
         {
@@ -88,66 +86,75 @@ namespace NovelsCollector.Core.Services.Plugins.Sources
 
             plugins.Remove(name);
         }
+        #endregion
 
-        public async Task<Novel[]> Search(string? keyword, string? author, string? year)
+        public async Task<Tuple<Novel[]?, int>> Search(string source, string keyword, string? author, string? year, int page = 1)
         {
             if (plugins.Count == 0)
             {
                 throw new Exception("No plugins loaded");
             }
 
-            var novels = new List<Novel>();
-            //int totalPage = 0;
-
-            foreach (var plugin in plugins.Values)
+            if (!plugins.ContainsKey(source))
             {
-                var novelsResult = await plugin.CrawlSearch(keyword);
-                novels.AddRange(novelsResult);
+                throw new Exception("Source not found");
             }
 
-            return novels.ToArray();
+            var plugin = plugins[source];
+            int totalPage = 0;
+
+            var (novels, total) = await plugin.CrawlSearch(keyword: keyword, page: page);
+            if (novels == null)
+            {
+                throw new Exception("No result found");
+            }
+
+            totalPage = total;
+            return new Tuple<Novel[]?, int>(novels, totalPage);
         }
 
-        public async Task<Novel> GetNovelDetail(Novel novel)
+        public async Task<Novel?> GetNovelDetail(string source, string novelSlug)
         {
             if (plugins.Count == 0)
             {
                 throw new Exception("No plugins loaded");
             }
 
-            if (novel.Sources == null || novel.Sources.Length == 0)
+            if (!plugins.ContainsKey(source))
             {
-                throw new Exception("No source found");
+                throw new Exception("Source not found");
             }
 
-            foreach (var plugin in novel.Sources)
+            var plugin = plugins[source];
+            var result = await plugin.CrawlDetail(novelSlug);
+            if (result == null)
             {
-                try { return await plugins[plugin].CrawlDetail(novel); }
-                catch (Exception) { continue; }
+                throw new Exception("No result found");
             }
 
-            throw new Exception("Novel not found");
+            return result;
         }
 
-        public async Task<string> GetChapter(Novel novel, Chapter chapter)
+        public async Task<Chapter?> GetChapter(string source, string novelSlug, string chapterSlug)
         {
             if (plugins.Count == 0)
             {
                 throw new Exception("No plugins loaded");
             }
 
-            if (novel.Sources == null || novel.Sources.Length == 0)
+            if (!plugins.ContainsKey(source))
             {
-                throw new Exception("No source found");
+                throw new Exception("Source not found");
             }
 
-            foreach (var plugin in novel.Sources)
+            var plugin = plugins[source];
+            var result = await plugin.CrawlChapter(novelSlug, chapterSlug);
+            if (result == null)
             {
-                try { return await plugins[plugin].CrawlChapter(novel, chapter); }
-                catch (Exception) { continue; }
+                throw new Exception("No result found");
             }
 
-            throw new Exception("Chapter not found");
+            return result;
         }
 
     }
