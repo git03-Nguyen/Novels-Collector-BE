@@ -10,7 +10,7 @@ namespace SourcePlugin.TruyenTangThuVienVn
     public class TruyenTangThuVienVn
     {
         private static readonly ILog log = LogManager.GetLogger(typeof(TruyenTangThuVienVn));
-        public string Name => "PluginCrawlTruyenFull";
+        public string Name => "TruyenTangThuVienVn";
         public string Url => "https://truyen.tangthuvien.vn/";
         public string SearchUrl => "https://truyen.tangthuvien.vn/ket-qua-tim-kiem?term=<keyword>&page=<page>";
         public string HotUrl => "https://truyen.tangthuvien.vn/tong-hop?rank=nm&time=m&page=<page>";
@@ -174,19 +174,43 @@ namespace SourcePlugin.TruyenTangThuVienVn
                 }
                 novel.Categories = listCategory.ToArray();
 
-                string status = document.DocumentNode.QuerySelector("div.book-information div.tag span")?.InnerText.Trim();
+                string? status = document.DocumentNode.QuerySelector("div.book-information div.tag span")?.InnerText.Trim();
                 if (status == "Đang ra") novel.Status = EnumStatus.OnGoing;
                 else if (status == "Hoàn thành") novel.Status = EnumStatus.Completed;
                 else novel.Status = EnumStatus.ComingSoon; // Defualt value
 
-                novel.Cover = document.DocumentNode.QuerySelector("div.book-information div.book-img img")?.Attributes["src"].Value;
+                // get cover
+                var coverElement = document.DocumentNode.QuerySelector("div.book-information div.book-img img");
+                if (coverElement != null)
+                {
+                    foreach (var attribute in coverElement.Attributes)
+                    {
+                        if (attribute.Value.Contains("https://"))
+                        {
+                            novel.Cover = attribute.Value;
+                        }
+                    }
+                }
 
                 // list chapter
                 List<Chapter> listChapter = new List<Chapter>();
-                int currentPage = 1;
+                // list chapter in default page
+                {
+                    var chapterElements = document.DocumentNode.QuerySelectorAll("#max-volume ul.cf li a");
+                    foreach (var element in chapterElements)
+                    {
+                        var chapter = new Chapter();
+                        chapter.Title = element.QuerySelector("a").Attributes["title"].Value;
+                        chapter.Slug = element.QuerySelector("a").Attributes["href"].Value.Replace($"https://truyen.tangthuvien.vn/doc-truyen/{novel.Slug}/", "").Replace("/", "");
+                        listChapter.Add(chapter);
+                    }
+                }
+                // using api to list remaining chapter
+                int currentPage = 2;
                 while (true)
                 {
-                    document = await LoadFromWebAsync($"https://truyen.tangthuvien.vn/doc-truyen/page/{novel.Id}?page={currentPage}&limit=75&web=1");
+                    var offset = currentPage - 1;
+                    document = await LoadFromWebAsync($"https://truyen.tangthuvien.vn/doc-truyen/page/{novel.Id}?page={offset}&limit=75&web=1");
 
                     var chapterElements = document.DocumentNode.QuerySelectorAll("a[href*='https://truyen.tangthuvien.vn/doc-truyen/']");
 
