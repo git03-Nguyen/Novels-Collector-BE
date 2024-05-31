@@ -2,6 +2,7 @@
 using HtmlAgilityPack.CssSelectors.NetCore;
 using NovelsCollector.SDK.Models;
 using NovelsCollector.SDK.Plugins.SourcePlugins;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 
 namespace Source.TruyenFullVn
@@ -186,25 +187,37 @@ namespace Source.TruyenFullVn
 
             // get totalPage
             int? totalPage = int.Parse(document.DocumentNode.QuerySelector("input#total-page")?.Attributes["value"].Value);
-            if (totalPage == null) throw new Exception("Total page is null");
-
-            string? truyenAscii = document.DocumentNode.QuerySelector("input#truyen-ascii")?.Attributes["href"].Value;
+            string? truyenId = document.DocumentNode.QuerySelector("input#truyen-id")?.Attributes["value"].Value;
+            string? truyenAscii = document.DocumentNode.QuerySelector("input#truyen-ascii")?.Attributes["value"].Value;
+            string? truyenName = novel.Title;
 
             // list chapter
             List<Chapter> listChapter = new List<Chapter>();
             for (int i = 1; i <= totalPage; i++)
             {
-                document = await web.LoadFromWebAsync($"{Url}{novel.Slug}/trang-{i}/#list-chapter");
-
-                var chapterElements = document.DocumentNode.QuerySelectorAll("ul.list-chapter li");
-                foreach (var element in chapterElements)
+                var url = $"{Url}ajax.php?type=list_chapter&tid={truyenId}&tascii={truyenAscii}&tname={truyenName}&page={i}&totalp={totalPage}";
+                Console.WriteLine($"Crawling {novel.Title} - Page {i}/{totalPage}");
+                
+                using (HttpClient client = new HttpClient())
                 {
-                    var chapter = new Chapter();
-                    chapter.Title = element.QuerySelector("a").Attributes["title"].Value;
-                    chapter.Slug = element.QuerySelector("a").Attributes["href"].Value.Replace($"{Url}{novel.Slug}/", "").Replace("/", "");
-                    listChapter.Add(chapter);
+                    client.DefaultRequestHeaders.Add("Accept", "*/*");
+                    client.DefaultRequestHeaders.Add("Referer", $"{Url}{novel.Slug}/trang-1");
+                    client.DefaultRequestHeaders.Add("X-Requested-With", "XMLHttpRequest");
+                    client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36");
+
+                    var jsonStr = await client.GetStringAsync(url);
+                    var json = JsonSerializer.Deserialize<Dictionary<string, string>>(jsonStr);
+                    if (json == null) continue;
+                    document.LoadHtml(json["chap_list"]);
+                    var nodes = document.QuerySelectorAll("a");
+                    foreach (var node in nodes)
+                    {
+                        var chapter = new Chapter();
+                        chapter.Title = node.Attributes["title"].Value;
+                        chapter.Slug = node.Attributes["href"].Value.Replace("https://truyenfull.vn/tao-tac/", "").Replace("/", "");
+                        listChapter.Add(chapter);
+                    }
                 }
-                Console.WriteLine($"Crawling {novel.Slug} - Page {i}/{totalPage}");
             }
             novel.Chapters = listChapter.ToArray();
 
