@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using NovelsCollector.Core.Services.Plugins.Sources;
+using NovelsCollector.Core.Services.Plugins;
 
 namespace NovelsCollector.Core.Controllers
 {
@@ -10,9 +10,9 @@ namespace NovelsCollector.Core.Controllers
     {
         #region Injected Services
         private readonly ILogger<ChapterController> _logger;
-        private readonly ISourcePluginManager _sourcePluginManager;
+        private readonly SourcePluginsManager _sourcePluginManager;
 
-        public ChapterController(ILogger<ChapterController> logger, ISourcePluginManager sourcePluginManager)
+        public ChapterController(ILogger<ChapterController> logger, SourcePluginsManager sourcePluginManager)
         {
             _logger = logger;
             _sourcePluginManager = sourcePluginManager;

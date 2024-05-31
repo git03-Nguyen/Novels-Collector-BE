@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using NovelsCollector.Core.Services.Plugins.Sources;
+using NovelsCollector.Core.Services.Plugins;
 
 namespace NovelsCollector.Core.Controllers
 {
@@ -10,9 +10,9 @@ namespace NovelsCollector.Core.Controllers
     {
         #region Injected Services
         private readonly ILogger<SourcesController> _logger;
-        private readonly ISourcePluginManager _sourcePluginManager;
+        private readonly SourcePluginsManager _sourcePluginManager;
 
-        public SourcesController(ILogger<SourcesController> logger, ISourcePluginManager sourcePluginManager)
+        public SourcesController(ILogger<SourcesController> logger, SourcePluginsManager sourcePluginManager)
         {
             _logger = logger;
             _sourcePluginManager = sourcePluginManager;
@@ -37,8 +37,8 @@ namespace NovelsCollector.Core.Controllers
         {
             try
             {
-                _sourcePluginManager.ReloadPlugins();
-                _logger.LogInformation($"Source plugins reloaded: {_sourcePluginManager.Plugins.Count}");
+                _sourcePluginManager.Reload();
+                _logger.LogInformation($"Source plugins reloaded: {_sourcePluginManager.Plugins.Count} plugins loaded");
                 return Ok(new
                 {
                     data = _sourcePluginManager.Plugins.Values.ToArray(),
@@ -54,21 +54,9 @@ namespace NovelsCollector.Core.Controllers
         [HttpPost]
         [EndpointSummary("Add a new source plugin")]
         //public async Task<IActionResult> Post([FromServices] ISourcePluginManager pluginManager, [FromForm] IFormFile file)
-        public async Task<IActionResult> Post([FromBody] string file)
+        public Task<IActionResult> Post([FromBody] string file)
         {
-            //if (file == null)
-            //    return BadRequest(new { message = "No file uploaded" });
-
-            //try
-            //{
-            //    await pluginManager.AddPluginAsync(file);
-            //    return Ok(pluginManager.Plugins);
-            //}
-            //catch (Exception ex)
-            //{
-            //    return StatusCode(500, new { message = ex.Message });
-            //}
-            return BadRequest(new { error = new { code = 501, message = "Not implemented yet" } });
+            throw new NotImplementedException();
         }
 
         // DELETE: api/v1/sources/{name}: remove a source plugin
@@ -78,7 +66,8 @@ namespace NovelsCollector.Core.Controllers
         {
             try
             {
-                _sourcePluginManager.RemovePlugin(name);
+                throw new NotImplementedException();
+                //_sourcePluginManager.RemovePlugin(name);
                 return Ok(new
                 {
                     data = _sourcePluginManager.Plugins.ToArray(),

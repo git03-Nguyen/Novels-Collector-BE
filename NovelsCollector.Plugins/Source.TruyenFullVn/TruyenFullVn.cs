@@ -4,12 +4,19 @@ using NovelsCollector.SDK.Models;
 using NovelsCollector.SDK.Plugins.SourcePlugins;
 using System.Text.RegularExpressions;
 
-namespace SourcePlugin.TruyenFullVn
+namespace Source.TruyenFullVn
 {
-    public class TruyenFullVn : ISourcePlugin
+    public class TruyenFullVn : SourcePlugin, ISourcePlugin
     {
-        public string Name => "PluginCrawlTruyenFull";
-        public string Url => "https://truyenfull.vn/";
+        public TruyenFullVn()
+        {
+            Url = "https://truyenfull.vn/";
+            Name = "PluginCrawlTruyenFull";
+            Description = "This plugin is used to crawl novels from truyenfull.vn";
+            Version = "1.0.0";
+            Author = "Nguyen Tuan Dat";
+            Enabled = true;
+        }
 
         /// <summary>
         /// Crawl Detail All Novels. Note: Takes a lot of time and RAM
@@ -141,6 +148,7 @@ namespace SourcePlugin.TruyenFullVn
             // TODO: Check if novel is not found
 
             var novel = new Novel();
+            novel.Slug = novelSlug;
 
             novel.Title = document.DocumentNode.QuerySelector("h3.title")?.InnerText;
 
@@ -174,27 +182,13 @@ namespace SourcePlugin.TruyenFullVn
             novel.Categories = listCategory.ToArray();
 
             novel.Status = document.DocumentNode.QuerySelector("span.text-success")?.InnerText.Trim() == "Full"; // check is completed
-            novel.Cover = document.DocumentNode.QuerySelector("div.books img")?.Attributes["src"].Value;
+            novel.Cover = document.DocumentNode.QuerySelector("div.book img")?.Attributes["src"].Value;
 
             // get totalPage
-            int totalPage = 1;
-            var paginationElement = document.DocumentNode.QuerySelector("ul.pagination");
-            if (paginationElement != null)
-            {
-                paginationElement.RemoveChild(paginationElement.LastChild);
-                var lastChild = paginationElement.LastChild.QuerySelector("a");
-                Regex regex = new Regex(@"\d+");
-                if (lastChild == null)
-                {
-                    MatchCollection matches = regex.Matches(paginationElement.LastChild.InnerText);
-                    totalPage = int.Parse(matches[0].Value);
-                }
-                else
-                {
-                    MatchCollection matches = regex.Matches(lastChild.Attributes["href"].Value);
-                    totalPage = int.Parse(matches[0].Value);
-                }
-            }
+            int? totalPage = int.Parse(document.DocumentNode.QuerySelector("input#total-page")?.Attributes["value"].Value);
+            if (totalPage == null) throw new Exception("Total page is null");
+
+            string? truyenAscii = document.DocumentNode.QuerySelector("input#truyen-ascii")?.Attributes["href"].Value;
 
             // list chapter
             List<Chapter> listChapter = new List<Chapter>();
@@ -210,6 +204,7 @@ namespace SourcePlugin.TruyenFullVn
                     chapter.Slug = element.QuerySelector("a").Attributes["href"].Value.Replace($"{Url}{novel.Slug}/", "").Replace("/", "");
                     listChapter.Add(chapter);
                 }
+                Console.WriteLine($"Crawling {novel.Slug} - Page {i}/{totalPage}");
             }
             novel.Chapters = listChapter.ToArray();
 
