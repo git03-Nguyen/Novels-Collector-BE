@@ -6,6 +6,7 @@ namespace NovelsCollector.SDK.Plugins.SourcePlugins
     {
         public Task<Tuple<Novel[]?, int>> CrawlSearch(string? keyword, int page = 1);
         public Task<Novel?> CrawlDetail(string novelSlug);
+        public Task<Tuple<Chapter[]?, int>> CrawlListChapters(string novelSlug, int page = -1);
         public Task<Chapter?> CrawlChapter(string novelSlug, string chapterSlug);
 
         // ... More

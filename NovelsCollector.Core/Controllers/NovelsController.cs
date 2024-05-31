@@ -51,6 +51,40 @@ namespace NovelsCollector.Core.Controllers
             }
         }
 
+        [HttpGet("{source}/{novelSlug}/chapters")]
+        [EndpointSummary("View chapters of a novel by page, -1 is last page")]
+        public async Task<IActionResult> GetChapters([FromRoute] string source, [FromRoute] string novelSlug, [FromQuery] int page = -1)
+        {
+            if (page == 0) return BadRequest(new { error = new { message = "Page must be greater than 0" } });
+            try
+            {
+                var (chapters, totalPage) = await _sourcePluginManager.GetChapters(source, novelSlug, page);
+
+                // Check if the novel is not found
+                if (chapters == null)
+                {
+                    return NotFound(new { error = new { message = "Không tìm thấy truyện" } });
+                }
+
+                // Return the chapters
+                return Ok(new
+                {
+                    data = chapters,
+                    meta = new
+                    {
+                        source = source,
+                        novelSlug = novelSlug,
+                        page = page != -1 ? page : totalPage,
+                        totalPage = totalPage
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = new { code = ex.HResult, message = ex.Message } });
+            }
+        }
+
 
 
 

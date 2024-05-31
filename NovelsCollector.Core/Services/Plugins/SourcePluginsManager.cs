@@ -123,6 +123,36 @@ namespace NovelsCollector.Core.Services.Plugins
             return novel;
         }
 
+        public async Task<Tuple<Chapter[]?, int>> GetChapters(string source, string novelSlug, int page = -1)
+        {
+            if (plugins.Count == 0)
+            {
+                throw new Exception("No plugins loaded");
+            }
+
+            if (!plugins.ContainsKey(source))
+            {
+                throw new Exception("Source not found");
+            }
+
+            var plugin = plugins[source];
+
+            Chapter[]? chapters = null;
+            int totalPage = -1;
+
+            if (plugin is ISourcePlugin executablePlugin)
+            {
+                (chapters, totalPage) = await executablePlugin.CrawlListChapters(novelSlug, page);
+            }
+
+            if (chapters == null)
+            {
+                throw new Exception("No result found");
+            }
+
+            return new Tuple<Chapter[]?, int>(chapters, totalPage);
+        }
+
         public async Task<Chapter?> GetChapter(string source, string novelSlug, string chapterSlug)
         {
             if (plugins.Count == 0)
