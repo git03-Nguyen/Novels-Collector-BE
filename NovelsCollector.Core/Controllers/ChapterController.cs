@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using NovelsCollector.Core.Services.Plugins.Sources;
-using NovelsCollector.SDK.Models;
 
 namespace NovelsCollector.Core.Controllers
 {
@@ -9,6 +8,7 @@ namespace NovelsCollector.Core.Controllers
     [Route("api/v1/novel")]
     public class ChapterController : ControllerBase
     {
+        #region Injected Services
         private readonly ILogger<ChapterController> _logger;
         private readonly ISourcePluginManager _sourcePluginManager;
 
@@ -17,6 +17,7 @@ namespace NovelsCollector.Core.Controllers
             _logger = logger;
             _sourcePluginManager = sourcePluginManager;
         }
+        #endregion
 
         [HttpGet("{source}/{novelSlug}/{chapterSlug}")]
         [EndpointSummary("View a chapter of a novel")]
@@ -30,7 +31,7 @@ namespace NovelsCollector.Core.Controllers
                 return Ok(new
                 {
                     data = chapter,
-                    meta = new 
+                    meta = new
                     {
                         source = source,
                         novelSlug = novelSlug,

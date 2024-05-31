@@ -17,11 +17,8 @@ namespace NovelsCollector.Core.Services.Plugins.Sources
 
         public void ReloadPlugins()
         {
-            Console.WriteLine("Loading plugins...");
-
             plugins.Clear();
-
-            Console.WriteLine(pluginsPath);
+            
             if (!Directory.Exists(pluginsPath))
             {
                 Directory.CreateDirectory(pluginsPath);

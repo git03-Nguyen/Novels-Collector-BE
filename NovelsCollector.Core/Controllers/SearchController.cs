@@ -8,6 +8,7 @@ namespace NovelsCollector.Core.Controllers
     [Route("api/v1/search")]
     public class SearchController : ControllerBase
     {
+        #region Injected Services
         private readonly ILogger<SearchController> _logger;
         private readonly ISourcePluginManager _sourcePluginManager;
 
@@ -16,12 +17,13 @@ namespace NovelsCollector.Core.Controllers
             _logger = logger;
             _sourcePluginManager = sourcePluginManager;
         }
+        #endregion
 
         [HttpGet]
         [EndpointSummary("Search novels by source, keyword, author, year and page queries")]
-        public async Task<IActionResult> Get(   
-            [FromQuery] string source, 
-            [FromQuery] string? keyword, [FromQuery] string? author, [FromQuery] string? year, 
+        public async Task<IActionResult> Get(
+            [FromQuery] string source,
+            [FromQuery] string? keyword, [FromQuery] string? author, [FromQuery] string? year,
             [FromQuery] int page = 1)
         {
             try
@@ -30,7 +32,7 @@ namespace NovelsCollector.Core.Controllers
                 return Ok(new
                 {
                     data = novels,
-                    meta = new 
+                    meta = new
                     {
                         page = page,
                         totalPage = totalPage,

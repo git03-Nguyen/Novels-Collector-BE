@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using NovelsCollector.Core.Services.Plugins.Sources;
-using NovelsCollector.SDK.Models;
 
 namespace NovelsCollector.Core.Controllers
 {
@@ -9,6 +8,8 @@ namespace NovelsCollector.Core.Controllers
     [Route("api/v1/novel")]
     public class NovelsController : ControllerBase
     {
+
+        #region Injected Services
         private readonly ILogger<NovelsController> _logger;
         private readonly ISourcePluginManager _sourcePluginManager;
 
@@ -17,20 +18,27 @@ namespace NovelsCollector.Core.Controllers
             _logger = logger;
             _sourcePluginManager = sourcePluginManager;
         }
+        #endregion
 
-        [HttpGet("{source}/{slug}")]
+        [HttpGet("{source}/{novelSlug}")]
         [EndpointSummary("View brief information of a novel")]
-        public async Task<IActionResult> GetNovel([FromRoute] string source, [FromRoute] string slug)
+        public async Task<IActionResult> GetNovel([FromRoute] string source, [FromRoute] string novelSlug)
         {
             try
             {
-                var novel = await _sourcePluginManager.GetNovelDetail(source, slug);
+                var novel = await _sourcePluginManager.GetNovelDetail(source, novelSlug);
+
+                // Check if the novel is not found
                 if (novel == null)
+                {
                     return NotFound(new { error = new { message = "Không tìm thấy truyện" } });
-                return Ok(new 
-                { 
+                }
+
+                // Return the novel
+                return Ok(new
+                {
                     data = novel,
-                    meta = new 
+                    meta = new
                     {
                         source = source,
                         //otherSources = novel.Sources.Where(s => s != source).ToArray()

@@ -42,13 +42,9 @@ namespace SourcePlugin.TruyenFullVn
         /// <returns>First: Novels, Second: total page</returns>
         public async Task<Tuple<Novel[]?, int>> CrawlSearch(string? keyword, int page = 1)
         {
-            Console.WriteLine($"CrawlSearch: {keyword}");
             // fetch https://truyenfull.vn/tim-kiem/?tukhoa=keyword
             var reqStr = $"{Url}tim-kiem/?tukhoa={keyword}";
-            if (page > 1)
-            {
-                reqStr += $"&page={page}";
-            }
+            if (page > 1) reqStr += $"&page={page}";
             var result = await CrawlNovels(reqStr, page);
             return result;
         }

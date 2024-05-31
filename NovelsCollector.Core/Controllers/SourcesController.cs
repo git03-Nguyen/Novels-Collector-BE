@@ -8,6 +8,7 @@ namespace NovelsCollector.Core.Controllers
     [Route("api/v1/sources")]
     public class SourcesController : ControllerBase
     {
+        #region Injected Services
         private readonly ILogger<SourcesController> _logger;
         private readonly ISourcePluginManager _sourcePluginManager;
 
@@ -16,6 +17,7 @@ namespace NovelsCollector.Core.Controllers
             _logger = logger;
             _sourcePluginManager = sourcePluginManager;
         }
+        #endregion
 
         // GET: api/v1/sources
         [HttpGet]
@@ -36,6 +38,7 @@ namespace NovelsCollector.Core.Controllers
             try
             {
                 _sourcePluginManager.ReloadPlugins();
+                _logger.LogInformation($"Source plugins reloaded: {_sourcePluginManager.Plugins.Count}");
                 return Ok(new
                 {
                     data = _sourcePluginManager.Plugins.Values.ToArray(),

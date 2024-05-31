@@ -13,7 +13,6 @@ namespace NovelsCollector.Core.Utils
         public static IApplicationBuilder UsePlugins(this IApplicationBuilder app)
         {
             ISourcePluginManager pluginManager = app.ApplicationServices.GetService<ISourcePluginManager>();
-            pluginManager.ReloadPlugins();
             return app;
         }
 
