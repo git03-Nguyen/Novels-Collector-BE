@@ -254,6 +254,12 @@ namespace SourcePlugin.TruyenFullVn
             var document = await web.LoadFromWebAsync(url.Replace("<page>", page.ToString()));
             Regex regex = new Regex(@"\d+");
 
+            // if document is empty text
+            if (document.DocumentNode.InnerText == "")
+            {
+                document = await web.LoadFromWebAsync(url.Replace(" ", "+"));
+            }
+
             // Get Pagination
             int totalPage = 1;
             var paginationElement = document.DocumentNode.QuerySelector("ul.pagination");
