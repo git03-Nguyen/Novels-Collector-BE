@@ -32,6 +32,7 @@ namespace NovelsCollector.Core.Controllers
                     data = novels,
                     meta = new 
                     {
+                        page = page,
                         totalPage = totalPage,
                         source = source,
                     }

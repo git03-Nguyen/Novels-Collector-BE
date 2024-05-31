@@ -42,6 +42,7 @@ namespace SourcePlugin.TruyenFullVn
         /// <returns>First: Novels, Second: total page</returns>
         public async Task<Tuple<Novel[]?, int>> CrawlSearch(string? keyword, int page = 1)
         {
+            Console.WriteLine($"CrawlSearch: {keyword}");
             // fetch https://truyenfull.vn/tim-kiem/?tukhoa=keyword
             var reqStr = $"{Url}tim-kiem/?tukhoa={keyword}";
             if (page > 1)
@@ -256,8 +257,6 @@ namespace SourcePlugin.TruyenFullVn
             var web = new HtmlWeb();
             var document = await web.LoadFromWebAsync(url.Replace("<page>", page.ToString()));
             Regex regex = new Regex(@"\d+");
-
-            Console.WriteLine(url.Replace("<page>", page.ToString()));
 
             // Get Pagination
             int totalPage = 1;
