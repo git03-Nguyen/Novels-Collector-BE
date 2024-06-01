@@ -1,13 +1,49 @@
-@NovelsCollector.Core_HostAddress = http://localhost:5035
+@https = https://localhost:7085
 
-GET {{NovelsCollector.Core_HostAddress}}/api/v1/
+### Test connection
+GET {{https}}/api/v1/
+
+### ------------------------------------------
+### SOURCE 1:
+@source1 = PluginCrawlTruyenFull
+
+### Search
+@keyword1 = anh%20dao
+@pageS1 = 1
+GET {{https}}/api/v1/search?source={{source1}}&keyword={{keyword1}}&page={{pageS1}}
+
+### Novel detail
+@novelSlug1 = tao-tac
+GET {{https}}/api/v1/novel/{{source1}}/{{novelSlug1}}
+
+### Chapters list
+@pageC1 = -1
+GET {{https}}/api/v1/novel/{{source1}}/{{novelSlug1}}/chapters?page={{pageC1}}
+
+### Chapter content
+@chapSlug1 = chuong-1
+GET {{https}}/api/v1/novel/{{source1}}/{{novelSlug1}}/{{chapSlug1}}
+
+
+
+### ------------------------------------------
+### SOURCE 2:
+@source2 = TruyenTangThuVienVn
+
+### Search
+@keyword2 = anh%20dao
+@pageS2 = 1
+GET {{https}}/api/v1/search?source={{source2}}&keyword={{keyword2}}&page={{pageS2}}
+
+### Novel detail
+@novelSlug2 = dai-thien-thanh-dao
+GET {{https}}/api/v1/novel/{{source2}}/{{novelSlug2}}
+
+### Chapters list
+@pageC2 = -1
+GET {{https}}/api/v1/novel/{{source2}}/{{novelSlug2}}/chapters?page={{pageC2}}
 Accept: application/json
 
-###
-
-### Search "anh dao"
-GET {{NovelsCollector.Core_HostAddress}}/api/v1/search?source=PluginCrawlTruyenFull&keyword=anh%20dao
-Accept: application/json
-
-### Get novel info
-GET {{NovelsCollector.Core_HostAddress}}/api/v1/novel/PluginCrawlTruyenFull/tao-tac
+### Chapter content
+@chapSlug2 = chuong-1
+GET {{https}}/api/v1/novel/{{source2}}/{{novelSlug2}}/{{chapSlug2}}
