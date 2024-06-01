@@ -110,7 +110,7 @@ namespace Source.TruyenTangThuVienVn
                 foreach (var categoryElement in categoryElements)
                 {
                     Category category = new Category();
-                    category.Name = categoryElement.QuerySelector("span[class='info'] i").InnerText;
+                    category.Name = HtmlEntity.DeEntitize(categoryElement.QuerySelector("span[class='info'] i").InnerText);
                     category.Slug = categoryElement?.Attributes["href"].Value.Replace("https://truyen.tangthuvien.vn/the-loai/", "").Replace("/", "");
 
                     category.Id = await CrawlIdCategory(category.Slug);
@@ -142,7 +142,7 @@ namespace Source.TruyenTangThuVienVn
             {
                 var document = await LoadFromWebAsync(NovelUrl.Replace("<novel-slug>", novel.Slug));
 
-                novel.Title = document.DocumentNode.QuerySelector("div.book-info h1")?.InnerText;
+                novel.Title = HtmlEntity.DeEntitize(document.DocumentNode.QuerySelector("div.book-info h1")?.InnerHtml);
 
                 // get id of novel
                 var idElement = document.DocumentNode.QuerySelector("meta[name='book_detail']");
@@ -157,7 +157,8 @@ namespace Source.TruyenTangThuVienVn
                 var ratingElement = document.DocumentNode.QuerySelector("#myrate");
                 if (ratingElement != null) novel.Rating = float.Parse(ratingElement.InnerText);
 
-                novel.Description = document.DocumentNode.QuerySelector("div.book-intro")?.InnerHtml;
+                novel.Description = HtmlEntity.DeEntitize(document.DocumentNode.QuerySelector("div.book-intro")?.InnerHtml)
+                    .Replace("\r\n", "").Replace("\\\"", "\"").Replace("\\t", "  ");
 
                 // get authors
                 var authorElements = document.DocumentNode.QuerySelectorAll("div.book-information a[href*='https://truyen.tangthuvien.vn/tac-gia?author=']");
@@ -165,7 +166,7 @@ namespace Source.TruyenTangThuVienVn
                 foreach (var element in authorElements)
                 {
                     var author = new Author();
-                    author.Name = element.InnerText;
+                    author.Name = HtmlEntity.DeEntitize(element.InnerHtml);
                     author.Id = int.Parse(element.Attributes["href"].Value.Replace("https://truyen.tangthuvien.vn/tac-gia?author=", ""));
                     listAuthor.Add(author);
                 }
@@ -177,30 +178,25 @@ namespace Source.TruyenTangThuVienVn
                 foreach (var element in genreElements)
                 {
                     var category = new Category();
-                    category.Name = element.InnerText;
+                    category.Name = HtmlEntity.DeEntitize(element.InnerHtml);
                     category.Slug = element.Attributes["href"].Value.Replace("https://truyen.tangthuvien.vn/the-loai/", "");
-                    category.Id = await CrawlIdCategory(category.Slug);
+                    //category.Id = await CrawlIdCategory(category.Slug);
 
                     listCategory.Add(category);
                 }
                 novel.Categories = listCategory.ToArray();
 
                 string? status = document.DocumentNode.QuerySelector("div.book-information div.tag span")?.InnerText.Trim();
+                if (!string.IsNullOrWhiteSpace(status)) status = HtmlEntity.DeEntitize(status);
                 if (status == "Đang ra") novel.Status = EnumStatus.OnGoing;
                 else if (status == "Hoàn thành") novel.Status = EnumStatus.Completed;
-                else novel.Status = EnumStatus.ComingSoon; // Defualt value
+                else novel.Status = EnumStatus.ComingSoon; // Default value
 
                 // get cover
                 var coverElement = document.DocumentNode.QuerySelector("div.book-information div.book-img img");
                 if (coverElement != null)
                 {
-                    foreach (var attribute in coverElement.Attributes)
-                    {
-                        if (attribute.Value.Contains("https://"))
-                        {
-                            novel.Cover = attribute.Value;
-                        }
-                    }
+                    novel.Cover = coverElement.Attributes["src"].Value;
                 }
 
                 
@@ -243,7 +239,7 @@ namespace Source.TruyenTangThuVienVn
             foreach (var element in chapterElements)
             {
                 var chapter = new Chapter();
-                chapter.Title = element.QuerySelector("a").Attributes["title"].Value;
+                chapter.Title = HtmlEntity.DeEntitize(element.QuerySelector("a").Attributes["title"].Value);
                 chapter.Slug = element.QuerySelector("a").Attributes["href"].Value.Replace($"https://truyen.tangthuvien.vn/doc-truyen/{novel.Slug}/", "").Replace("/", "");
                 listChapter.Add(chapter);
             }
@@ -266,7 +262,8 @@ namespace Source.TruyenTangThuVienVn
                 var contentElement = document.DocumentNode.QuerySelector("div.box-chap");
 
                 // Get content of chapter in html format
-                content = contentElement.InnerHtml;
+                content = HtmlEntity.DeEntitize(contentElement.InnerHtml)
+                    .Replace("\r\n", "<br/>").Replace("\\\"", "\"").Replace("\\t", "  ");
             }
             catch (Exception ex)
             {
@@ -306,7 +303,7 @@ namespace Source.TruyenTangThuVienVn
                     var aElement = paginationElement.QuerySelectorAll("li").Last().QuerySelector("a");
                     if (aElement == null)
                     {
-                        MatchCollection matches = regex.Matches(paginationElement.LastChild.InnerText);
+                        MatchCollection matches = regex.Matches(lastLi.InnerText);
                         totalPage = int.Parse(matches[0].Value);
                     }
                     else
@@ -321,10 +318,10 @@ namespace Source.TruyenTangThuVienVn
                 foreach (var novelElement in novelElements)
                 {
                     Novel novel = new Novel();
-                    novel.Title = novelElement.QuerySelector("div.book-mid-info h4 a")?.InnerText;
+                    novel.Title = HtmlEntity.DeEntitize(novelElement.QuerySelector("div.book-mid-info h4 a")?.InnerHtml);
                     novel.Slug = novelElement.QuerySelector("div.book-mid-info h4 a")?.Attributes["href"].Value.Replace("https://truyen.tangthuvien.vn/doc-truyen/", "");
 
-                    var strAuthor = novelElement.QuerySelector("p[class='author'] a[class='name']")?.InnerText;
+                    var strAuthor = HtmlEntity.DeEntitize(novelElement.QuerySelector("p[class='author'] a[class='name']")?.InnerHtml);
                     var authorNames = strAuthor?.Split(',').Select(author => author.Trim()).ToArray();
                     if (authorNames != null)
                     {
