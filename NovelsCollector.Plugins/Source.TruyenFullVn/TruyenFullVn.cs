@@ -2,8 +2,6 @@
 using HtmlAgilityPack.CssSelectors.NetCore;
 using NovelsCollector.SDK.Models;
 using NovelsCollector.SDK.Plugins.SourcePlugins;
-using System.Reflection.Metadata;
-using System;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 

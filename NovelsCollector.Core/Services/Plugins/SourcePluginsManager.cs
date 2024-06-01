@@ -54,11 +54,11 @@ namespace NovelsCollector.Core.Services.Plugins
         {
             Console.WriteLine("Reloading plugins...");
             // print the collection of plugins
-            var all_plugins = _pluginsCollection.Find(_ => true).ToList();
-            foreach (var plugin in all_plugins)
-            {
-                Console.WriteLine(plugin.Name);
-            }
+            //var all_plugins = _pluginsCollection.Find(_ => true).ToList();
+            //foreach (var plugin in all_plugins)
+            //{
+            //    Console.WriteLine(plugin.Name);
+            //}
             _plugins.Clear();
 
             if (!Directory.Exists(_pluginsPath))

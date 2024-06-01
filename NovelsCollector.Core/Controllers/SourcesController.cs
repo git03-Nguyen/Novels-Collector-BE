@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using NovelsCollector.Core.Services.Plugins;
-using NovelsCollector.SDK.Plugins.SourcePlugins;
 
 namespace NovelsCollector.Core.Controllers
 {

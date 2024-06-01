@@ -8,6 +8,7 @@ namespace NovelsCollector.Core.Utils
         {
             services.AddSingleton<MongoDbContext>();
             services.AddSingleton<SourcePluginsManager>();
+            services.AddSingleton<ExporterPluginsManager>();
             return services;
         }
 
