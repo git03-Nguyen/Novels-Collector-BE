@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\NovelsCollector.SDK\NovelsCollector.SDK.csproj" />
+    <ProjectReference Include="..\..\NovelsCollector.SDK\NovelsCollector.SDK.csproj" />
   </ItemGroup>
 
 </Project>
