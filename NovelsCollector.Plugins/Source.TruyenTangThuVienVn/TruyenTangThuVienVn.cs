@@ -306,7 +306,7 @@ namespace Source.TruyenTangThuVienVn
                     var aElement = paginationElement.QuerySelectorAll("li").Last().QuerySelector("a");
                     if (aElement == null)
                     {
-                        MatchCollection matches = regex.Matches(paginationElement.LastChild.InnerText);
+                        MatchCollection matches = regex.Matches(lastLi.InnerText);
                         totalPage = int.Parse(matches[0].Value);
                     }
                     else
