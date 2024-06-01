@@ -1,5 +1,6 @@
 ﻿using HtmlAgilityPack;
 using HtmlAgilityPack.CssSelectors.NetCore;
+using log4net;
 using NovelsCollector.SDK.Models;
 using NovelsCollector.SDK.Plugins.SourcePlugins;
 using System.Text.Json;
@@ -9,6 +10,18 @@ namespace Source.TruyenFullVn
 {
     public class TruyenFullVn : SourcePlugin, ISourcePlugin
     {
+		
+		private static readonly ILog log = LogManager.GetLogger(typeof(TruyenFullVn));
+		
+        public string SearchUrl => "https://truyenfull.vn/tim-kiem/?tukhoa=<keyword>&page=<page>";
+        public string HotUrl => "https://truyenfull.vn/danh-sach/truyen-hot/trang-<page>/";
+        public string LatestUrl => "https://truyenfull.vn/danh-sach/truyen-moi/trang-<page>/";
+        public string CompletedUrl => "https://truyenfull.vn/danh-sach/truyen-full/trang-<page>/";
+        public string AuthorUrl => "https://truyenfull.vn/tac-gia/<author-slug>/trang-<page>/";
+        public string CategoryUrl => "https://truyenfull.vn/the-loai/<category-slug>/trang-<page>/";
+        public string NovelUrl => "https://truyenfull.vn/<novel-slug>";
+        public string ChapterUrl => "https://truyenfull.vn/<novel-slug>/<chapter-slug>";
+		
         public TruyenFullVn()
         {
             Url = "https://truyenfull.vn/";
@@ -22,7 +35,7 @@ namespace Source.TruyenFullVn
         /// <summary>
         /// Crawl Detail All Novels. Note: Takes a lot of time and RAM
         /// </summary>
-        /// <returns></returns>
+        /// <returns>Novel[]</returns>
         public async Task<Novel[]> CrawlDetailAllNovels()
         {
             var (novels, totalPage) = await CrawlNovels($"{Url}danh-sach/truyen-moi/trang-<page>/");
@@ -50,7 +63,6 @@ namespace Source.TruyenFullVn
         /// <returns>First: Novels, Second: total page</returns>
         public async Task<Tuple<Novel[]?, int>> CrawlSearch(string? keyword, int page = 1)
         {
-            // fetch https://truyenfull.vn/tim-kiem/?tukhoa=keyword
             var reqStr = $"{Url}tim-kiem/?tukhoa={keyword}";
             if (page > 1) reqStr += $"&page={page}";
             var result = await CrawlNovels(reqStr, page);
@@ -64,8 +76,7 @@ namespace Source.TruyenFullVn
         /// <returns>First: Novels, Second: total page</returns>
         public async Task<Tuple<Novel[], int>> CrawlHot(int page = 1)
         {
-            // fetch https://truyenfull.vn/danh-sach/truyen-hot/ 
-            var result = await CrawlNovels($"{Url}danh-sach/truyen-hot/trang-<page>/", page);
+            var result = await CrawlNovels(HotUrl, page);
             return result;
         }
 
@@ -76,8 +87,7 @@ namespace Source.TruyenFullVn
         /// <returns>First: Novels, Second: total page</returns>
         public async Task<Tuple<Novel[], int>> CrawlLatest(int page = 1)
         {
-            // fetch https://truyenfull.vn/danh-sach/truyen-moi/
-            var result = await CrawlNovels($"{Url}danh-sach/truyen-moi/trang-<page>/", page);
+            var result = await CrawlNovels(LatestUrl, page);
             return result;
         }
 
@@ -88,59 +98,69 @@ namespace Source.TruyenFullVn
         /// <returns>First: Novels, Second: total page</returns>
         public async Task<Tuple<Novel[], int>> CrawlCompleted(int page = 1)
         {
-            // fetch https://truyenfull.vn/danh-sach/truyen-full/
-            var result = await CrawlNovels($"{Url}danh-sach/truyen-full/trang-<page>/", page);
+            var result = await CrawlNovels(CompletedUrl, page);
             return result;
         }
 
         /// <summary>
-        /// Crawl novels which are written by this author
+        /// Crawl novels which are written by this author (using Author.Slug)
         /// </summary>
-        /// <param name="author"></param>
+        /// <param name="author">Need: author.Slug</param>
         /// <param name="page"></param>
         /// <returns>First: Novels, Second: total page</returns>
         public async Task<Tuple<Novel[], int>> CrawlByAuthor(Author author, int page = 1)
         {
-            // fetch https://truyenfull.vn/tac-gia/
-            var result = await CrawlNovels($"{Url}tac-gia/{author.Slug}/trang-<page>/", page);
+            var result = await CrawlNovels(AuthorUrl.Replace("<author-slug>", author.Slug), page);
             return result;
         }
 
         /// <summary>
-        /// Crawl novels which have the same category
+        /// Crawl novels which have the same category (using Category.Slug)
         /// </summary>
-        /// <param name="category"></param>
+        /// <param name="category">Need: category.Slug</param>
         /// <param name="page"></param>
         /// <returns>First: Novels, Second: total page</returns>
         public async Task<Tuple<Novel[], int>> CrawlByCategory(Category category, int page = 1)
         {
-            // fetch https://truyenfull.vn/the-loai/
-            var result = await CrawlNovels($"{Url}the-loai/{category.Slug}/trang-<page>/", page);
+            var result = await CrawlNovels(CategoryUrl.Replace("<category-slug>", category.Slug), page);
             return result;
         }
 
         public async Task<Category[]> CrawlCategories()
         {
             List<Category> listCategory = new List<Category>();
-            var web = new HtmlWeb();
-            var document = await web.LoadFromWebAsync(Url);
 
-            var categoryElements = document.DocumentNode.QuerySelectorAll("ul.navbar-nav a[href*='https://truyenfull.vn/the-loai/']");
-            foreach (var categoryElement in categoryElements)
+            try
             {
-                Category category = new Category();
-                category.Name = categoryElement?.InnerText;
-                category.Slug = categoryElement?.Attributes["href"].Value.Replace("https://truyenfull.vn/the-loai/'", "").Replace("/", "");
 
-                if (listCategory.Count(x => (x.Slug == category.Slug)) == 0)
+                var document = await LoadFromWebAsync(Url);
+
+                var categoryElements = document.DocumentNode.QuerySelectorAll("ul.navbar-nav a[href*='https://truyenfull.vn/the-loai/']");
+                foreach (var categoryElement in categoryElements)
                 {
-                    listCategory.Add(category);
+                    Category category = new Category();
+                    category.Name = categoryElement?.InnerText;
+                    category.Slug = categoryElement?.Attributes["href"].Value.Replace("https://truyenfull.vn/the-loai/'", "").Replace("/", "");
+
+                    if (listCategory.Count(x => (x.Slug == category.Slug)) == 0)
+                    {
+                        listCategory.Add(category);
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                log.Error("An error occurred: ", ex);
             }
 
             return listCategory.ToArray();
         }
 
+		/// <summary>
+        /// Crawl detail information of novel (using Novel.Slug)
+        /// </summary>
+        /// <param name="novel">Need: novel.Slug</param>
+        /// <returns>Novel</returns>
         public async Task<Novel?> CrawlDetail(string novelSlug)
         {
             var web = new HtmlWeb();
@@ -153,37 +173,56 @@ namespace Source.TruyenFullVn
 
             novel.Title = document.DocumentNode.QuerySelector("h3.title")?.InnerText;
 
-            var ratingElement = document.DocumentNode.QuerySelector("span[itemprop='ratingValue']");
-            if (ratingElement != null) novel.Rating = float.Parse(ratingElement.InnerText);
+            novel.MaxRating = 10;
 
-            novel.Description = document.DocumentNode.QuerySelector("div[itemprop='description']")?.InnerHtml;
+			// get rating value
+			var ratingElement = document.DocumentNode.QuerySelector("span[itemprop='ratingValue']");
+			if (ratingElement != null) novel.Rating = float.Parse(ratingElement.InnerText);
 
-            // get authors
-            var authorElements = document.DocumentNode.QuerySelectorAll("a[itemprop='author']");
-            List<Author> listAuthor = new List<Author>();
-            foreach (var element in authorElements)
-            {
-                var author = new Author();
-                author.Name = element.Attributes["title"].Value;
-                author.Slug = element.Attributes["href"].Value.Replace($"{Url}tac-gia", "").Replace("/", "");
-                listAuthor.Add(author);
-            }
-            novel.Authors = listAuthor.ToArray();
+			novel.Description = document.DocumentNode.QuerySelector("div[itemprop='description']")?.InnerText;
 
-            // get categories
-            var genreElements = document.DocumentNode.QuerySelectorAll("div.info a[itemprop='genre']");
-            List<Category> listCategory = new List<Category>();
-            foreach (var element in genreElements)
-            {
-                var category = new Category();
-                category.Name = element.Attributes["title"].Value;
-                category.Slug = element.Attributes["href"].Value.Replace($"{Url}the-loai", "").Replace("/", "");
-                listCategory.Add(category);
-            }
-            novel.Categories = listCategory.ToArray();
+			// get authors
+			var authorElements = document.DocumentNode.QuerySelectorAll("a[itemprop='author']");
+			List<Author> listAuthor = new List<Author>();
+			foreach (var element in authorElements)
+			{
+				var author = new Author();
+				author.Name = element.Attributes["title"].Value;
+				author.Slug = element.Attributes["href"].Value.Replace($"{Url}tac-gia", "").Replace("/", "");
+				listAuthor.Add(author);
+			}
+			novel.Authors = listAuthor.ToArray();
+			
+			// get categories
+			var genreElements = document.DocumentNode.QuerySelectorAll("div.info a[itemprop='genre']");
+			List<Category> listCategory = new List<Category>();
+			foreach (var element in genreElements)
+			{
+				var category = new Category();
+				category.Name = element.Attributes["title"].Value;
+				category.Slug = element.Attributes["href"].Value.Replace($"{Url}the-loai", "").Replace("/", "");
+				listCategory.Add(category);
+			}
+			novel.Categories = listCategory.ToArray();
 
-            novel.Status = document.DocumentNode.QuerySelector("span.text-success")?.InnerText.Trim() == "Full"; // check is completed
-            novel.Cover = document.DocumentNode.QuerySelector("div.book img")?.Attributes["src"].Value;
+			// get status
+			string? status = document.DocumentNode.QuerySelector("span.text-success")?.InnerText.Trim();
+			if (status == "Đang ra") novel.Status = EnumStatus.OnGoing;
+			else if (status == "Full") novel.Status = EnumStatus.Completed;
+			else novel.Status = EnumStatus.ComingSoon; // Defualt value
+
+			// get cover
+			var coverElement = document.DocumentNode.QuerySelector("div.books img");
+			if (coverElement != null)
+			{
+				foreach (var attribute in coverElement.Attributes)
+				{
+					if (attribute.Value.Contains("https://"))
+					{
+						novel.Cover = attribute.Value;
+					}
+				}
+			}
 
             return novel;
         }
@@ -229,6 +268,13 @@ namespace Source.TruyenFullVn
             return new Tuple<Chapter[]?, int>(listChapter.ToArray(), totalPage.Value);
         }
 
+<<<<<<< HEAD:NovelsCollector.Plugins/Source.TruyenFullVn/TruyenFullVn.cs
+		/// <summary>
+        /// Crawl content of chapter (Using Novel.Slug and Chapter.Slug)
+        /// </summary>
+        /// <param name="novel">Need: novel.Slug</param>
+        /// <param name="chapter"><Need: chapter.Slug/param>
+        /// <returns>string</returns>
         public async Task<Chapter?> CrawlChapter(string novelSlug, string chapterSlug)
         {
             var web = new HtmlWeb();
@@ -241,12 +287,12 @@ namespace Source.TruyenFullVn
             // Remove all ads
             var adsElements = contentElement.QuerySelectorAll("div[class*='ads']");
             foreach (var element in adsElements)
-            {
-                element.Remove();
-            }
+			{
+				element.Remove();
+			}
 
-            // Get content of chapter in html format
-            string content = contentElement.InnerHtml;
+			// Get content of chapter in html format
+			content = contentElement.InnerHtml;
 
             var chapter = new Chapter();
             chapter.Title = "Chapter Title";
@@ -277,60 +323,111 @@ namespace Source.TruyenFullVn
 
             // Get Pagination
             int totalPage = 1;
-            var paginationElement = document.DocumentNode.QuerySelector("ul.pagination");
-            if (paginationElement != null)
-            {
-                paginationElement.RemoveChild(paginationElement.LastChild);
-                var lastChild = paginationElement.LastChild.QuerySelector("a");
-
-
-                if (lastChild == null)
-                {
-                    MatchCollection matches = regex.Matches(paginationElement.LastChild.InnerText);
-                    totalPage = int.Parse(matches[0].Value);
-                }
-                else
-                {
-                    MatchCollection matches = regex.Matches(lastChild.Attributes["href"].Value);
-                    totalPage = int.Parse(matches[0].Value);
-                }
-            }
-
-            // Get novels
-            // remove empty div in list-truyen
-            var adsElements = document.DocumentNode.QuerySelectorAll("div.col-truyen-main div.list-truyen div[id]");
-            foreach (var element in adsElements)
-            {
-                element.Remove();
-            }
             var listNovel = new List<Novel>();
-            var novelElements = document.DocumentNode.QuerySelectorAll(" div.col-truyen-main div.list-truyen div.row");
-            foreach (var novelElement in novelElements)
-            {
-                Novel novel = new Novel();
-                novel.Title = novelElement.QuerySelector("h3.truyen-title")?.InnerText;
-                novel.Slug = novelElement.QuerySelector("h3.truyen-title a")?.Attributes["href"].Value.Replace(Url, "").Replace("/", "");
 
-                var strAuthor = novelElement.QuerySelector("span.author")?.InnerText;
-                var authorNames = strAuthor?.Split(',').Select(author => author.Trim()).ToArray();
-                if (authorNames != null)
+            try
+            {
+                var document = await LoadFromWebAsync(url.Replace("<page>", page.ToString()));
+                Regex regex = new Regex(@"\d+");
+
+                // Get Pagination
+                var paginationElement = document.DocumentNode.QuerySelector("ul.pagination");
+                if (paginationElement != null)
                 {
-                    List<Author> listAuthor = new List<Author>();
-                    foreach (var name in authorNames)
+                    paginationElement.RemoveChild(paginationElement.LastChild);
+                    var lastChild = paginationElement.LastChild.QuerySelector("a");
+
+
+                    if (lastChild == null)
                     {
-                        var author = new Author();
-                        author.Name = name;
-                        listAuthor.Add(author);
+                        MatchCollection matches = regex.Matches(paginationElement.LastChild.InnerText);
+                        totalPage = int.Parse(matches[0].Value);
                     }
-                    novel.Authors = listAuthor.ToArray();
+                    else
+                    {
+                        MatchCollection matches = regex.Matches(lastChild.Attributes["href"].Value);
+                        totalPage = int.Parse(matches[0].Value);
+                    }
                 }
 
-                novel.Cover = novelElement.QuerySelector("div[data-image]")?.Attributes["data-image"].Value;
 
-                listNovel.Add(novel);
+                // Get novels
+                // remove empty div in list-truyen
+                var adsElements = document.DocumentNode.QuerySelectorAll("div.col-truyen-main div.list-truyen div[id]");
+                foreach (var element in adsElements)
+                {
+                    element.Remove();
+                }
+
+                var novelElements = document.DocumentNode.QuerySelectorAll("div.col-truyen-main div.list-truyen div.row");
+
+                foreach (var novelElement in novelElements)
+                {
+                    Novel novel = new Novel();
+                    novel.Title = novelElement.QuerySelector("h3.truyen-title")?.InnerText;
+                    novel.Slug = novelElement.QuerySelector("h3.truyen-title a")?.Attributes["href"].Value.Replace(Url, "").Replace("/", "");
+
+                    var strAuthor = novelElement.QuerySelector("span.author")?.InnerText;
+                    var authorNames = strAuthor?.Split(',').Select(author => author.Trim()).ToArray();
+                    if (authorNames != null)
+                    {
+                        List<Author> listAuthor = new List<Author>();
+                        foreach (var name in authorNames)
+                        {
+                            var author = new Author();
+                            author.Name = name;
+                            listAuthor.Add(author);
+                        }
+                        novel.Authors = listAuthor.ToArray();
+                    }
+
+                    novel.Cover = novelElement.QuerySelector("div[data-image]")?.Attributes["data-image"].Value;
+
+                    listNovel.Add(novel);
+                }
+            }
+            catch (Exception ex)
+            {
+                log.Error("An error occurred: ", ex);
             }
 
             return new Tuple<Novel[], int>(listNovel.ToArray(), totalPage);
+        }
+
+        private async Task<HtmlDocument> LoadFromWebAsync(string url)
+        {
+            var document = new HtmlDocument();
+            // Create a new instance of HttpClient
+            using (HttpClient client = new HttpClient())
+            {
+                // Set up custom headers
+                client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36");
+                client.DefaultRequestHeaders.Add("Accept", "text/html");
+                client.DefaultRequestHeaders.Add("Accept-Language", "en-US,en;q=0.9");
+                // Add more headers as needed
+
+                try
+                {
+                    // Make the GET request
+                    HttpResponseMessage response = await client.GetAsync(url);
+
+                    // Ensure the request was successful
+                    response.EnsureSuccessStatusCode();
+
+                    // Read the response content
+                    string responseBody = await response.Content.ReadAsStringAsync();
+
+                    // Load html
+                    document.LoadHtml(responseBody);
+                }
+                catch (HttpRequestException e)
+                {
+                    // Handle any errors
+                    log.Error($"Request error: {e.Message}");
+                }
+            }
+
+            return document;
         }
         #endregion
     }
