@@ -1,4 +1,4 @@
-﻿using NovelsCollector.Core.Services.Plugins.Sources;
+﻿using NovelsCollector.Core.Services.Plugins;
 
 namespace NovelsCollector.Core.Utils
 {
@@ -6,14 +6,14 @@ namespace NovelsCollector.Core.Utils
     {
         public static IServiceCollection AddPlugins(this IServiceCollection services)
         {
-            services.AddSingleton<ISourcePluginManager, SourcePluginsManager>();
+            services.AddSingleton<MongoDbContext>();
+            services.AddSingleton<SourcePluginsManager>();
+            services.AddSingleton<ExporterPluginsManager>();
             return services;
         }
 
         public static IApplicationBuilder UsePlugins(this IApplicationBuilder app)
         {
-            ISourcePluginManager pluginManager = app.ApplicationServices.GetService<ISourcePluginManager>();
-            pluginManager.ReloadPlugins();
             return app;
         }
 

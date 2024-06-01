@@ -6,5 +6,8 @@ Accept: application/json
 ###
 
 ### Search "anh dao"
-GET {{NovelsCollector.Core_HostAddress}}/api/v1/search?keyword=anh%20dao
+GET {{NovelsCollector.Core_HostAddress}}/api/v1/search?source=PluginCrawlTruyenFull&keyword=anh%20dao
 Accept: application/json
+
+### Get novel info
+GET {{NovelsCollector.Core_HostAddress}}/api/v1/novel/PluginCrawlTruyenFull/tao-tac

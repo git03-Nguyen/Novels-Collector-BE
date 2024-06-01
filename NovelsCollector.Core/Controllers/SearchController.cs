@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using NovelsCollector.Core.Services.Plugins.Sources;
+using NovelsCollector.Core.Services.Plugins;
 
 namespace NovelsCollector.Core.Controllers
 {
@@ -8,25 +8,36 @@ namespace NovelsCollector.Core.Controllers
     [Route("api/v1/search")]
     public class SearchController : ControllerBase
     {
+        #region Injected Services
         private readonly ILogger<SearchController> _logger;
-        private readonly ISourcePluginManager _sourcePluginManager;
+        private readonly SourcePluginsManager _sourcePluginManager;
 
-        public SearchController(ILogger<SearchController> logger, ISourcePluginManager sourcePluginManager)
+        public SearchController(ILogger<SearchController> logger, SourcePluginsManager sourcePluginManager)
         {
             _logger = logger;
             _sourcePluginManager = sourcePluginManager;
         }
+        #endregion
 
         [HttpGet]
-        [EndpointSummary("Search novels by keyword, author, and year queries")]
-        public async Task<IActionResult> Get([FromQuery] string? keyword, [FromQuery] string? author, [FromQuery] string? year)
+        [EndpointSummary("Search novels by source, keyword, author, year and page queries")]
+        public async Task<IActionResult> Get(
+            [FromQuery] string source,
+            [FromQuery] string keyword, [FromQuery] string? author, [FromQuery] string? year,
+            [FromQuery] int page = 1)
         {
             try
             {
-                var result = await _sourcePluginManager.Search(keyword, author, year);
+                var (novels, totalPage) = await _sourcePluginManager.Search(source, keyword, author, year, page);
                 return Ok(new
                 {
-                    data = result
+                    data = novels,
+                    meta = new
+                    {
+                        page = page,
+                        totalPage = totalPage,
+                        source = source,
+                    }
                 });
             }
             catch (Exception ex)

@@ -9,7 +9,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NovelsCollector.SDK", "Nove
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "NovelsCollector.Plugins", "NovelsCollector.Plugins", "{B0CA3981-960E-4C9B-AFB0-7949AB9EA8BF}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SourcePlugin.TruyenFullVn", "NovelsCollector.Plugins\SourcePlugin.TruyenFullVn\SourcePlugin.TruyenFullVn.csproj", "{9AA8221E-399A-4E8C-8224-F72B8E43E596}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Source.TruyenFullVn", "NovelsCollector.Plugins\Source.TruyenFullVn\Source.TruyenFullVn.csproj", "{9AA8221E-399A-4E8C-8224-F72B8E43E596}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SourcePlugin.TruyenTangThuVienVn", "SourcePlugin.TruyenTangThuVienVn\SourcePlugin.TruyenTangThuVienVn.csproj", "{1C909048-AEF5-41F7-B859-97ABDB7F2ED3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -29,12 +31,17 @@ Global
 		{9AA8221E-399A-4E8C-8224-F72B8E43E596}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9AA8221E-399A-4E8C-8224-F72B8E43E596}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9AA8221E-399A-4E8C-8224-F72B8E43E596}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1C909048-AEF5-41F7-B859-97ABDB7F2ED3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1C909048-AEF5-41F7-B859-97ABDB7F2ED3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1C909048-AEF5-41F7-B859-97ABDB7F2ED3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1C909048-AEF5-41F7-B859-97ABDB7F2ED3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{9AA8221E-399A-4E8C-8224-F72B8E43E596} = {B0CA3981-960E-4C9B-AFB0-7949AB9EA8BF}
+		{1C909048-AEF5-41F7-B859-97ABDB7F2ED3} = {B0CA3981-960E-4C9B-AFB0-7949AB9EA8BF}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {C44A57C5-455B-4780-99D3-B1063694980F}

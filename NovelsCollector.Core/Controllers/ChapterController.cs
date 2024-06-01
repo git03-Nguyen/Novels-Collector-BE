@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using NovelsCollector.Core.Services.Plugins.Sources;
-using NovelsCollector.SDK.Models;
+using NovelsCollector.Core.Services.Plugins;
 
 namespace NovelsCollector.Core.Controllers
 {
@@ -9,29 +8,35 @@ namespace NovelsCollector.Core.Controllers
     [Route("api/v1/novel")]
     public class ChapterController : ControllerBase
     {
+        #region Injected Services
         private readonly ILogger<ChapterController> _logger;
-        private readonly ISourcePluginManager _sourcePluginManager;
+        private readonly SourcePluginsManager _sourcePluginManager;
 
-        public ChapterController(ILogger<ChapterController> logger, ISourcePluginManager sourcePluginManager)
+        public ChapterController(ILogger<ChapterController> logger, SourcePluginsManager sourcePluginManager)
         {
             _logger = logger;
             _sourcePluginManager = sourcePluginManager;
         }
+        #endregion
 
-        [HttpGet("{source}/{slug}/{chapterSlug}")]
+        [HttpGet("{source}/{novelSlug}/{chapterSlug}")]
         [EndpointSummary("View a chapter of a novel")]
-        async public Task<IActionResult> Get([FromRoute] string source, [FromRoute] string slug, [FromRoute] string chapterSlug)
+        async public Task<IActionResult> Get([FromRoute] string source, [FromRoute] string novelSlug, [FromRoute] string chapterSlug)
         {
-            Novel novel = new Novel { Sources = new string[] { source }, Slug = slug };
             try
             {
-                string chapter = await _sourcePluginManager.GetChapter(novel, new Chapter { Slug = chapterSlug });
+                var chapter = await _sourcePluginManager.GetChapter(source, novelSlug, chapterSlug);
                 if (chapter == null)
                     return NotFound(new { error = new { message = "Không tìm thấy chapter" } });
                 return Ok(new
                 {
-                    data = new { content = chapter },
-                    meta = new { type = "html", encoding = false }
+                    data = chapter,
+                    meta = new
+                    {
+                        source = source,
+                        novelSlug = novelSlug,
+                        chapterSlug = chapterSlug
+                    }
                 });
             }
             catch (Exception ex)

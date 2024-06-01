@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using NovelsCollector.Core.Services.Plugins.Sources;
-using NovelsCollector.SDK.Models;
+using NovelsCollector.Core.Services.Plugins;
 
 namespace NovelsCollector.Core.Controllers
 {
@@ -9,26 +8,42 @@ namespace NovelsCollector.Core.Controllers
     [Route("api/v1/novel")]
     public class NovelsController : ControllerBase
     {
-        private readonly ILogger<NovelsController> _logger;
-        private readonly ISourcePluginManager _sourcePluginManager;
 
-        public NovelsController(ILogger<NovelsController> logger, ISourcePluginManager sourcePluginManager)
+        #region Injected Services
+        private readonly ILogger<NovelsController> _logger;
+        private readonly SourcePluginsManager _sourcePluginManager;
+
+        public NovelsController(ILogger<NovelsController> logger, SourcePluginsManager sourcePluginManager)
         {
             _logger = logger;
             _sourcePluginManager = sourcePluginManager;
         }
+        #endregion
 
-        [HttpGet("{source}/{slug}")]
+        [HttpGet("{source}/{novelSlug}")]
         [EndpointSummary("View brief information of a novel")]
-        public async Task<IActionResult> GetNovel([FromRoute] string source, [FromRoute] string slug)
+        public async Task<IActionResult> GetNovel([FromRoute] string source, [FromRoute] string novelSlug)
         {
-            Novel novel = new Novel { Sources = new string[] { source }, Slug = slug };
             try
             {
-                novel = await _sourcePluginManager.GetNovelDetail(novel);
+                var novel = await _sourcePluginManager.GetNovelDetail(source, novelSlug);
+
+                // Check if the novel is not found
                 if (novel == null)
+                {
                     return NotFound(new { error = new { message = "Không tìm thấy truyện" } });
-                return Ok(new { data = novel });
+                }
+
+                // Return the novel
+                return Ok(new
+                {
+                    data = novel,
+                    meta = new
+                    {
+                        source = source,
+                        //otherSources = novel.Sources.Where(s => s != source).ToArray()
+                    }
+                });
             }
             catch (Exception ex)
             {
@@ -36,21 +51,40 @@ namespace NovelsCollector.Core.Controllers
             }
         }
 
-        //// GET: api/v1/novel/{id}/chapters: view the novel chapters
-        //[HttpGet("{id}/chapters")]
-        //async public Task<IActionResult> GetChapters([FromServices] ISourcePluginManager sourcePluginManager, [FromRoute] string id)
-        //{
-        //    return BadRequest("Not implemented yet");
-        //}
-
-
-
-        // GET: api/v1/novel/{id}/export?extension=extension: export the novel to a file
-        [HttpGet("{id}/export")]
-        public async Task<IActionResult> Export([FromRoute] string id, [FromQuery] string extension)
+        [HttpGet("{source}/{novelSlug}/chapters")]
+        [EndpointSummary("View chapters of a novel by page, -1 is last page")]
+        public async Task<IActionResult> GetChapters([FromRoute] string source, [FromRoute] string novelSlug, [FromQuery] int page = -1)
         {
-            return BadRequest("Not implemented yet");
+            if (page == 0) return BadRequest(new { error = new { message = "Page must be greater than 0" } });
+            try
+            {
+                var (chapters, totalPage) = await _sourcePluginManager.GetChapters(source, novelSlug, page);
+
+                // Check if the novel is not found
+                if (chapters == null)
+                {
+                    return NotFound(new { error = new { message = "Không tìm thấy truyện" } });
+                }
+
+                // Return the chapters
+                return Ok(new
+                {
+                    data = chapters,
+                    meta = new
+                    {
+                        source = source,
+                        novelSlug = novelSlug,
+                        page = page != -1 ? page : totalPage,
+                        totalPage = totalPage
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = new { code = ex.HResult, message = ex.Message } });
+            }
         }
+
 
 
 
