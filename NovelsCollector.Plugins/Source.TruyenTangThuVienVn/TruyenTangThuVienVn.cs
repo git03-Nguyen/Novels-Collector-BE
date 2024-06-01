@@ -5,7 +5,7 @@ using NovelsCollector.SDK.Models;
 using HtmlAgilityPack;
 using HtmlAgilityPack.CssSelectors.NetCore;
 
-namespace SourcePlugin.TruyenTangThuVienVn
+namespace Source.TruyenTangThuVienVn
 {
     public class TruyenTangThuVienVn
     {
