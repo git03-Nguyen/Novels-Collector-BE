@@ -67,7 +67,7 @@ namespace NovelsCollector.Core.Services.Plugins
             }
 
             // For test:
-            var listOfEnabledPlugins = new List<string> { "PluginCrawlTruyenFull", "TruyenTangThuVienVn", "SSTruyenVn", "DTruyenCom" };
+            var listOfEnabledPlugins = new List<string> { "TruyenFullVn", "TruyenTangThuVienVn", "SSTruyenVn", "DTruyenCom" }; // in the future, read from db
             foreach (var plugin in listOfEnabledPlugins)
             {
                 LoadPlugin(plugin);

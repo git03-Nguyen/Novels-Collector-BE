@@ -144,7 +144,7 @@ namespace DTruyenCom
             {
                 var document = await LoadFromWebAsync(NovelUrl.Replace("<novel-slug>", novel.Slug));
 
-                novel.Title = document.DocumentNode.QuerySelector("meta[property='og:title']")?.Attributes["content"].Value;
+                novel.Title = document.DocumentNode.QuerySelector("#story-detail h1[itemprop='name']")?.Attributes["content"].Value;
 
                 novel.MaxRating = 10;
 
@@ -196,44 +196,49 @@ namespace DTruyenCom
         public async Task<Tuple<Chapter[]?, int>> CrawlListChapters(string novelSlug, int page = 1)
         {
             var novel = new Novel();
+            List<Chapter> listChapter = new List<Chapter>();
+            var totalPage = 1;
             novel.Slug = novelSlug;
 
-            var document = await LoadFromWebAsync(NovelUrl.Replace("<novel-slug>", novel.Slug));
-
-            // Get number of chapters: <p> tag having content: "Số chương"
-            var totalPage = 1;
-            var paginationElement = document.DocumentNode.QuerySelector("ul.Pagination");
-            if (paginationElement != null)
+            try
             {
-                var aElements = paginationElement.QuerySelectorAll("li a");
+                var document = await LoadFromWebAsync(NovelUrl.Replace("<novel-slug>", novel.Slug));
 
-                foreach (var element in aElements)
+                // Get number of chapters: <p> tag having content: "Số chương"
+                var paginationElement = document.DocumentNode.QuerySelector("ul.Pagination");
+                if (paginationElement != null)
                 {
-                    var match = Regex.Match(element.InnerText, @"\d+");
-                    if (match.Success && totalPage < int.Parse(match.Value))
+                    var aElements = paginationElement.QuerySelectorAll("li a");
+
+                    foreach (var element in aElements)
                     {
-                        totalPage = int.Parse(match.Value);
+                        var match = Regex.Match(element.InnerText, @"\d+");
+                        if (match.Success && totalPage < int.Parse(match.Value))
+                        {
+                            totalPage = int.Parse(match.Value);
+                        }
                     }
                 }
-            }
 
-            // if page == -1, then it will return the last page
-            if (page == -1)
-            {
-                page = totalPage;
-            }
+                // check page
+                if (page == -1 || page > totalPage) page = totalPage;
+                else if (page <= 0) page = 1;
 
-            // list chapter
-            List<Chapter> listChapter = new List<Chapter>();
-            var url = $"https://dtruyen.com/{novel.Slug}/{page}/";
-            document = await LoadFromWebAsync(url);
-            var chapterElements = document.DocumentNode.QuerySelectorAll($"#chapters ul.chapters li a");
-            foreach (var element in chapterElements)
+                // list chapter
+                var url = $"https://dtruyen.com/{novel.Slug}/{page}/";
+                document = await LoadFromWebAsync(url);
+                var chapterElements = document.DocumentNode.QuerySelectorAll($"#chapters ul.chapters li a");
+                foreach (var element in chapterElements)
+                {
+                    var chapter = new Chapter();
+                    chapter.Title = element.QuerySelector("a").Attributes["title"].Value;
+                    chapter.Slug = element.QuerySelector("a").Attributes["href"].Value.Replace($"https://dtruyen.com/{novel.Slug}/", "").Replace("/", "");
+                    listChapter.Add(chapter);
+                }
+            }
+            catch(Exception ex)
             {
-                var chapter = new Chapter();
-                chapter.Title = element.QuerySelector("a").Attributes["title"].Value;
-                chapter.Slug = element.QuerySelector("a").Attributes["href"].Value.Replace($"https://dtruyen.com/{novel.Slug}/", "").Replace("/", "");
-                listChapter.Add(chapter);
+                log.Error("An error occurred: ", ex);
             }
 
             return new Tuple<Chapter[]?, int>(listChapter.ToArray(), totalPage);
@@ -382,7 +387,6 @@ namespace DTruyenCom
 
             return document;
         }
-
         private string convertToUnSign(string s)
         {
             Regex regex = new Regex("\\p{IsCombiningDiacriticalMarks}+");
@@ -391,7 +395,6 @@ namespace DTruyenCom
         }
         private string ConvertToSlug(string input)
         {
-            input = HtmlEntity.DeEntitize(input);
             input = convertToUnSign(input);
 
             if (string.IsNullOrEmpty(input))
@@ -426,7 +429,7 @@ namespace DTruyenCom
 
             return slug;
         }
+        #endregion
     }
-    #endregion
 }
 

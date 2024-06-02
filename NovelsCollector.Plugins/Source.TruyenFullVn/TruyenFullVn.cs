@@ -243,8 +243,9 @@ namespace Source.TruyenFullVn
                 string? truyenAscii = document.DocumentNode.QuerySelector("input#truyen-ascii")?.Attributes["value"].Value;
                 string? truyenName = document.DocumentNode.QuerySelector("h3.title")?.InnerText;
 
-                if (page == -1) page = totalPage;
-                if (page > totalPage || page < -1) return new Tuple<Chapter[]?, int>(null, totalPage);
+                // check page
+                if (page == -1 || page > totalPage) page = totalPage;
+                else if (page <= 0) page = 1;
 
 
                 var url = $"{Url}ajax.php?type=list_chapter&tid={truyenId}&tascii={truyenAscii}&tname={truyenName}&page={page}&totalp={totalPage}";

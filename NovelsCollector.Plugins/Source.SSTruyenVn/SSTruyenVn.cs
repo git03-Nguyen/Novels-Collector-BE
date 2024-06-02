@@ -3,7 +3,9 @@ using HtmlAgilityPack.CssSelectors.NetCore;
 using log4net;
 using NovelsCollector.SDK.Models;
 using NovelsCollector.SDK.Plugins.SourcePlugins;
+using System.Globalization;
 using System.Reflection.Metadata;
+using System.Text;
 using System.Text.RegularExpressions;
 
 namespace Source.TruyenSSVn
@@ -38,7 +40,9 @@ namespace Source.TruyenSSVn
         /// <returns>First: Novels, Second: total page</returns>
         public async Task<Tuple<Novel[]?, int>> CrawlSearch(string? keyword, int page = 1)
         {
-            var result = await CrawlNovels(SearchUrl.Replace("<keyword>", keyword), page);
+            var slug = ConvertToSlug(keyword);
+            var standardKeyword = Regex.Replace(slug, @"\s", "%20");
+            var result = await CrawlNovels(SearchUrl.Replace("<keyword>", standardKeyword), page);
             return result;
         }
 
@@ -200,7 +204,7 @@ namespace Source.TruyenSSVn
             return novel;
         }
 
-        public async Task<Tuple<Chapter[]?, int>> CrawlListChapters(string novelSlug, int page = 1)
+        public async Task<Tuple<Chapter[]?, int>> CrawlListChapters(string novelSlug, int page = -1)
         {
             var listChapter = new List<Chapter>();
             int totalPage = 1;
@@ -213,8 +217,17 @@ namespace Source.TruyenSSVn
                 var lastPage = document.DocumentNode.QuerySelector("input#s_last_page")?.Attributes["value"].Value;
                 totalPage = int.Parse(lastPage);
 
+                // Check page
+                if (page == -1 || page > totalPage) page = totalPage;
+                else if (page <= 0) page = 1;
+
                 // Get chapters
                 document = await LoadFromWebAsync($"https://sstruyen.vn/{novelSlug}/trang-{page}");
+
+                // Remove latest chapters
+                document.DocumentNode.QuerySelector("div.row.list-chap div[class*='col']").Remove(); // Remove title "Chương Mới Nhất"
+                document.DocumentNode.QuerySelector("div.row.list-chap div[class*='col']").Remove(); // Remove title latest chapters
+
                 var chapterElements = document.DocumentNode.QuerySelectorAll("div.row.list-chap ul li a");
                 if (chapterElements.Count == 0) return new Tuple<Chapter[]?, int>(null, 0);
                 foreach (var element in chapterElements)
@@ -249,11 +262,11 @@ namespace Source.TruyenSSVn
             {
                 // Get content of chapter in html format
                 var contentElement = document.DocumentNode.QuerySelector("div.content.container1");
-                content = contentElement.InnerHtml;
+                content = contentElement?.InnerHtml;
 
                 // Get title
                 var titleElement = document.DocumentNode.QuerySelector("div.rv-chapt-title a");
-                title = titleElement.InnerText;
+                title = titleElement?.InnerText;
             }
             catch (Exception ex)
             {
@@ -363,6 +376,48 @@ namespace Source.TruyenSSVn
             }
 
             return document;
+        }
+        private string convertToUnSign(string s)
+        {
+            Regex regex = new Regex("\\p{IsCombiningDiacriticalMarks}+");
+            string temp = s.Normalize(NormalizationForm.FormD);
+            return regex.Replace(temp, String.Empty).Replace('\u0111', 'd').Replace('\u0110', 'D');
+        }
+        private string ConvertToSlug(string input)
+        {
+            input = convertToUnSign(input);
+
+            if (string.IsNullOrEmpty(input))
+            {
+                return string.Empty;
+            }
+
+            // Normalize the string to decompose the characters
+            string normalizedString = input.Normalize(NormalizationForm.FormD);
+
+            // Remove diacritics
+            StringBuilder stringBuilder = new StringBuilder();
+            foreach (char c in normalizedString)
+            {
+                if (CharUnicodeInfo.GetUnicodeCategory(c) != UnicodeCategory.NonSpacingMark)
+                {
+                    stringBuilder.Append(c);
+                }
+            }
+
+            // Convert to lowercase
+            string withoutDiacritics = stringBuilder.ToString().Normalize(NormalizationForm.FormC).ToLowerInvariant();
+
+            // Remove special characters
+            string slug = Regex.Replace(withoutDiacritics, @"[^a-z0-9\s-]", " ");
+
+            // Replace spaces with hyphens
+            slug = Regex.Replace(slug, @"\s+", "-").Trim('-');
+
+            // Trim hyphens
+            slug = slug.Trim('-');
+
+            return slug;
         }
         #endregion
     }

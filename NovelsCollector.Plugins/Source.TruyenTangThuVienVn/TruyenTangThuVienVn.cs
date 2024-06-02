@@ -106,12 +106,19 @@ namespace Source.TruyenTangThuVienVn
             try
             {
                 var document = await LoadFromWebAsync(Url);
-
                 var categoryElements = document.DocumentNode.QuerySelectorAll("div.classify-list a[href*='https://truyen.tangthuvien.vn/the-loai/']");
                 foreach (var categoryElement in categoryElements)
                 {
                     Category category = new Category();
-                    category.Name = HtmlEntity.DeEntitize(categoryElement.QuerySelector("span[class='info'] i").InnerText);
+
+                    // Get name of category
+                    var nameElement = categoryElement.QuerySelector("span[class='info'] i");
+                    if (nameElement != null)
+                    { 
+                        category.Name = HtmlEntity.DeEntitize(nameElement.InnerText)
+                            .Replace("\r\n", "").Replace("\\\"", "\"").Replace("\\t", "  ");
+                    }
+
                     category.Slug = categoryElement?.Attributes["href"].Value.Replace("https://truyen.tangthuvien.vn/the-loai/", "").Replace("/", "");
 
                     if (listCategory.Count(x => (x.Slug == category.Slug)) == 0)
@@ -120,10 +127,15 @@ namespace Source.TruyenTangThuVienVn
                     }
                 }
             }
+            catch (NullReferenceException ex)
+            {
+                log.Error("Null Reference Exception: ", ex);
+            }
             catch (Exception ex)
             {
                 log.Error("An error occurred: ", ex);
             }
+
 
             return listCategory.ToArray();
         }
@@ -141,7 +153,13 @@ namespace Source.TruyenTangThuVienVn
             {
                 var document = await LoadFromWebAsync(NovelUrl.Replace("<novel-slug>", novel.Slug));
 
-                novel.Title = HtmlEntity.DeEntitize(document.DocumentNode.QuerySelector("div.book-info h1")?.InnerHtml);
+                // Get title of novel
+                var titleElement = document.DocumentNode.QuerySelector("div.book-info h1");
+                if (titleElement != null)
+                {
+                    novel.Title = HtmlEntity.DeEntitize(titleElement.InnerText)
+                        .Replace("\r\n", "").Replace("\\\"", "\"").Replace("\\t", "  ");
+                }
 
                 // get id of novel
                 var idElement = document.DocumentNode.QuerySelector("meta[name='book_detail']");
@@ -156,8 +174,13 @@ namespace Source.TruyenTangThuVienVn
                 var ratingElement = document.DocumentNode.QuerySelector("#myrate");
                 if (ratingElement != null) novel.Rating = float.Parse(ratingElement.InnerText);
 
-                novel.Description = HtmlEntity.DeEntitize(document.DocumentNode.QuerySelector("div.book-intro")?.InnerHtml)
-                    .Replace("\r\n", "").Replace("\\\"", "\"").Replace("\\t", "  ");
+                // Get description of novel
+                var descriptionElement = document.DocumentNode.QuerySelector("div.book-intro");
+                if (descriptionElement != null)
+                {
+                    novel.Description = HtmlEntity.DeEntitize(descriptionElement.InnerHtml)
+                        .Replace("\r\n", "").Replace("\\\"", "\"").Replace("\\t", "  ");
+                }
 
                 // get authors
                 var authorElements = document.DocumentNode.QuerySelectorAll("div.book-information a[href*='https://truyen.tangthuvien.vn/tac-gia?author=']");
@@ -197,8 +220,10 @@ namespace Source.TruyenTangThuVienVn
                 {
                     novel.Cover = coverElement.Attributes["src"].Value;
                 }
-
-                
+            }
+            catch (NullReferenceException ex)
+            {
+                log.Error("Null Reference Exception: ", ex);
             }
             catch (Exception ex)
             {
@@ -225,17 +250,14 @@ namespace Source.TruyenTangThuVienVn
                 var totalChapterText = document.DocumentNode.QuerySelector("a#j-bookCatalogPage.lang")?.InnerText;
                 var matches = Regex.Match(totalChapterText, @"\d+").Value;
                 var totalChapter = int.Parse(matches);
-
                 var perPage = 75;
 
                 // Get totalPage
                 totalPage = (int)Math.Ceiling((double)totalChapter / perPage);
 
-                // if page == -1, then it will return the last page
-                if (page == -1)
-                {
-                    page = totalPage;
-                }
+                // check page
+                if (page == -1 || page > totalPage) page = totalPage;
+                else if (page <= 0) page = 1;
 
                 // list chapter
                 var url = $"https://truyen.tangthuvien.vn/doc-truyen/page/{novel.Id}?page={page - 1}&limit={perPage}&web=1";
@@ -248,6 +270,10 @@ namespace Source.TruyenTangThuVienVn
                     chapter.Slug = element.QuerySelector("a").Attributes["href"].Value.Replace($"https://truyen.tangthuvien.vn/doc-truyen/{novel.Slug}/", "").Replace("/", "");
                     listChapter.Add(chapter);
                 }
+            }
+            catch (NullReferenceException ex)
+            {
+                log.Error("Null Reference Exception: ", ex);
             }
             catch (Exception ex)
             {
@@ -271,17 +297,26 @@ namespace Source.TruyenTangThuVienVn
             try
             {
                 var contentElement = document.DocumentNode.QuerySelector("div.box-chap");
-
+                
                 // Get content of chapter in html format
-                content = HtmlEntity.DeEntitize(contentElement.InnerHtml)
-                    .Replace("\r\n", "<br/>").Replace("\\\"", "\"").Replace("\\t", "  ");
+                if (contentElement != null)
+                {
+                    content = HtmlEntity.DeEntitize(contentElement.InnerHtml)
+                        .Replace("\r\n", "<br/>").Replace("\\\"", "\"").Replace("\\t", "  ");
+                }
 
                 var titleElement = document.DocumentNode.QuerySelector("h1.truyen-title");
 
                 // Get title of chapter
-                title = HtmlEntity.DeEntitize(titleElement.InnerText)
-                    .Replace("\r\n", "<br/>").Replace("\\\"", "\"").Replace("\\t", "  ");
-
+                if (contentElement != null)
+                {
+                    title = HtmlEntity.DeEntitize(titleElement.InnerText)
+                        .Replace("\r\n", "<br/>").Replace("\\\"", "\"").Replace("\\t", "  ");
+                }
+            }
+            catch (NullReferenceException ex)
+            {
+                log.Error("Null Reference Exception: ", ex);
             }
             catch (Exception ex)
             {
@@ -358,6 +393,10 @@ namespace Source.TruyenTangThuVienVn
                     listNovel.Add(novel);
                 }
             }
+            catch (NullReferenceException ex)
+            {
+                log.Error("Null Reference Exception: ", ex);
+            }
             catch (Exception ex)
             {
                 log.Error("An error occurred: ", ex);
@@ -378,6 +417,10 @@ namespace Source.TruyenTangThuVienVn
                 {
                     id = int.Parse(moreElement.Attributes["href"].Value.Replace("https://truyen.tangthuvien.vn/tong-hop?tp=cv&ctg=", ""));
                 }
+            }
+            catch (NullReferenceException ex)
+            {
+                log.Error("Null Reference Exception: ", ex);
             }
             catch (Exception ex)
             {
