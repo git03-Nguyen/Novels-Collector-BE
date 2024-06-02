@@ -279,28 +279,35 @@ namespace Source.TruyenFullVn
             var web = new HtmlWeb();
             var document = await web.LoadFromWebAsync($"{Url}{novelSlug}/{chapterSlug}/");
 
-            // TODO: Check if chapter is not found
+            string? content = null;
+            string? title = null;
 
-            var contentElement = document.DocumentNode.QuerySelector("#chapter-c");
+            var containerElement = document.DocumentNode.QuerySelector("#chapter-big-container");
+            if (containerElement != null)
+            { 
+                // Get title of chatper
+                var titleElement = containerElement.QuerySelector(".chapter-title");
+                title = titleElement.InnerText;
 
-            // Remove all ads
-            var adsElements = contentElement.QuerySelectorAll("div[class*='ads']");
-            foreach (var element in adsElements)
-			{
-				element.Remove();
-			}
+                var contentElement = containerElement.QuerySelector("#chapter-c");
 
-			// Get content of chapter in html format
-			var content = contentElement.InnerHtml;
+                // Remove all ads
+                var adsElements = contentElement.QuerySelectorAll("div[class*='ads']");
+                foreach (var element in adsElements)
+                {
+                    element.Remove();
+                }
+
+                // Get content of chapter in html format
+                content = contentElement.InnerHtml;
+            }
 
             var chapter = new Chapter();
-            chapter.Title = "Chapter Title";
+            chapter.Title = title;
             chapter.Content = content;
 
             return chapter;
         }
-
-
 
         #region helper method
         /// <summary>

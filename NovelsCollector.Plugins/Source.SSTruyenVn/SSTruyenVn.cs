@@ -7,22 +7,22 @@ using System.Text.RegularExpressions;
 
 namespace Source.TruyenSSVn
 {
-    public class TruyenSSVn: SourcePlugin, ISourcePlugin
+    public class SSTruyenVn: SourcePlugin, ISourcePlugin
     {
-        private static readonly ILog log = LogManager.GetLogger(typeof(TruyenSSVn));
-        public string SearchUrl => "https://sstruyen.vn/tim-truyen/hello/";
+        private static readonly ILog log = LogManager.GetLogger(typeof(SSTruyenVn));
+        public string SearchUrl => "https://sstruyen.vn/tim-truyen/<keyword>/";
         public string HotUrl => "https://sstruyen.vn/?lib=all&ct=&order=1&greater=0&lesser=1000000000&hot=hot&p=<page>";
         public string LatestUrl => "https://sstruyen.vn/?lib=all&ct=&order=8&greater=0&lesser=1000000000&p=<page>";
         public string CompletedUrl => "https://sstruyen.vn/?lib=all&ct=&order=4&greater=0&lesser=1000000000&full=full&p=<page>";
         public string AuthorUrl => "https://sstruyen.vn/tac-gia/<author-slug>/";
-        public string CategoryUrl => "https://sstruyen.vn/the-loai/<category-slug>/";
+        public string CategoryUrl => "https://sstruyen.vn/the-loai/<category-slug>/trang-<page>/";
         public string NovelUrl => "https://sstruyen.vn/<novel-slug>/";
         public string ChapterUrl => "https://sstruyen.vn/<novel-slug>/<chapter-slug>";
 
-        public TruyenSSVn()
+        public SSTruyenVn()
         {
             Url = "https://sstruyen.vn/";
-            Name = "TruyenSSVn";
+            Name = "SSTruyenVn";
             Description = "This plugin is used to crawl novels from TruyenSSVn website";
             Version = "1.0.0";
             Author = "Nguyen Tuan Dat";
