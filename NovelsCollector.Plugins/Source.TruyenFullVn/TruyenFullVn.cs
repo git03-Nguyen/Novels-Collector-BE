@@ -10,9 +10,9 @@ namespace Source.TruyenFullVn
 {
     public class TruyenFullVn : SourcePlugin, ISourcePlugin
     {
-		
-		private static readonly ILog log = LogManager.GetLogger(typeof(TruyenFullVn));
-		
+
+        private static readonly ILog log = LogManager.GetLogger(typeof(TruyenFullVn));
+
         public string SearchUrl => "https://truyenfull.vn/tim-kiem/?tukhoa=<keyword>&page=<page>";
         public string HotUrl => "https://truyenfull.vn/danh-sach/truyen-hot/trang-<page>/";
         public string LatestUrl => "https://truyenfull.vn/danh-sach/truyen-moi/trang-<page>/";
@@ -21,7 +21,7 @@ namespace Source.TruyenFullVn
         public string CategoryUrl => "https://truyenfull.vn/the-loai/<category-slug>/trang-<page>/";
         public string NovelUrl => "https://truyenfull.vn/<novel-slug>";
         public string ChapterUrl => "https://truyenfull.vn/<novel-slug>/<chapter-slug>";
-		
+
         public TruyenFullVn()
         {
             Url = "https://truyenfull.vn/";
@@ -156,7 +156,7 @@ namespace Source.TruyenFullVn
             return listCategory.ToArray();
         }
 
-		/// <summary>
+        /// <summary>
         /// Crawl detail information of novel (using Novel.Slug)
         /// </summary>
         /// <param name="novel">Need: novel.Slug</param>
@@ -175,54 +175,54 @@ namespace Source.TruyenFullVn
 
             novel.MaxRating = 10;
 
-			// get rating value
-			var ratingElement = document.DocumentNode.QuerySelector("span[itemprop='ratingValue']");
-			if (ratingElement != null) novel.Rating = float.Parse(ratingElement.InnerText);
+            // get rating value
+            var ratingElement = document.DocumentNode.QuerySelector("span[itemprop='ratingValue']");
+            if (ratingElement != null) novel.Rating = float.Parse(ratingElement.InnerText);
 
-			novel.Description = document.DocumentNode.QuerySelector("div[itemprop='description']")?.InnerText;
+            novel.Description = document.DocumentNode.QuerySelector("div[itemprop='description']")?.InnerText;
 
-			// get authors
-			var authorElements = document.DocumentNode.QuerySelectorAll("a[itemprop='author']");
-			List<Author> listAuthor = new List<Author>();
-			foreach (var element in authorElements)
-			{
-				var author = new Author();
-				author.Name = element.Attributes["title"].Value;
-				author.Slug = element.Attributes["href"].Value.Replace($"{Url}tac-gia", "").Replace("/", "");
-				listAuthor.Add(author);
-			}
-			novel.Authors = listAuthor.ToArray();
-			
-			// get categories
-			var genreElements = document.DocumentNode.QuerySelectorAll("div.info a[itemprop='genre']");
-			List<Category> listCategory = new List<Category>();
-			foreach (var element in genreElements)
-			{
-				var category = new Category();
-				category.Name = element.Attributes["title"].Value;
-				category.Slug = element.Attributes["href"].Value.Replace($"{Url}the-loai", "").Replace("/", "");
-				listCategory.Add(category);
-			}
-			novel.Categories = listCategory.ToArray();
+            // get authors
+            var authorElements = document.DocumentNode.QuerySelectorAll("a[itemprop='author']");
+            List<Author> listAuthor = new List<Author>();
+            foreach (var element in authorElements)
+            {
+                var author = new Author();
+                author.Name = element.Attributes["title"].Value;
+                author.Slug = element.Attributes["href"].Value.Replace($"{Url}tac-gia", "").Replace("/", "");
+                listAuthor.Add(author);
+            }
+            novel.Authors = listAuthor.ToArray();
 
-			// get status
-			string? status = document.DocumentNode.QuerySelector("span.text-success")?.InnerText.Trim();
-			if (status == "Đang ra") novel.Status = EnumStatus.OnGoing;
-			else if (status == "Full") novel.Status = EnumStatus.Completed;
-			else novel.Status = EnumStatus.ComingSoon; // Defualt value
+            // get categories
+            var genreElements = document.DocumentNode.QuerySelectorAll("div.info a[itemprop='genre']");
+            List<Category> listCategory = new List<Category>();
+            foreach (var element in genreElements)
+            {
+                var category = new Category();
+                category.Name = element.Attributes["title"].Value;
+                category.Slug = element.Attributes["href"].Value.Replace($"{Url}the-loai", "").Replace("/", "");
+                listCategory.Add(category);
+            }
+            novel.Categories = listCategory.ToArray();
 
-			// get cover
-			var coverElement = document.DocumentNode.QuerySelector("div.books img");
-			if (coverElement != null)
-			{
-				foreach (var attribute in coverElement.Attributes)
-				{
-					if (attribute.Value.Contains("https://"))
-					{
-						novel.Cover = attribute.Value;
-					}
-				}
-			}
+            // get status
+            string? status = document.DocumentNode.QuerySelector("span.text-success")?.InnerText.Trim();
+            if (status == "Đang ra") novel.Status = EnumStatus.OnGoing;
+            else if (status == "Full") novel.Status = EnumStatus.Completed;
+            else novel.Status = EnumStatus.ComingSoon; // Defualt value
+
+            // get cover
+            var coverElement = document.DocumentNode.QuerySelector("div.books img");
+            if (coverElement != null)
+            {
+                foreach (var attribute in coverElement.Attributes)
+                {
+                    if (attribute.Value.Contains("https://"))
+                    {
+                        novel.Cover = attribute.Value;
+                    }
+                }
+            }
 
             return novel;
         }
@@ -268,7 +268,7 @@ namespace Source.TruyenFullVn
             return new Tuple<Chapter[]?, int>(listChapter.ToArray(), totalPage.Value);
         }
 
-		/// <summary>
+        /// <summary>
         /// Crawl content of chapter (Using Novel.Slug and Chapter.Slug)
         /// </summary>
         /// <param name="novel">Need: novel.Slug</param>
@@ -284,7 +284,7 @@ namespace Source.TruyenFullVn
 
             var containerElement = document.DocumentNode.QuerySelector("#chapter-big-container");
             if (containerElement != null)
-            { 
+            {
                 // Get title of chatper
                 var titleElement = containerElement.QuerySelector(".chapter-title");
                 title = titleElement.InnerText;
@@ -330,7 +330,7 @@ namespace Source.TruyenFullVn
             // Get Pagination
             int totalPage = 1;
             var listNovel = new List<Novel>();
-            
+
             // Get Pagination
             var paginationElement = document.DocumentNode.QuerySelector("ul.pagination");
             if (paginationElement != null)
@@ -387,7 +387,7 @@ namespace Source.TruyenFullVn
                 listNovel.Add(novel);
             }
 
-            
+
 
             return new Tuple<Novel[], int>(listNovel.ToArray(), totalPage);
         }

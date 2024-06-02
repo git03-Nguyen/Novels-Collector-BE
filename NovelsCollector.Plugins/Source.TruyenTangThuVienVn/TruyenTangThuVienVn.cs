@@ -1,10 +1,9 @@
-﻿using System.Text.RegularExpressions;
-using System;
+﻿using HtmlAgilityPack;
+using HtmlAgilityPack.CssSelectors.NetCore;
 using log4net;
 using NovelsCollector.SDK.Models;
-using HtmlAgilityPack;
-using HtmlAgilityPack.CssSelectors.NetCore;
 using NovelsCollector.SDK.Plugins.SourcePlugins;
+using System.Text.RegularExpressions;
 
 namespace Source.TruyenTangThuVienVn
 {
@@ -198,7 +197,7 @@ namespace Source.TruyenTangThuVienVn
                     novel.Cover = coverElement.Attributes["src"].Value;
                 }
 
-                
+
             }
             catch (Exception ex)
             {
@@ -242,7 +241,7 @@ namespace Source.TruyenTangThuVienVn
                 chapter.Slug = element.QuerySelector("a").Attributes["href"].Value.Replace($"https://truyen.tangthuvien.vn/doc-truyen/{novel.Slug}/", "").Replace("/", "");
                 listChapter.Add(chapter);
             }
-            
+
             return new Tuple<Chapter[]?, int>(listChapter.ToArray(), page);
         }
 
