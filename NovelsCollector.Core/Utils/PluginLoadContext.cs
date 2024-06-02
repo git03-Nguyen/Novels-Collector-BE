@@ -17,6 +17,7 @@ namespace NovelsCollector.Core.Utils
             string? assemblyPath = _resolver.ResolveAssemblyToPath(assemblyName);
             if (assemblyPath != null)
             {
+                Console.WriteLine($"Loading assembly {assemblyPath} into the PluginLoadContext");
                 return LoadFromAssemblyPath(assemblyPath);
             }
 
