@@ -160,8 +160,8 @@ namespace DTruyenCom
                 foreach (var element in authorElements)
                 {
                     var author = new Author();
-                    author.Name = element.Attributes["title"].Value;
-                    author.Slug = element.Attributes["href"].Value.Replace("https://dtruyen.com/tac-gia/", "").Replace("/", "");
+                    author.Name = element.Attributes["title"].Value.Trim();
+                    author.Slug = element.Attributes["href"].Value.Replace("https://dtruyen.com/tac-gia/", "").Replace("/", "").Trim();
                     listAuthor.Add(author);
                 }
                 novel.Authors = listAuthor.ToArray();
@@ -319,7 +319,7 @@ namespace DTruyenCom
                     foreach (var element in authorElements)
                     {
                         var author = new Author();
-                        author.Name = element.InnerText;
+                        author.Name = element.InnerText.Trim();
                         listAuthor.Add(author);
                     }
                     novel.Authors = listAuthor.ToArray();
