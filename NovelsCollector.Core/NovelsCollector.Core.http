@@ -50,7 +50,7 @@ GET {{https}}/api/v1/novel/{{source2}}/{{novelSlug2}}/{{chapSlug2}}
 
 ### ------------------------------------------
 ### SOURCE 3:
-@source3 = TruyenSSVn
+@source3 = SSTruyenVn
 
 ### Search
 @keyword3 = anh%20dao

@@ -15,8 +15,8 @@ namespace Source.TruyenTangThuVienVn
         public string HotUrl => "https://truyen.tangthuvien.vn/tong-hop?rank=nm&time=m&page=<page>";
         public string LatestUrl => "https://truyen.tangthuvien.vn/tong-hop?tp=cv&page=<page>";
         public string CompletedUrl => "https://truyen.tangthuvien.vn/tong-hop?fns=ht&page=<page>";
-        public string AuthorUrl => "https://truyen.tangthuvien.vn/tac-gia?author=<id>";
-        public string CategoryUrl => "https://truyen.tangthuvien.vn/tong-hop?tp=cv&ctg=<id>";
+        public string AuthorUrl => "https://truyen.tangthuvien.vn/tac-gia?author=<id>&page=<page>";
+        public string CategoryUrl => "https://truyen.tangthuvien.vn/tong-hop?ctg=<id>&tp=cv&page=<page>";
         public string NovelUrl => "https://truyen.tangthuvien.vn/doc-truyen/<novel-slug>";
         public string ChapterUrl => "https://truyen.tangthuvien.vn/doc-truyen/<novel-slug>/<chapter-slug>";
 
@@ -256,6 +256,7 @@ namespace Source.TruyenTangThuVienVn
         {
             var document = await LoadFromWebAsync(ChapterUrl.Replace("<novel-slug>", novelSlug).Replace("<chapter-slug>", chapterSlug));
             string content = "";
+            string title = "";
             try
             {
                 var contentElement = document.DocumentNode.QuerySelector("div.box-chap");
@@ -263,6 +264,13 @@ namespace Source.TruyenTangThuVienVn
                 // Get content of chapter in html format
                 content = HtmlEntity.DeEntitize(contentElement.InnerHtml)
                     .Replace("\r\n", "<br/>").Replace("\\\"", "\"").Replace("\\t", "  ");
+
+                var titleElement = document.DocumentNode.QuerySelector("h1.truyen-title");
+
+                // Get title of chapter
+                title = HtmlEntity.DeEntitize(titleElement.InnerText)
+                    .Replace("\r\n", "<br/>").Replace("\\\"", "\"").Replace("\\t", "  ");
+
             }
             catch (Exception ex)
             {
@@ -270,7 +278,7 @@ namespace Source.TruyenTangThuVienVn
             }
 
             var chapter = new Chapter();
-            chapter.Title = "Chapter Title";
+            chapter.Title = title;
             chapter.Content = content;
             return chapter;
         }
