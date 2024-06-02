@@ -1,10 +1,9 @@
-﻿using System.Text.RegularExpressions;
-using System;
+﻿using HtmlAgilityPack;
+using HtmlAgilityPack.CssSelectors.NetCore;
 using log4net;
 using NovelsCollector.SDK.Models;
-using HtmlAgilityPack;
-using HtmlAgilityPack.CssSelectors.NetCore;
 using NovelsCollector.SDK.Plugins.SourcePlugins;
+using System.Text.RegularExpressions;
 
 namespace Source.TruyenTangThuVienVn
 {

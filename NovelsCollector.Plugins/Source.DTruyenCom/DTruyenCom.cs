@@ -1,14 +1,11 @@
-﻿using System.Globalization;
-using System.Text.RegularExpressions;
-using System.Text;
-using System.Xml.Linq;
-using System.Xml;
-using System;
-using log4net;
-using NovelsCollector.SDK.Plugins.SourcePlugins;
-using NovelsCollector.SDK.Models;
-using HtmlAgilityPack;
+﻿using HtmlAgilityPack;
 using HtmlAgilityPack.CssSelectors.NetCore;
+using log4net;
+using NovelsCollector.SDK.Models;
+using NovelsCollector.SDK.Plugins.SourcePlugins;
+using System.Globalization;
+using System.Text;
+using System.Text.RegularExpressions;
 
 namespace DTruyenCom
 {

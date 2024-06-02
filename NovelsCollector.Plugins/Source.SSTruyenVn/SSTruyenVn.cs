@@ -10,7 +10,7 @@ using System.Text.RegularExpressions;
 
 namespace Source.TruyenSSVn
 {
-    public class SSTruyenVn: SourcePlugin, ISourcePlugin
+    public class SSTruyenVn : SourcePlugin, ISourcePlugin
     {
         private static readonly ILog log = LogManager.GetLogger(typeof(SSTruyenVn));
         public string SearchUrl => "https://sstruyen.vn/tim-truyen/<keyword>/";

@@ -45,6 +45,7 @@ namespace NovelsCollector.Core.Services.Plugins
                 if (typeof(SourcePlugin).IsAssignableFrom(type) && !type.IsAbstract)
                 {
                     var plugin = (SourcePlugin)Activator.CreateInstance(type);
+                    if (plugin == null) continue;
                     _plugins.Add(pluginName, plugin);
                 }
             }

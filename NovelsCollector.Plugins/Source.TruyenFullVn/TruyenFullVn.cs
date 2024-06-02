@@ -10,9 +10,9 @@ namespace Source.TruyenFullVn
 {
     public class TruyenFullVn : SourcePlugin, ISourcePlugin
     {
-		
-		private static readonly ILog log = LogManager.GetLogger(typeof(TruyenFullVn));
-		
+
+        private static readonly ILog log = LogManager.GetLogger(typeof(TruyenFullVn));
+
         public string SearchUrl => "https://truyenfull.vn/tim-kiem/?tukhoa=<keyword>&page=<page>";
         public string HotUrl => "https://truyenfull.vn/danh-sach/truyen-hot/trang-<page>/";
         public string LatestUrl => "https://truyenfull.vn/danh-sach/truyen-moi/trang-<page>/";
@@ -21,7 +21,7 @@ namespace Source.TruyenFullVn
         public string CategoryUrl => "https://truyenfull.vn/the-loai/<category-slug>/trang-<page>/";
         public string NovelUrl => "https://truyenfull.vn/<novel-slug>";
         public string ChapterUrl => "https://truyenfull.vn/<novel-slug>/<chapter-slug>";
-		
+
         public TruyenFullVn()
         {
             Url = "https://truyenfull.vn/";
@@ -155,7 +155,7 @@ namespace Source.TruyenFullVn
             return listCategory.ToArray();
         }
 
-		/// <summary>
+        /// <summary>
         /// Crawl detail information of novel (using Novel.Slug)
         /// </summary>
         /// <param name="novel">Need: novel.Slug</param>
@@ -225,8 +225,6 @@ namespace Source.TruyenFullVn
                 log.Error("An error occurred: ", ex);
             }
 
-
-
             return novel;
         }
 
@@ -279,7 +277,7 @@ namespace Source.TruyenFullVn
             return new Tuple<Chapter[]?, int>(listChapter.ToArray(), totalPage);
         }
 
-		/// <summary>
+        /// <summary>
         /// Crawl content of chapter (Using Novel.Slug and Chapter.Slug)
         /// </summary>
         /// <param name="novel">Need: novel.Slug</param>

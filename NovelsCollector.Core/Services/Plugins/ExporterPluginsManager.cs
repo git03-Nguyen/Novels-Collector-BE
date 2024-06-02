@@ -73,6 +73,6 @@ namespace NovelsCollector.Core.Services.Plugins
             }
         }
 
-        
+
     }
 }
