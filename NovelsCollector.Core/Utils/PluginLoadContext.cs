@@ -1,13 +1,13 @@
 ﻿using System.Reflection;
 using System.Runtime.Loader;
 
-namespace NovelsCollector.Core.Services.Plugins
+namespace NovelsCollector.Core.Utils
 {
     public class PluginLoadContext : AssemblyLoadContext
     {
         private AssemblyDependencyResolver _resolver;
 
-        public PluginLoadContext(string pluginPath)
+        public PluginLoadContext(string pluginPath) : base(isCollectible: true)
         {
             _resolver = new AssemblyDependencyResolver(pluginPath);
         }
@@ -23,7 +23,7 @@ namespace NovelsCollector.Core.Services.Plugins
             return null;
         }
 
-        protected override IntPtr LoadUnmanagedDll(string unmanagedDllName)
+        protected override nint LoadUnmanagedDll(string unmanagedDllName)
         {
             string? libraryPath = _resolver.ResolveUnmanagedDllToPath(unmanagedDllName);
             if (libraryPath != null)
@@ -31,7 +31,7 @@ namespace NovelsCollector.Core.Services.Plugins
                 return LoadUnmanagedDllFromPath(libraryPath);
             }
 
-            return IntPtr.Zero;
+            return nint.Zero;
         }
     }
 }

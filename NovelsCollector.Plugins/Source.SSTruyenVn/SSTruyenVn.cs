@@ -40,9 +40,8 @@ namespace Source.TruyenSSVn
         /// <returns>First: Novels, Second: total page</returns>
         public async Task<Tuple<Novel[]?, int>> CrawlSearch(string? keyword, int page = 1)
         {
-            var slug = ConvertToSlug(keyword);
-            var standardKeyword = Regex.Replace(slug, @"\s", "%20");
-            var result = await CrawlNovels(SearchUrl.Replace("<keyword>", standardKeyword), page);
+            keyword = keyword.Replace(" ", "%20");
+            var result = await CrawlNovels(SearchUrl.Replace("<keyword>", keyword), page);
             return result;
         }
 

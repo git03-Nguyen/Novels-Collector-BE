@@ -3,9 +3,14 @@
 ### Test connection
 GET {{https}}/api/v1/
 
+### Get all sources
+GET {{https}}/api/v1/sources
+### Reload sources
+GET {{https}}/api/v1/sources/reload
+
 ### ------------------------------------------
 ### SOURCE 1:
-@source1 = PluginCrawlTruyenFull
+@source1 = TruyenFullVn
 
 ### Search
 @keyword1 = anh%20dao
@@ -69,3 +74,26 @@ Accept: application/json
 ### Chapter content
 @chapSlug3 = chuong-1
 GET {{https}}/api/v1/novel/{{source3}}/{{novelSlug3}}/{{chapSlug3}}
+
+
+### ------------------------------------------
+### SOURCE 4:
+@source4 = DTruyenCom
+
+### Search
+@keyword4 = anh%20dao
+@pageS4 = 1
+GET {{https}}/api/v1/search?source={{source4}}&keyword={{keyword4}}&page={{pageS4}}
+
+### Novel detail
+@novelSlug4 = tao-tac
+GET {{https}}/api/v1/novel/{{source3}}/{{novelSlug4}}
+
+### Chapters list
+@pageC4 = 1
+GET {{https}}/api/v1/novel/{{source4}}/{{novelSlug4}}/chapters?page={{pageC4}}
+Accept: application/json
+
+### Chapter content
+@chapSlug4 = kiep-sau-dung-lam-anh-hung_87561.html
+GET {{https}}/api/v1/novel/{{source4}}/{{novelSlug4}}/{{chapSlug4}}

@@ -9,10 +9,10 @@ namespace NovelsCollector.Core.Services.Plugins
     public class SourcePluginsManager
     {
         // A dictionary to store the plugins
-        private static readonly Dictionary<string, SourcePlugin> _plugins = new Dictionary<string, SourcePlugin>();
+        private static Dictionary<string, SourcePlugin> _plugins = new Dictionary<string, SourcePlugin>();
 
         // The path to the plugins folder
-        private static readonly string _pluginsPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Plugins");
+        private static string _pluginsPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Plugins");
 
         // The collection of plugins in the database
         private static IMongoCollection<SourcePlugin> _pluginsCollection = null;
