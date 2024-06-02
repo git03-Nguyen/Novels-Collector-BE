@@ -211,7 +211,7 @@ namespace DTruyenCom
                 foreach (var element in aElements)
                 {
                     var match = Regex.Match(element.InnerText, @"\d+");
-                    if (match.Success & totalPage < int.Parse(match.Value))
+                    if (match.Success && totalPage < int.Parse(match.Value))
                     {
                         totalPage = int.Parse(match.Value);
                     }
@@ -226,7 +226,7 @@ namespace DTruyenCom
 
             // list chapter
             List<Chapter> listChapter = new List<Chapter>();
-            var url = $"https://dtruyen.com/{novel.Slug}/<page>/";
+            var url = $"https://dtruyen.com/{novel.Slug}/{page}/";
             document = await LoadFromWebAsync(url);
             var chapterElements = document.DocumentNode.QuerySelectorAll($"#chapters ul.chapters li a");
             foreach (var element in chapterElements)
