@@ -3,6 +3,7 @@ using HtmlAgilityPack.CssSelectors.NetCore;
 using log4net;
 using NovelsCollector.SDK.Models;
 using NovelsCollector.SDK.Plugins.SourcePlugins;
+using System.Reflection.Metadata;
 using System.Text.RegularExpressions;
 
 namespace Source.TruyenSSVn
@@ -202,50 +203,35 @@ namespace Source.TruyenSSVn
         public async Task<Tuple<Chapter[]?, int>> CrawlListChapters(string novelSlug, int page = 1)
         {
             var listChapter = new List<Chapter>();
+            int totalPage = 1;
 
-            // if page == -1, get the last page
-            if (page == -1)
+            try
             {
-                var document = await LoadFromWebAsync("https://sstruyen.vn/tao-tac/trang-1");
+                var document = await LoadFromWebAsync($"https://sstruyen.vn/{novelSlug}/trang-1");
 
                 // Get last page
                 var lastPage = document.DocumentNode.QuerySelector("input#s_last_page")?.Attributes["value"].Value;
-                page = int.Parse(lastPage);
+                totalPage = int.Parse(lastPage);
 
-                // if last page is 1, it means that there is only 1 page
-                if (page == 1)
-                {
-                    // Get chapters
-                    var chapterElements = document.DocumentNode.QuerySelectorAll("div.row.list-chap ul li a");
-                    if (chapterElements.Count == 0) return new Tuple<Chapter[]?, int>(null, 0);
-                    foreach (var element in chapterElements)
-                    {
-                        Chapter chapter = new Chapter();
-                        chapter.Title = element.InnerText;
-                        chapter.Slug = element.Attributes["href"].Value.Replace("/tao-tac/", "").Replace("/", "");
-                        listChapter.Add(chapter);
-                    }
-                    return new Tuple<Chapter[]?, int>(listChapter.ToArray(), page);
-                }
-            }
-
-            if (page != -1)
-            {
                 // Get chapters
-                var document = await LoadFromWebAsync($"https://sstruyen.vn/tao-tac/trang-{page}");
+                document = await LoadFromWebAsync($"https://sstruyen.vn/{novelSlug}/trang-{page}");
                 var chapterElements = document.DocumentNode.QuerySelectorAll("div.row.list-chap ul li a");
                 if (chapterElements.Count == 0) return new Tuple<Chapter[]?, int>(null, 0);
                 foreach (var element in chapterElements)
                 {
                     Chapter chapter = new Chapter();
                     chapter.Title = element.InnerText;
-                    chapter.Slug = element.Attributes["href"].Value.Replace("/tao-tac/", "").Replace("/", "");
+                    chapter.Slug = element.Attributes["href"].Value.Replace($"/{novelSlug}/", "").Replace("/", "");
                     listChapter.Add(chapter);
                 }
+            }
+            catch (Exception ex)
+            { 
+                log.Error("An error occurred: ", ex);
 
             }
 
-            return new Tuple<Chapter[]?, int>(listChapter.ToArray(), page);
+            return new Tuple<Chapter[]?, int>(listChapter.ToArray(), totalPage);
         }
 
         /// <summary>

@@ -195,7 +195,6 @@ namespace DTruyenCom
 
         public async Task<Tuple<Chapter[]?, int>> CrawlListChapters(string novelSlug, int page = 1)
         {
-            // Get the Id of novel
             var novel = new Novel();
             novel.Slug = novelSlug;
 

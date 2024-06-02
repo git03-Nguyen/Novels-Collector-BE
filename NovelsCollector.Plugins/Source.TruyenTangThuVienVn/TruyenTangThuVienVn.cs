@@ -210,40 +210,51 @@ namespace Source.TruyenTangThuVienVn
 
         public async Task<Tuple<Chapter[]?, int>> CrawlListChapters(string novelSlug, int page = -1)
         {
-            // Get the Id of novel
-            var novel = new Novel();
-            novel.Slug = novelSlug;
-            var document = await LoadFromWebAsync(NovelUrl.Replace("<novel-slug>", novel.Slug));
-            var idElement = document.DocumentNode.QuerySelector("meta[name='book_detail']");
-            if (idElement != null) novel.Id = int.Parse(idElement.Attributes["content"].Value);
-
-            // Get number of chapters: <a> tag having content: "Danh sách chương (1036 chương)"
-            var totalChapterText = document.DocumentNode.QuerySelector("a#j-bookCatalogPage.lang").InnerText;
-            var matches = Regex.Match(totalChapterText, @"\d+").Value;
-            var totalChapter = int.Parse(matches);
-
-            var perPage = 75;
-            // if page == -1, then it will return the last page
-            if (page == -1)
-            {
-                page = (int)Math.Ceiling((double)totalChapter / perPage);
-            }
-
-            // list chapter
             List<Chapter> listChapter = new List<Chapter>();
-
-            var url = $"https://truyen.tangthuvien.vn/doc-truyen/page/{novel.Id}?page={page - 1}&limit={perPage}&web=1";
-            document = await LoadFromWebAsync(url);
-            var chapterElements = document.DocumentNode.QuerySelectorAll("a[href*='https://truyen.tangthuvien.vn/doc-truyen/']");
-            foreach (var element in chapterElements)
+            int totalPage = 1;
+            try
             {
-                var chapter = new Chapter();
-                chapter.Title = HtmlEntity.DeEntitize(element.QuerySelector("a").Attributes["title"].Value);
-                chapter.Slug = element.QuerySelector("a").Attributes["href"].Value.Replace($"https://truyen.tangthuvien.vn/doc-truyen/{novel.Slug}/", "").Replace("/", "");
-                listChapter.Add(chapter);
+                // Get the Id of novel
+                var novel = new Novel();
+                novel.Slug = novelSlug;
+                var document = await LoadFromWebAsync(NovelUrl.Replace("<novel-slug>", novel.Slug));
+                var idElement = document.DocumentNode.QuerySelector("meta[name='book_detail']");
+                if (idElement != null) novel.Id = int.Parse(idElement.Attributes["content"].Value);
+
+                // Get number of chapters: <a> tag having content: "Danh sách chương (1036 chương)"
+                var totalChapterText = document.DocumentNode.QuerySelector("a#j-bookCatalogPage.lang")?.InnerText;
+                var matches = Regex.Match(totalChapterText, @"\d+").Value;
+                var totalChapter = int.Parse(matches);
+
+                var perPage = 75;
+
+                // Get totalPage
+                totalPage = (int)Math.Ceiling((double)totalChapter / perPage);
+
+                // if page == -1, then it will return the last page
+                if (page == -1)
+                {
+                    page = totalPage;
+                }
+
+                // list chapter
+                var url = $"https://truyen.tangthuvien.vn/doc-truyen/page/{novel.Id}?page={page - 1}&limit={perPage}&web=1";
+                document = await LoadFromWebAsync(url);
+                var chapterElements = document.DocumentNode.QuerySelectorAll("a[href*='https://truyen.tangthuvien.vn/doc-truyen/']");
+                foreach (var element in chapterElements)
+                {
+                    var chapter = new Chapter();
+                    chapter.Title = HtmlEntity.DeEntitize(element.QuerySelector("a").Attributes["title"].Value);
+                    chapter.Slug = element.QuerySelector("a").Attributes["href"].Value.Replace($"https://truyen.tangthuvien.vn/doc-truyen/{novel.Slug}/", "").Replace("/", "");
+                    listChapter.Add(chapter);
+                }
             }
-            
-            return new Tuple<Chapter[]?, int>(listChapter.ToArray(), page);
+            catch (Exception ex)
+            {
+                log.Error("An error occurred: ", ex);
+            }
+
+            return new Tuple<Chapter[]?, int>(listChapter.ToArray(), totalPage);
         }
 
         /// <summary>

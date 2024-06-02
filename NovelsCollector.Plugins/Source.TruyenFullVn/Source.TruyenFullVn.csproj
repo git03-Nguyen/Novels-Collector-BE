@@ -7,11 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="HtmlAgilityPack" Version="1.11.61" />
-    <PackageReference Include="HtmlAgilityPack.CssSelectors.NetCore" Version="1.2.1" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\..\NovelsCollector.SDK\NovelsCollector.SDK.csproj" />
   </ItemGroup>
 
