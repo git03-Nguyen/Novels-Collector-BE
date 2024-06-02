@@ -10,7 +10,7 @@ namespace Source.TruyenSSVn
     public class TruyenSSVn: SourcePlugin, ISourcePlugin
     {
         private static readonly ILog log = LogManager.GetLogger(typeof(TruyenSSVn));
-        public string SearchUrl => "https://sstruyen.vn/tim-truyen/hello/";
+        public string SearchUrl => "https://sstruyen.vn/tim-truyen/<keyword>/";
         public string HotUrl => "https://sstruyen.vn/?lib=all&ct=&order=1&greater=0&lesser=1000000000&hot=hot&p=<page>";
         public string LatestUrl => "https://sstruyen.vn/?lib=all&ct=&order=8&greater=0&lesser=1000000000&p=<page>";
         public string CompletedUrl => "https://sstruyen.vn/?lib=all&ct=&order=4&greater=0&lesser=1000000000&full=full&p=<page>";
@@ -147,7 +147,7 @@ namespace Source.TruyenSSVn
                 var ratingElement = document.DocumentNode.QuerySelector("div.rate");
                 if (ratingElement != null) novel.Rating = float.Parse(ratingElement.InnerText.Split("/").First());
 
-                novel.Description = document.DocumentNode.QuerySelector("div.content1 > p")?.InnerHtml;
+                novel.Description = HtmlEntity.DeEntitize(document.DocumentNode.QuerySelector("div.content1 > p")?.InnerHtml);
 
                 // get authors
                 var authorElements = document.DocumentNode.QuerySelectorAll("div.content1 div.info a[href*='/tac-gia/']");
@@ -201,42 +201,48 @@ namespace Source.TruyenSSVn
 
         public async Task<Tuple<Chapter[]?, int>> CrawlListChapters(string novelSlug, int page = 1)
         {
-            // Get the Id of novel
-            var novel = new Novel();
-            novel.Slug = novelSlug;
-            var document = await LoadFromWebAsync(NovelUrl.Replace("<novel-slug>", novel.Slug));
-            var idElement = document.DocumentNode.QuerySelector("meta[name='book_detail']");
-            if (idElement != null) novel.Id = int.Parse(idElement.Attributes["content"].Value);
+            var listChapter = new List<Chapter>();
 
-            // Get number of chapters: <p> tag having content: "Số chương"
-            var pElements = document.DocumentNode.QuerySelectorAll("div.content1 div.info p");
-            int totalChapter = 0;
-            foreach (var pElement in pElements)
+            // if page == -1, get the last page
+            if (page == -1)
             {
-                if (pElement.InnerText.Contains("Số chương"))
+                var document = await LoadFromWebAsync("https://sstruyen.vn/tao-tac/trang-1");
+
+                // Get last page
+                var lastPage = document.DocumentNode.QuerySelector("input#s_last_page")?.Attributes["value"].Value;
+                page = int.Parse(lastPage);
+
+                // if last page is 1, it means that there is only 1 page
+                if (page == 1)
                 {
-                    totalChapter = int.Parse(pElement.QuerySelector("span.status").InnerText);
+                    // Get chapters
+                    var chapterElements = document.DocumentNode.QuerySelectorAll("div.row.list-chap ul li a");
+                    if (chapterElements.Count == 0) return new Tuple<Chapter[]?, int>(null, 0);
+                    foreach (var element in chapterElements)
+                    {
+                        Chapter chapter = new Chapter();
+                        chapter.Title = element.InnerText;
+                        chapter.Slug = element.Attributes["href"].Value.Replace("/tao-tac/", "").Replace("/", "");
+                        listChapter.Add(chapter);
+                    }
+                    return new Tuple<Chapter[]?, int>(listChapter.ToArray(), page);
                 }
             }
 
-            var perPage = 32;
-            // if page == -1, then it will return the last page
-            if (page == -1)
+            if (page != -1)
             {
-                page = (int)Math.Ceiling((double)totalChapter / perPage);
-            }
+                // Get chapters
+                var document = await LoadFromWebAsync($"https://sstruyen.vn/tao-tac/trang-{page}");
+                var chapterElements = document.DocumentNode.QuerySelectorAll("div.row.list-chap ul li a");
+                if (chapterElements.Count == 0) return new Tuple<Chapter[]?, int>(null, 0);
+                foreach (var element in chapterElements)
+                {
+                    Chapter chapter = new Chapter();
+                    chapter.Title = element.InnerText;
+                    chapter.Slug = element.Attributes["href"].Value.Replace("/tao-tac/", "").Replace("/", "");
+                    listChapter.Add(chapter);
+                }
 
-            // list chapter
-            List<Chapter> listChapter = new List<Chapter>();
-            var url = $"https://sstruyen.vn/{novel.Slug}/trang-<page>/";
-            document = await LoadFromWebAsync(url);
-            var chapterElements = document.DocumentNode.QuerySelectorAll($"div.list-chap a[href*='/{novelSlug}/']");
-            foreach (var element in chapterElements)
-            {
-                var chapter = new Chapter();
-                chapter.Title = element.QuerySelector("a").Attributes["title"].Value;
-                chapter.Slug = element.QuerySelector("a").Attributes["href"].Value.Replace($"/{novel.Slug}/", "").Replace("/", "");
-                listChapter.Add(chapter);
             }
 
             return new Tuple<Chapter[]?, int>(listChapter.ToArray(), page);

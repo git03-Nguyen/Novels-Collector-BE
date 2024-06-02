@@ -58,11 +58,11 @@ GET {{https}}/api/v1/novel/{{source2}}/{{novelSlug2}}/{{chapSlug2}}
 GET {{https}}/api/v1/search?source={{source3}}&keyword={{keyword3}}&page={{pageS3}}
 
 ### Novel detail
-@novelSlug3 = dai-thien-thanh-dao
+@novelSlug3 = tao-tac
 GET {{https}}/api/v1/novel/{{source3}}/{{novelSlug3}}
 
 ### Chapters list
-@pageC3 = -1
+@pageC3 = 1
 GET {{https}}/api/v1/novel/{{source3}}/{{novelSlug3}}/chapters?page={{pageC3}}
 Accept: application/json
 
