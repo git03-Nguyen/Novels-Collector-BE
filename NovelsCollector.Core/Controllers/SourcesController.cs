@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using NovelsCollector.Core.Services.Plugins;
+using NovelsCollector.Core.Utils;
 
 namespace NovelsCollector.Core.Controllers
 {
@@ -22,7 +23,7 @@ namespace NovelsCollector.Core.Controllers
         // GET: api/v1/sources
         [HttpGet]
         [EndpointSummary("Get a list of all source plugins")]
-        public IActionResult GetSources()
+        public IActionResult Get()
         {
             return Ok(new
             {
@@ -37,7 +38,7 @@ namespace NovelsCollector.Core.Controllers
         {
             try
             {
-                _sourcePluginManager.Reload();
+                _sourcePluginManager.ReloadPlugins();
                 return Ok(new
                 {
                     data = _sourcePluginManager.Plugins.Values.ToArray(),
@@ -47,6 +48,39 @@ namespace NovelsCollector.Core.Controllers
             {
                 return StatusCode(500, new { error = new { code = ex.HResult, message = ex.Message } });
             }
+        }
+
+        // GET: api/v1/sources/unload
+        [HttpGet("unload")]
+        [EndpointSummary("Unload all source plugins")]
+        public IActionResult Unload()
+        {
+            try
+            {
+                _sourcePluginManager.UnloadAll();
+                return Ok(new
+                {
+                    data = _sourcePluginManager.Plugins.Values.ToArray(),
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = new { code = ex.HResult, message = ex.Message } });
+            }
+        }
+
+        // GET: api/v1/sources/unloaded-history
+        [HttpGet("unloaded-history")]
+        [EndpointSummary("Call the GC.Collect and to see if the plugin contexts are unloaded")]
+        public IActionResult DebugUnloading()
+        {
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+
+            return Ok(new
+            {
+                data = _sourcePluginManager.unloadedContexts.Select(wr => wr.IsAlive ? "Alive" : "Dead").ToArray(),
+            });
         }
 
         // POST: api/v1/sources: add a new source plugin, which is a zip file

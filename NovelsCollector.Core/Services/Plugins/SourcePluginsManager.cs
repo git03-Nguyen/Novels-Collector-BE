@@ -4,19 +4,20 @@ using NovelsCollector.SDK.Models;
 using NovelsCollector.SDK.Plugins.SourcePlugins;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using ZstdSharp.Unsafe;
 
 namespace NovelsCollector.Core.Services.Plugins
 {
     public class SourcePluginsManager
     {
-        // A dictionary to store the plugins
-        public Dictionary<string, SourcePlugin> Plugins { get; } = new Dictionary<string, SourcePlugin>();
+        private readonly ILogger<SourcePluginsManager> _logger;
 
-        // A dictionary to store the plugin contexts
-        private Dictionary<string, PluginLoadContext> _pluginLoadContexts = new Dictionary<string, PluginLoadContext>();
+        // 2 dictionaries to store the plugins and their own contexts
+        public Dictionary<string, SourcePlugin> Plugins { get; } = new Dictionary<string, SourcePlugin>();
+        private Dictionary<string, PluginLoadContext> _pluginLoadContexts = new Dictionary<string, PluginLoadContext>(); 
 
         // The path to the plugins folder
-        private string _pluginsPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Plugins");
+        private readonly string _pluginsPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Plugins");
 
         // TODO: The collection of source-plugins in the database
         private IMongoCollection<SourcePlugin> _pluginsCollection = null;
@@ -30,134 +31,136 @@ namespace NovelsCollector.Core.Services.Plugins
             "DTruyenCom" 
         };
 
-        // FOR TESTING: Weak reference to the contexts
-        public List<WeakReference> weakRefsToContexts = new List<WeakReference>();
+        // FOR DEBUGGING: The list of weak references to the unloaded contexts
+        public List<WeakReference> unloadedContexts = new List<WeakReference>();
 
-
-        public SourcePluginsManager(MongoDbContext mongoDbContext)
+        public SourcePluginsManager(ILogger<SourcePluginsManager> logger, MongoDbContext mongoDbContext)
         {
+            _logger = logger;
             _pluginsCollection = mongoDbContext.SourcePlugins;
-            Reload();
-        }
-
-        // No inlining to avoid JIT optimizations that may cause issues with the PluginLoadContext.Unload() (cannot GC)
-        [MethodImpl(MethodImplOptions.NoInlining)]    
-        public void LoadPluginIntoContext(string pluginName)
-        {
-            //if (!Plugins.ContainsKey(pluginName)) return;
-            if (!Directory.Exists(_pluginsPath)) return;
-
-            Plugins.Clear();
-            _pluginLoadContexts.Clear();
-            weakRefsToContexts.Clear();
-
-            string pluginPath = Path.Combine(_pluginsPath, pluginName); // Path to the plugin folder. ie: Plugins/TruyenFullVn
-            string? pathToDll = Directory.GetFiles(pluginPath, $"Source.{pluginName}.dll").FirstOrDefault(); // Path to the plugin dll. ie: Plugins/TruyenFullVn/Source.TruyenFullVn.dll
-            if (pathToDll == null) return;
-
-            Console.WriteLine($"Loading plugin from {pathToDll}");
-
-            PluginLoadContext loadContext = new PluginLoadContext(pathToDll);
-            weakRefsToContexts.Add(new WeakReference(loadContext));
-
-            Assembly pluginAssembly = loadContext.LoadFromAssemblyName(AssemblyName.GetAssemblyName(pathToDll));
-            Type[] types = pluginAssembly.GetTypes();
-            foreach (var type in types)
-            {
-                if (typeof(SourcePlugin).IsAssignableFrom(type) && !type.IsAbstract)
-                {
-                    var plugin = (SourcePlugin)Activator.CreateInstance(type);
-                    if (plugin == null) continue;
-                    Plugins.Add(pluginName, plugin);
-                    _pluginLoadContexts.Add(pluginName, loadContext);
-                }
-            }
-
-            Console.WriteLine($"Plugin {pluginName} loaded successfully");
-        }
-
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public void UnloadPlugin(string pluginName)
-        {
-            //if (!Plugins.ContainsKey(pluginName)) return;
-            //if (!_pluginLoadContexts.ContainsKey(pluginName)) return;
-
-            Console.WriteLine($"Unloading plugin {pluginName}");
-
-            _pluginLoadContexts[pluginName].Unload();
-            _pluginLoadContexts.Clear();
-
-            Plugins.Remove(pluginName);
-
-            Console.WriteLine($"Plugin {pluginName} started to unload");
-        }
-
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public void WaitingForGC()
-        {
-            // Poll and run GC until the AssemblyLoadContext is unloaded.
-            // You don't need to do that unless you want to know when the context
-            // got unloaded. You can just leave it to the regular GC.
-            for (int i = 0; weakRefsToContexts[0].IsAlive && (i < 10); i++)
-            {
-                GC.Collect();
-                GC.WaitForPendingFinalizers();
-            }
-
-            Console.WriteLine($"Unload success: {!weakRefsToContexts[0].IsAlive}");
-        }
-
-        // ----------------- OLD CODE -----------------
-        public void LoadPlugin(string pluginName)
-        {
-            if (Plugins.ContainsKey(pluginName)) return;
-
-            string pluginPath = Path.Combine(_pluginsPath, $"{pluginName}");
-            if (!Directory.Exists(pluginPath)) return;
-
-            //var dlls = Directory.GetFiles(pluginPath, "*.dll");
-            var dll = Directory.GetFiles(pluginPath, "*.dll").FirstOrDefault();
-
-            if (!File.Exists(dll)) return;
-
-            Assembly assembly = Assembly.LoadFile(dll);
-            Type[] types = assembly.GetTypes();
-
-            foreach (var type in types)
-            {
-                if (typeof(SourcePlugin).IsAssignableFrom(type) && !type.IsAbstract)
-                {
-                    var plugin = (SourcePlugin)Activator.CreateInstance(type);
-                    if (plugin == null) continue;
-                    Plugins.Add(pluginName, plugin);
-                }
-            }
-        }
-
-        public void Reload()
-        {
-            Console.WriteLine("Reloading plugins...");
-            // print the collection of plugins
-            //var all_plugins = _pluginsCollection.Find(_ => true).ToList();
-            //foreach (var plugin in all_plugins)
-            //{
-            //    Console.WriteLine(plugin.Name);
-            //}
-            Plugins.Clear();
 
             if (!Directory.Exists(_pluginsPath))
             {
                 Directory.CreateDirectory(_pluginsPath);
             }
 
-            // For test:
-            var listOfEnabledPlugins = new List<string> { "TruyenFullVn", "TruyenTangThuVienVn", "SSTruyenVn", "DTruyenCom" }; // in the future, read from db
-            foreach (var plugin in listOfEnabledPlugins)
+            // Load all installed plugins
+            ReloadPlugins();
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public void UnloadAll()
+        {
+            // FOR DEBUGGING: Clear the list of unloaded contexts
+            unloadedContexts.Clear();
+
+            if (Plugins.Count > 0 || _pluginLoadContexts.Count > 0)
+            {
+                foreach (var plugin in Plugins)
+                {
+                    UnloadPlugin(plugin.Key);
+                }
+            }
+
+            Plugins.Clear();
+            _pluginLoadContexts.Clear();
+            _logger.LogInformation("\tAll plugins unloaded");
+
+            //GC.Collect();
+            //GC.WaitForPendingFinalizers();
+        }
+
+        // Avoid JIT optimizations that may cause issues with the PluginLoadContext.Unload() (cannot GC)
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public void ReloadPlugins()
+        {
+            UnloadAll();
+            foreach (var plugin in _installedPlugins)
             {
                 LoadPlugin(plugin);
             }
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private bool LoadPlugin(string pluginName)
+        {
+            // Check if the plugin is already loaded
+            if (Plugins.ContainsKey(pluginName))
+            {
+                _logger.LogError($"\tPlugin {pluginName} already loaded");
+                return false;
+            }
+
+            // Path to the plugin folder. ie: Plugins/{pluginName}
+            string pluginPath = Path.Combine(_pluginsPath, pluginName);
+
+            // Path to the plugin dll. ie: Plugins/{pluginName}/Source.{pluginName}.dll
+            string? pathToDll = Directory.GetFiles(pluginPath, $"Source.{pluginName}.dll").FirstOrDefault();
+            if (pathToDll == null)
+            {
+                _logger.LogError($"\tPlugin \"Source.{pluginName}.dll\" not found");
+                return false;
+            }
+
+            // Create a new context to load the plugin into
+            _logger.LogInformation($"\tLOADING {pluginName} from /Plugins/{pluginName}");
+            PluginLoadContext loadContext = new PluginLoadContext(pathToDll);
+
+            // Load the plugin assembly ("Source.{pluginName}.dll")
+            Assembly pluginAssembly = loadContext.LoadFromAssemblyName(AssemblyName.GetAssemblyName(pathToDll));
+            Type[] types = pluginAssembly.GetTypes();
+            var hasSourcePlugin = false;
+            foreach (var type in types)
+            {
+                if (typeof(SourcePlugin).IsAssignableFrom(type) && !type.IsAbstract)
+                {
+                    var plugin = Activator.CreateInstance(type) as SourcePlugin;
+                    if (plugin == null) continue;
+                    // Add the plugin (SourcePlugin) to the dictionary => each assembly must have only 1 SourcePlugin
+                    Plugins.Add(pluginName, plugin);
+                    hasSourcePlugin = true;
+                    break;
+                }
+            }
+
+            // If there is no plugin SourcePlugin loaded, cancel the loading process
+            if (!hasSourcePlugin)
+            {
+                _logger.LogError($"\tNo SourcePlugin found in Source.{pluginName}.dll");
+                loadContext.Unload();
+                return false;
+            }
+
+            // Else, successfully, add the context to the dictionary
+            _pluginLoadContexts.Add(pluginName, loadContext);
+            return true;
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private void UnloadPlugin(string pluginName)
+        {
+            if (!Plugins.ContainsKey(pluginName) 
+                || !_pluginLoadContexts.ContainsKey(pluginName))
+            {
+                _logger.LogWarning($"\tCannot unload {pluginName} because it wasn't loaded");
+            }
+
+            // Unload the plugin
+            _logger.LogInformation($"\tUNLOADING plugin {pluginName}");
+
+            // Initiate the unloading process
+            WeakReference weakReference = new WeakReference(_pluginLoadContexts[pluginName]);
+            _pluginLoadContexts[pluginName].Unload();
+
+            // Remove all references, except the weak reference
+            Plugins.Remove(pluginName);
+            _pluginLoadContexts.Remove(pluginName);
+
+            // FOR DEBUGGING: Add the weak reference to the list of unloaded contexts
+            unloadedContexts.Add(weakReference);
+        }
+
+        // -------------- MANAGE FOR SOURCE PLUGINS --------------
         public async Task<Tuple<Novel[]?, int>> Search(string source, string keyword, string? author, string? year, int page = 1)
         {
             if (Plugins.Count == 0)

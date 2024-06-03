@@ -17,14 +17,14 @@ namespace NovelsCollector.Core.Utils
             string? assemblyPath = _resolver.ResolveAssemblyToPath(assemblyName);
             if (assemblyPath != null)
             {
-                Console.WriteLine($"Loading assembly {assemblyPath} into the PluginLoadContext");
+                Console.WriteLine($"\tLoading assembly {assemblyName} into the context #{GetHashCode()}");
                 return LoadFromAssemblyPath(assemblyPath);
             }
 
             return null;
         }
 
-        protected override nint LoadUnmanagedDll(string unmanagedDllName)
+        protected override IntPtr LoadUnmanagedDll(string unmanagedDllName)
         {
             string? libraryPath = _resolver.ResolveUnmanagedDllToPath(unmanagedDllName);
             if (libraryPath != null)
@@ -32,7 +32,8 @@ namespace NovelsCollector.Core.Utils
                 return LoadUnmanagedDllFromPath(libraryPath);
             }
 
-            return nint.Zero;
+            return IntPtr.Zero;
         }
+
     }
 }
