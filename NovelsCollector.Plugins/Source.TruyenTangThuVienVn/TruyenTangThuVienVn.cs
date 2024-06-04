@@ -3,7 +3,6 @@ using HtmlAgilityPack.CssSelectors.NetCore;
 using log4net;
 using NovelsCollector.SDK.Models;
 using NovelsCollector.SDK.Plugins.SourcePlugins;
-using System.Reflection.Metadata;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 
@@ -376,7 +375,7 @@ namespace Source.TruyenTangThuVienVn
                     Novel novel = new Novel();
                     novel.Title = HtmlEntity.DeEntitize(novelElement.QuerySelector("div.book-mid-info h4 a")?.InnerHtml);
                     novel.Slug = novelElement.QuerySelector("div.book-mid-info h4 a")?.Attributes["href"].Value.Replace("https://truyen.tangthuvien.vn/doc-truyen/", "");
-                    
+
                     var authorElement = novelElement.QuerySelector("p.author a.name");
                     var id = authorElement?.Attributes["href"].Value.Replace("https://truyen.tangthuvien.vn/tac-gia?author=", "");
                     var strAuthor = HtmlEntity.DeEntitize(authorElement?.InnerHtml);
@@ -415,7 +414,7 @@ namespace Source.TruyenTangThuVienVn
         {
 
             int id = 0;
-            
+
             var url = $"https://truyen.tangthuvien.vn/tim-kiem?term={authorSlug}";
             using (HttpClient client = new HttpClient())
             {
@@ -433,8 +432,8 @@ namespace Source.TruyenTangThuVienVn
                     {
                         id = item.Id;
                         break;
-                    }    
-                }    
+                    }
+                }
             }
 
             return id;

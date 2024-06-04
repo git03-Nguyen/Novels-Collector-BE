@@ -3,10 +3,10 @@
 
 # Define the source and destination directories
 declare -A dirs=(
-    ["./NovelsCollector.Plugins/Source.DTruyenCom/bin/Debug/net8.0/"]="./NovelsCollector.Core/bin/Debug/net8.0/Plugins/DTruyenCom"
-    ["./NovelsCollector.Plugins/Source.SSTruyenVn/bin/Debug/net8.0/"]="./NovelsCollector.Core/bin/Debug/net8.0/Plugins/SSTruyenVn"
-    ["./NovelsCollector.Plugins/Source.TruyenFullVn/bin/Debug/net8.0/"]="./NovelsCollector.Core/bin/Debug/net8.0/Plugins/TruyenFullVn"
-    ["./NovelsCollector.Plugins/Source.TruyenTangThuVienVn/bin/Debug/net8.0/"]="./NovelsCollector.Core/bin/Debug/net8.0/Plugins/TruyenTangThuVienVn"
+    ["./NovelsCollector.Plugins/Source.DTruyenCom/bin/Debug/net8.0/"]="./NovelsCollector.Core/bin/Debug/net8.0/source-plugins/DTruyenCom"
+    ["./NovelsCollector.Plugins/Source.SSTruyenVn/bin/Debug/net8.0/"]="./NovelsCollector.Core/bin/Debug/net8.0/source-plugins/SSTruyenVn"
+    ["./NovelsCollector.Plugins/Source.TruyenFullVn/bin/Debug/net8.0/"]="./NovelsCollector.Core/bin/Debug/net8.0/source-plugins/TruyenFullVn"
+    ["./NovelsCollector.Plugins/Source.TruyenTangThuVienVn/bin/Debug/net8.0/"]="./NovelsCollector.Core/bin/Debug/net8.0/source-plugins/TruyenTangThuVienVn"
 )
 
 # Loop through each source and destination pair

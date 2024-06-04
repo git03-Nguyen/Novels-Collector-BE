@@ -16,7 +16,7 @@ namespace NovelsCollector.Core.Services.Plugins
         private Dictionary<string, PluginLoadContext> _pluginLoadContexts = new Dictionary<string, PluginLoadContext>();
 
         // The path to the plugins folder
-        private readonly string _pluginsPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Plugins");
+        private readonly string _pluginsPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "source-plugins");
 
         // TODO: The collection of source-plugins in the database
         private IMongoCollection<SourcePlugin> _pluginsCollection = null;
