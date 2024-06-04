@@ -4,16 +4,16 @@ using NovelsCollector.Core.Services.Plugins;
 namespace NovelsCollector.Core.Controllers
 {
     [ApiController]
-    [Tags("04. Novel")]
+    [Tags("05. Novel")]
     [Route("api/v1/novel")]
-    public class NovelsController : ControllerBase
+    public class NovelController : ControllerBase
     {
 
         #region Injected Services
-        private readonly ILogger<NovelsController> _logger;
+        private readonly ILogger<NovelController> _logger;
         private readonly SourcePluginsManager _sourcesPlugins;
 
-        public NovelsController(ILogger<NovelsController> logger, SourcePluginsManager sourcePluginManager)
+        public NovelController(ILogger<NovelController> logger, SourcePluginsManager sourcePluginManager)
         {
             _logger = logger;
             _sourcesPlugins = sourcePluginManager;

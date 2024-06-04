@@ -28,10 +28,10 @@ namespace NovelsCollector.Core.Controllers
         /// <param name="year"> The year keyword of the novel. </param>
         /// <param name="page"> The page number to search for. </param>
         /// <returns> An IActionResult containing the search results or an error message. </returns>
-        [HttpGet]
+        [HttpGet("{source}")]
         [EndpointSummary("Search novels by source, keyword, author, year and page queries")]
         public async Task<IActionResult> Get(
-            [FromQuery] string source,
+            [FromRoute] string source,
             [FromQuery] string keyword, [FromQuery] string? author, [FromQuery] string? year,
             [FromQuery] int page = 1)
         {

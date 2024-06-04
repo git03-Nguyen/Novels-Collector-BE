@@ -4,15 +4,15 @@ using NovelsCollector.Core.Services.Plugins;
 namespace NovelsCollector.Core.Controllers
 {
     [ApiController]
-    [Tags("07. Exporters")]
-    [Route("api/v1/exporters")]
-    public class ExportersController : ControllerBase
+    [Tags("08. Exporters")]
+    [Route("api/v1/exporter")]
+    public class ExporterController : ControllerBase
     {
         #region Injected Services
-        private readonly ILogger<ExportersController> _logger;
+        private readonly ILogger<ExporterController> _logger;
         private readonly ExporterPluginsManager _exporterPluginManager;
 
-        public ExportersController(ILogger<ExportersController> logger, ExporterPluginsManager exporterPluginManager)
+        public ExporterController(ILogger<ExporterController> logger, ExporterPluginsManager exporterPluginManager)
         {
             _logger = logger;
             _exporterPluginManager = exporterPluginManager;

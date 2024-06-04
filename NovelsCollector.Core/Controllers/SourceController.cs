@@ -4,15 +4,15 @@ using NovelsCollector.Core.Services.Plugins;
 namespace NovelsCollector.Core.Controllers
 {
     [ApiController]
-    [Tags("06. Sources")]
-    [Route("api/v1/sources")]
-    public class SourcesController : ControllerBase
+    [Tags("07. Sources")]
+    [Route("api/v1/source")]
+    public class SourceController : ControllerBase
     {
         #region Injected Services
-        private readonly ILogger<SourcesController> _logger;
+        private readonly ILogger<SourceController> _logger;
         private readonly SourcePluginsManager _sourcesPlugins;
 
-        public SourcesController(ILogger<SourcesController> logger, SourcePluginsManager sourcePluginManager)
+        public SourceController(ILogger<SourceController> logger, SourcePluginsManager sourcePluginManager)
         {
             _logger = logger;
             _sourcesPlugins = sourcePluginManager;

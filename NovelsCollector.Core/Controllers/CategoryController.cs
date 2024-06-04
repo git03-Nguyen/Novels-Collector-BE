@@ -5,7 +5,7 @@ namespace NovelsCollector.Core.Controllers
 {
     [ApiController]
     [Tags("03. Category")]
-    [Route("api/v1")]
+    [Route("api/v1/category")]
     public class CategoryController : ControllerBase
     {
         #region Injected Services
@@ -19,7 +19,7 @@ namespace NovelsCollector.Core.Controllers
         }
         #endregion
 
-        [HttpGet("category/{source}")]
+        [HttpGet("{source}")]
         [EndpointSummary("Get all categories from a source")]
         public async Task<IActionResult> Get([FromRoute] string source)
         {
@@ -38,7 +38,7 @@ namespace NovelsCollector.Core.Controllers
             }
         }
 
-        [HttpGet("category/{source}/{categorySlug}")]
+        [HttpGet("{source}/{categorySlug}")]
         [EndpointSummary("Get novels by category from a source")]
         public async Task<IActionResult> Get([FromRoute] string source, [FromRoute] string categorySlug, [FromQuery] int page = 1)
         {
@@ -63,7 +63,7 @@ namespace NovelsCollector.Core.Controllers
             }
         }
 
-        [HttpGet("category/{source}/hot")]
+        [HttpGet("{source}/hot")]
         [EndpointSummary("Get hot novels from a source")]
         public async Task<IActionResult> GetHot([FromRoute] string source, [FromQuery] int page = 1)
         {
@@ -87,7 +87,7 @@ namespace NovelsCollector.Core.Controllers
             }
         }
 
-        [HttpGet("category/{source}/latest")]
+        [HttpGet("{source}/latest")]
         [EndpointSummary("Get latest novels from a source")]
         public async Task<IActionResult> GetLatest([FromRoute] string source, [FromQuery] int page = 1)
         {
@@ -111,7 +111,7 @@ namespace NovelsCollector.Core.Controllers
             }
         }
 
-        [HttpGet("category/{source}/completed")]
+        [HttpGet("{source}/completed")]
         [EndpointSummary("Get completed novels from a source")]
         public async Task<IActionResult> GetCompleted([FromRoute] string source, [FromQuery] int page = 1)
         {
