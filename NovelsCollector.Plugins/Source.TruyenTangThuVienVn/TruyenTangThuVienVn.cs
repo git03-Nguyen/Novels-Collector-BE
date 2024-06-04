@@ -3,6 +3,8 @@ using HtmlAgilityPack.CssSelectors.NetCore;
 using log4net;
 using NovelsCollector.SDK.Models;
 using NovelsCollector.SDK.Plugins.SourcePlugins;
+using System.Reflection.Metadata;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 
 namespace Source.TruyenTangThuVienVn
@@ -190,6 +192,7 @@ namespace Source.TruyenTangThuVienVn
                     var author = new Author();
                     author.Name = HtmlEntity.DeEntitize(element.InnerHtml);
                     author.Id = int.Parse(element.Attributes["href"].Value.Replace("https://truyen.tangthuvien.vn/tac-gia?author=", ""));
+                    author.Slug = Name;
                     listAuthor.Add(author);
                 }
                 novel.Authors = listAuthor.ToArray();
@@ -407,9 +410,31 @@ namespace Source.TruyenTangThuVienVn
 
         private async Task<int> CrawlIdAuthor(string authorSlug)
         {
+
             int id = 0;
-            // TODO: Implement this method
-            throw new NotImplementedException();
+            
+            var url = $"https://truyen.tangthuvien.vn/tim-kiem?term={authorSlug}";
+            using (HttpClient client = new HttpClient())
+            {
+                client.DefaultRequestHeaders.Add("Accept", "*/*");
+                client.DefaultRequestHeaders.Add("X-Requested-With", "XMLHttpRequest");
+                client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36");
+
+                var jsonStr = await client.GetStringAsync(url);
+                var items = JsonSerializer.Deserialize<ResponseItem[]>(jsonStr);
+                if (items == null || items.Count() == 0) return 0;
+
+                foreach (var item in items)
+                {
+                    if (item.Type == "author")
+                    {
+                        id = item.Id;
+                        break;
+                    }    
+                }    
+            }
+
+            return id;
         }
 
         private async Task<int> CrawlIdCategory(string categorySlug)
@@ -471,6 +496,14 @@ namespace Source.TruyenTangThuVienVn
             }
 
             return document;
+        }
+        private class ResponseItem
+        {
+            public int Id { get; set; }
+            public string Name { get; set; }
+            public string Url { get; set; }
+            public string Type { get; set; }
+            public int StoryType { get; set; }
         }
 
         #endregion
