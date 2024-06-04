@@ -13,6 +13,10 @@ namespace NovelsCollector.Core.Controllers
         public HomeController(ILogger<HomeController> logger) => _logger = logger;
         #endregion
 
+        /// <summary>
+        /// Check if the server is running
+        /// </summary>
+        /// <returns>An IActionResult containing a message indicating the server is running.</returns>
         [EndpointSummary("Check if the server is running")]
         [HttpGet]
         public IActionResult Get()

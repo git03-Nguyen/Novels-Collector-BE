@@ -4,7 +4,6 @@ using NovelsCollector.SDK.Models;
 using NovelsCollector.SDK.Plugins.SourcePlugins;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using ZstdSharp.Unsafe;
 
 namespace NovelsCollector.Core.Services.Plugins
 {
@@ -14,7 +13,7 @@ namespace NovelsCollector.Core.Services.Plugins
 
         // 2 dictionaries to store the plugins and their own contexts
         public Dictionary<string, SourcePlugin> Plugins { get; } = new Dictionary<string, SourcePlugin>();
-        private Dictionary<string, PluginLoadContext> _pluginLoadContexts = new Dictionary<string, PluginLoadContext>(); 
+        private Dictionary<string, PluginLoadContext> _pluginLoadContexts = new Dictionary<string, PluginLoadContext>();
 
         // The path to the plugins folder
         private readonly string _pluginsPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Plugins");
@@ -23,12 +22,12 @@ namespace NovelsCollector.Core.Services.Plugins
         private IMongoCollection<SourcePlugin> _pluginsCollection = null;
 
         // FOR TESTING: The list of installed plugins
-        private List<string> _installedPlugins = new List<string> 
-        { 
-            "TruyenFullVn", 
-            "TruyenTangThuVienVn", 
+        private List<string> _installedPlugins = new List<string>
+        {
+            "TruyenFullVn",
+            "TruyenTangThuVienVn",
             "SSTruyenVn",
-            "DTruyenCom" 
+            "DTruyenCom"
         };
 
         // FOR DEBUGGING: The list of weak references to the unloaded contexts
@@ -137,9 +136,9 @@ namespace NovelsCollector.Core.Services.Plugins
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private void UnloadPlugin(string pluginName)
+        public void UnloadPlugin(string pluginName)
         {
-            if (!Plugins.ContainsKey(pluginName) 
+            if (!Plugins.ContainsKey(pluginName)
                 || !_pluginLoadContexts.ContainsKey(pluginName))
             {
                 _logger.LogWarning($"\tCannot unload {pluginName} because it wasn't loaded");
@@ -149,15 +148,12 @@ namespace NovelsCollector.Core.Services.Plugins
             _logger.LogInformation($"\tUNLOADING plugin {pluginName}");
 
             // Initiate the unloading process
-            WeakReference weakReference = new WeakReference(_pluginLoadContexts[pluginName]);
+            unloadedContexts.Add(new WeakReference(_pluginLoadContexts[pluginName])); // FOR DEBUGGING
             _pluginLoadContexts[pluginName].Unload();
 
             // Remove all references, except the weak reference
             Plugins.Remove(pluginName);
             _pluginLoadContexts.Remove(pluginName);
-
-            // FOR DEBUGGING: Add the weak reference to the list of unloaded contexts
-            unloadedContexts.Add(weakReference);
         }
 
         // -------------- MANAGE FOR SOURCE PLUGINS --------------

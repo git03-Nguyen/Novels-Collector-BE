@@ -4,7 +4,6 @@ using log4net;
 using NovelsCollector.SDK.Models;
 using NovelsCollector.SDK.Plugins.SourcePlugins;
 using System.Globalization;
-using System.Reflection.Metadata;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -238,7 +237,7 @@ namespace Source.TruyenSSVn
                 }
             }
             catch (Exception ex)
-            { 
+            {
                 log.Error("An error occurred: ", ex);
 
             }

@@ -167,7 +167,7 @@ namespace Source.TruyenFullVn
             try
             {
                 var document = await LoadFromWebAsync($"{Url}{novelSlug}/");
-                
+
                 novel.Slug = novelSlug;
                 novel.Title = document.DocumentNode.QuerySelector("h3.title")?.InnerText;
                 novel.MaxRating = 10;
@@ -322,7 +322,7 @@ namespace Source.TruyenFullVn
                 log.Error("An error occurred: ", ex);
 
             }
-     
+
             return chapter;
         }
 

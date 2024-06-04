@@ -233,7 +233,7 @@ namespace DTruyenCom
                     listChapter.Add(chapter);
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 log.Error("An error occurred: ", ex);
             }

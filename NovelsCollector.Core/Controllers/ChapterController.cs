@@ -4,8 +4,8 @@ using NovelsCollector.Core.Services.Plugins;
 namespace NovelsCollector.Core.Controllers
 {
     [ApiController]
-    [Tags("03. Novels")]
-    [Route("api/v1/novel")]
+    [Tags("04. Chapters")]
+    [Route("api/v1/chapter")]
     public class ChapterController : ControllerBase
     {
         #region Injected Services
@@ -19,29 +19,40 @@ namespace NovelsCollector.Core.Controllers
         }
         #endregion
 
+        /// <summary>
+        /// Read a chapter by source, novel slug and chapter slug
+        /// </summary>
+        /// <param name="source"> The source of the novel (e.g., DTruyenCom, SSTruyenVn). </param>
+        /// <param name="novelSlug"> The slug identifier for the novel (e.g., tao-tac). </param>
+        /// <param name="chapterSlug"> The slug identifier for the chapter (e.g., chuong-1). </param>
+        /// <returns> An IActionResult containing the chapter content or an error message. </returns>
         [HttpGet("{source}/{novelSlug}/{chapterSlug}")]
-        [EndpointSummary("View a chapter of a novel")]
+        [EndpointSummary("Read a chapter of a novel by source, novel slug and chapter slug")]
         async public Task<IActionResult> Get([FromRoute] string source, [FromRoute] string novelSlug, [FromRoute] string chapterSlug)
         {
             try
             {
                 var chapter = await _sourcePluginManager.GetChapter(source, novelSlug, chapterSlug);
-                if (chapter == null)
-                    return NotFound(new { error = new { message = "Không tìm thấy chapter" } });
+
+                // Check if the chapter is not found
+                if (chapter == null) return NotFound(new { error = new { message = "Chapter not found" } });
+
+                // Return the chapter
                 return Ok(new
                 {
                     data = chapter,
                     meta = new
                     {
-                        source = source,
-                        novelSlug = novelSlug,
-                        chapterSlug = chapterSlug
+                        source,
+                        novelSlug,
+                        chapterSlug,
+                        // TODO: otherSources
                     }
                 });
             }
             catch (Exception ex)
             {
-                return BadRequest(new { message = ex.Message });
+                return StatusCode(500, new { error = new { code = ex.HResult, message = ex.Message } });
             }
         }
     }

@@ -10,15 +10,24 @@ namespace NovelsCollector.Core.Controllers
     {
         #region Injected Services
         private readonly ILogger<SearchController> _logger;
-        private readonly SourcePluginsManager _sourcePluginManager;
+        private readonly SourcePluginsManager _sourcesPlugins;
 
         public SearchController(ILogger<SearchController> logger, SourcePluginsManager sourcePluginManager)
         {
             _logger = logger;
-            _sourcePluginManager = sourcePluginManager;
+            _sourcesPlugins = sourcePluginManager;
         }
         #endregion
 
+        /// <summary>
+        /// Search novels by source, keyword, author, year and page queries
+        /// </summary>
+        /// <param name="source"> The source of the novel (e.g., DTruyenCom, SSTruyenVn). </param>
+        /// <param name="keyword"> The keyword to search for. </param>
+        /// <param name="author"> The author keyword of the novel. </param>
+        /// <param name="year"> The year keyword of the novel. </param>
+        /// <param name="page"> The page number to search for. </param>
+        /// <returns> An IActionResult containing the search results or an error message. </returns>
         [HttpGet]
         [EndpointSummary("Search novels by source, keyword, author, year and page queries")]
         public async Task<IActionResult> Get(
@@ -28,15 +37,15 @@ namespace NovelsCollector.Core.Controllers
         {
             try
             {
-                var (novels, totalPage) = await _sourcePluginManager.Search(source, keyword, author, year, page);
+                var (novels, totalPage) = await _sourcesPlugins.Search(source, keyword, author, year, page);
                 return Ok(new
                 {
                     data = novels,
                     meta = new
                     {
-                        page = page,
-                        totalPage = totalPage,
-                        source = source,
+                        source,
+                        page,
+                        totalPage,
                     }
                 });
             }

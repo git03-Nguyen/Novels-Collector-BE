@@ -113,7 +113,7 @@ namespace Source.TruyenTangThuVienVn
                     // Get name of category
                     var nameElement = categoryElement.QuerySelector("span[class='info'] i");
                     if (nameElement != null)
-                    { 
+                    {
                         category.Name = HtmlEntity.DeEntitize(nameElement.InnerText)
                             .Replace("\r\n", "").Replace("\\\"", "\"").Replace("\\t", "  ");
                     }
@@ -296,7 +296,7 @@ namespace Source.TruyenTangThuVienVn
             try
             {
                 var contentElement = document.DocumentNode.QuerySelector("div.box-chap");
-                
+
                 // Get content of chapter in html format
                 if (contentElement != null)
                 {
