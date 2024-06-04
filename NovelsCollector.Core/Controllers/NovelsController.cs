@@ -4,7 +4,7 @@ using NovelsCollector.Core.Services.Plugins;
 namespace NovelsCollector.Core.Controllers
 {
     [ApiController]
-    [Tags("03. Novels")]
+    [Tags("04. Novel")]
     [Route("api/v1/novel")]
     public class NovelsController : ControllerBase
     {

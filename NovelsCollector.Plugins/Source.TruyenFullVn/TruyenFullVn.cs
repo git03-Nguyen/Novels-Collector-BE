@@ -120,9 +120,9 @@ namespace Source.TruyenFullVn
         /// <param name="category">Need: category.Slug</param>
         /// <param name="page"></param>
         /// <returns>First: Novels, Second: total page</returns>
-        public async Task<Tuple<Novel[], int>> CrawlByCategory(Category category, int page = 1)
+        public async Task<Tuple<Novel[], int>> CrawlByCategory(string categorySlug, int page = 1)
         {
-            var result = await CrawlNovels(CategoryUrl.Replace("<category-slug>", category.Slug), page);
+            var result = await CrawlNovels(CategoryUrl.Replace("<category-slug>", categorySlug), page);
             return result;
         }
 
@@ -138,8 +138,8 @@ namespace Source.TruyenFullVn
                 foreach (var categoryElement in categoryElements)
                 {
                     Category category = new Category();
-                    category.Name = categoryElement?.InnerText;
-                    category.Slug = categoryElement?.Attributes["href"].Value.Replace("https://truyenfull.vn/the-loai/'", "").Replace("/", "");
+                    category.Title = categoryElement?.InnerText;
+                    category.Slug = categoryElement?.Attributes["href"].Value.Replace("https://truyenfull.vn/the-loai/", "").Replace("/", "");
 
                     if (listCategory.Count(x => (x.Slug == category.Slug)) == 0)
                     {
@@ -195,7 +195,7 @@ namespace Source.TruyenFullVn
                 foreach (var element in genreElements)
                 {
                     var category = new Category();
-                    category.Name = element.Attributes["title"].Value;
+                    category.Title = element.Attributes["title"].Value;
                     category.Slug = element.Attributes["href"].Value.Replace($"{Url}the-loai", "").Replace("/", "");
                     listCategory.Add(category);
                 }

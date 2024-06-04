@@ -92,10 +92,10 @@ namespace Source.TruyenTangThuVienVn
         /// <param name="category">Need: category.Slug</param>
         /// <param name="page"></param>
         /// <returns>First: Novels, Second: total page</returns>
-        public async Task<Tuple<Novel[], int>> CrawlByCategory(Category category, int page = 1)
+        public async Task<Tuple<Novel[], int>> CrawlByCategory(string categorySlug, int page = 1)
         {
-            category.Id = await CrawlIdCategory(category.Slug);
-            var result = await CrawlNovels(CategoryUrl.Replace("id", category.Id.ToString()), page);
+            int categoryId = await CrawlIdCategory(categorySlug);
+            var result = await CrawlNovels(CategoryUrl.Replace("id", categoryId.ToString()), page);
             return result;
         }
 
@@ -114,7 +114,7 @@ namespace Source.TruyenTangThuVienVn
                     var nameElement = categoryElement.QuerySelector("span[class='info'] i");
                     if (nameElement != null)
                     {
-                        category.Name = HtmlEntity.DeEntitize(nameElement.InnerText)
+                        category.Title = HtmlEntity.DeEntitize(nameElement.InnerText)
                             .Replace("\r\n", "").Replace("\\\"", "\"").Replace("\\t", "  ");
                     }
 
@@ -199,7 +199,7 @@ namespace Source.TruyenTangThuVienVn
                 foreach (var element in genreElements)
                 {
                     var category = new Category();
-                    category.Name = HtmlEntity.DeEntitize(element.InnerHtml);
+                    category.Title = HtmlEntity.DeEntitize(element.InnerHtml);
                     category.Slug = element.Attributes["href"].Value.Replace("https://truyen.tangthuvien.vn/the-loai/", "");
                     //category.Id = await CrawlIdCategory(category.Slug);
 

@@ -273,23 +273,52 @@ namespace NovelsCollector.Core.Services.Plugins
             return chapter;
         }
 
-        public async Task Add(SourcePlugin plugin)
+        public async Task<Category[]> GetCategories(string source)
         {
-            //if (_plugins.ContainsKey(plugin.))
-            //{
-            //    throw new Exception("Plugin already exists");
-            //}
+            if (Plugins.Count == 0) throw new Exception("No plugins loaded");
 
-            //string pluginPath = Path.Combine(_pluginsPath, $"{plugin.Name}");
-            //if (Directory.Exists(pluginPath))
-            //{
-            //    throw new Exception("Plugin folder already exists");
-            //}
-            //if (!Directory.Exists(pluginPath)) Directory.CreateDirectory(pluginPath);
+            if (!Plugins.ContainsKey(source)) throw new Exception("Source not found");
 
-            //await _pluginsCollection.InsertOneAsync(plugin);
+            var plugin = Plugins[source];
 
+            Category[]? categories = null;
+            if (plugin is ISourcePlugin executablePlugin)
+            {
+                categories = await executablePlugin.CrawlCategories();
+            }
+
+            if (categories == null)
+            {
+                categories = Array.Empty<Category>();
+            }
+
+            return categories;
         }
+
+        public async Task<Tuple<Novel[], int>> GetNovelsByCategory(string source, string categorySlug, int page = 1)
+        {
+            if (Plugins.Count == 0) throw new Exception("No plugins loaded");
+
+            if (!Plugins.ContainsKey(source)) throw new Exception("Source not found");
+
+            var plugin = Plugins[source];
+
+            Novel[]? novels = null;
+            int totalPage = -1;
+            if (plugin is ISourcePlugin executablePlugin)
+            {
+                (novels, totalPage) = await executablePlugin.CrawlByCategory(categorySlug, page);
+            }
+
+            if (novels == null)
+            {
+                novels = Array.Empty<Novel>();
+            }
+
+            return new Tuple<Novel[], int>(novels, totalPage);
+        }
+
+
 
     }
 }
