@@ -22,6 +22,20 @@ namespace NovelsCollector.SDK.Plugins.SourcePlugins
         // Get novels by category
         public Task<Tuple<Novel[], int>> CrawlByCategory(string categorySlug, int page = 1);
 
+        // Get novels by author
+        public Task<Tuple<Novel[], int>> CrawlByAuthor(string authorSlug, int page = 1);
+
+        // Get hot novels
+        public Task<Tuple<Novel[], int>> CrawlHot(int page = 1);
+
+        // Get latest novels
+        public Task<Tuple<Novel[], int>> CrawlLatest(int page = 1);
+
+        // Get completed novels
+        public Task<Tuple<Novel[], int>> CrawlCompleted(int page = 1);
+
+
+
         // ... More
     }
 }

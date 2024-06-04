@@ -318,6 +318,98 @@ namespace NovelsCollector.Core.Services.Plugins
             return new Tuple<Novel[], int>(novels, totalPage);
         }
 
+        public async Task<Tuple<Novel[], int>> GetNovelsByAuthor(string source, string authorSlug, int page = 1)
+        {
+            if (Plugins.Count == 0) throw new Exception("No plugins loaded");
+
+            if (!Plugins.ContainsKey(source)) throw new Exception("Source not found");
+
+            var plugin = Plugins[source];
+
+            Novel[]? novels = null;
+            int totalPage = -1;
+            if (plugin is ISourcePlugin executablePlugin)
+            {
+                (novels, totalPage) = await executablePlugin.CrawlByAuthor(authorSlug, page);
+            }
+
+            if (novels == null)
+            {
+                novels = Array.Empty<Novel>();
+            }
+
+            return new Tuple<Novel[], int>(novels, totalPage);
+        }
+
+        public async Task<Tuple<Novel[], int>> GetHotNovels(string source, int page = 1)
+        {
+            if (Plugins.Count == 0) throw new Exception("No plugins loaded");
+
+            if (!Plugins.ContainsKey(source)) throw new Exception("Source not found");
+
+            var plugin = Plugins[source];
+
+            Novel[]? novels = null;
+            int totalPage = -1;
+            if (plugin is ISourcePlugin executablePlugin)
+            {
+                (novels, totalPage) = await executablePlugin.CrawlHot(page);
+            }
+
+            if (novels == null)
+            {
+                novels = Array.Empty<Novel>();
+            }
+
+            return new Tuple<Novel[], int>(novels, totalPage);
+        }
+
+        public async Task<Tuple<Novel[], int>> GetLatestNovels(string source, int page = 1)
+        {
+            if (Plugins.Count == 0) throw new Exception("No plugins loaded");
+
+            if (!Plugins.ContainsKey(source)) throw new Exception("Source not found");
+
+            var plugin = Plugins[source];
+
+            Novel[]? novels = null;
+            int totalPage = -1;
+            if (plugin is ISourcePlugin executablePlugin)
+            {
+                (novels, totalPage) = await executablePlugin.CrawlLatest(page);
+            }
+
+            if (novels == null)
+            {
+                novels = Array.Empty<Novel>();
+            }
+
+            return new Tuple<Novel[], int>(novels, totalPage);
+        }
+
+        public async Task<Tuple<Novel[], int>> GetCompletedNovels(string source, int page = 1)
+        {
+            if (Plugins.Count == 0) throw new Exception("No plugins loaded");
+
+            if (!Plugins.ContainsKey(source)) throw new Exception("Source not found");
+
+            var plugin = Plugins[source];
+
+            Novel[]? novels = null;
+            int totalPage = -1;
+            if (plugin is ISourcePlugin executablePlugin)
+            {
+                (novels, totalPage) = await executablePlugin.CrawlCompleted(page);
+            }
+
+            if (novels == null)
+            {
+                novels = Array.Empty<Novel>();
+            }
+
+            return new Tuple<Novel[], int>(novels, totalPage);
+        }
+
 
 
     }

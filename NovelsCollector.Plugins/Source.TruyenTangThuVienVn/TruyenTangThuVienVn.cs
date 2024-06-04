@@ -80,9 +80,10 @@ namespace Source.TruyenTangThuVienVn
         /// <param name="author">Need: author.Id</param>
         /// <param name="page"></param>
         /// <returns>First: Novels, Second: total page</returns>
-        public async Task<Tuple<Novel[], int>> CrawlByAuthor(Author author, int page = 1)
+        public async Task<Tuple<Novel[], int>> CrawlByAuthor(string authorSlug, int page = 1)
         {
-            var result = await CrawlNovels(AuthorUrl.Replace("<id>", author.Id.ToString()), page);
+            int authorId = await CrawlIdAuthor(authorSlug); 
+            var result = await CrawlNovels(AuthorUrl.Replace("<id>", authorId.ToString()), page);
             return result;
         }
 
@@ -402,6 +403,13 @@ namespace Source.TruyenTangThuVienVn
             }
 
             return new Tuple<Novel[], int>(listNovel.ToArray(), totalPage);
+        }
+
+        private async Task<int> CrawlIdAuthor(string authorSlug)
+        {
+            int id = 0;
+            // TODO: Implement this method
+            throw new NotImplementedException();
         }
 
         private async Task<int> CrawlIdCategory(string categorySlug)

@@ -108,9 +108,9 @@ namespace Source.TruyenFullVn
         /// <param name="author">Need: author.Slug</param>
         /// <param name="page"></param>
         /// <returns>First: Novels, Second: total page</returns>
-        public async Task<Tuple<Novel[], int>> CrawlByAuthor(Author author, int page = 1)
+        public async Task<Tuple<Novel[], int>> CrawlByAuthor(string authorSlug, int page = 1)
         {
-            var result = await CrawlNovels(AuthorUrl.Replace("<author-slug>", author.Slug), page);
+            var result = await CrawlNovels(AuthorUrl.Replace("<author-slug>", authorSlug), page);
             return result;
         }
 
