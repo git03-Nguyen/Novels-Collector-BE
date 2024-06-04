@@ -26,17 +26,17 @@
 
 ### 4. Installation guide:
 To get the project up and running, follow these steps:
-1. **Build the solution:**
+1. **Build the solution:**\
 	Navigate to the root directory of the project and run the following command to build the solution:
 	```bash
 	dotnet build
 	```
-2. **Run the script to copy plugins into the core app:**
+2. **Run the script to copy plugins into the core app:**\
 	Due to local run, we have to install the plugins by hand:
 	```bash
 	bash copy_plugins.sh
 	```
-3. **Run the project:**
+3. **Run the project:**\
 	Start the project by using:
 	```bash
 	dotnet run --project ./NovelsCollector.Core/NovelsCollector.Core.csproj
