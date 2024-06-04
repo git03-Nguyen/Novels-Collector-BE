@@ -17,7 +17,7 @@ namespace Source.TruyenTangThuVienVn
         public string LatestUrl => "https://truyen.tangthuvien.vn/tong-hop?tp=cv&page=<page>";
         public string CompletedUrl => "https://truyen.tangthuvien.vn/tong-hop?fns=ht&page=<page>";
         public string AuthorUrl => "https://truyen.tangthuvien.vn/tac-gia?author=<id>&page=<page>";
-        public string CategoryUrl => "https://truyen.tangthuvien.vn/tong-hop?ctg=<id>&tp=cv&page=<page>";
+        public string CategoryUrl => "https://truyen.tangthuvien.vn/tong-hop?ctg=<id>&page=<page>";
         public string NovelUrl => "https://truyen.tangthuvien.vn/doc-truyen/<novel-slug>";
         public string ChapterUrl => "https://truyen.tangthuvien.vn/doc-truyen/<novel-slug>/<chapter-slug>";
 
@@ -84,8 +84,8 @@ namespace Source.TruyenTangThuVienVn
         /// <returns>First: Novels, Second: total page</returns>
         public async Task<Tuple<Novel[], int>> CrawlByAuthor(string authorSlug, int page = 1)
         {
-            int authorId = await CrawlIdAuthor(authorSlug); 
-            var result = await CrawlNovels(AuthorUrl.Replace("<id>", authorId.ToString()), page);
+            //int authorId = await CrawlIdAuthor(authorSlug); 
+            var result = await CrawlNovels(AuthorUrl.Replace("<id>", authorSlug), page);
             return result;
         }
 
@@ -192,7 +192,7 @@ namespace Source.TruyenTangThuVienVn
                     var author = new Author();
                     author.Name = HtmlEntity.DeEntitize(element.InnerHtml);
                     author.Id = int.Parse(element.Attributes["href"].Value.Replace("https://truyen.tangthuvien.vn/tac-gia?author=", ""));
-                    author.Slug = Name;
+                    author.Slug = author.Id.ToString();
                     listAuthor.Add(author);
                 }
                 novel.Authors = listAuthor.ToArray();
@@ -376,8 +376,10 @@ namespace Source.TruyenTangThuVienVn
                     Novel novel = new Novel();
                     novel.Title = HtmlEntity.DeEntitize(novelElement.QuerySelector("div.book-mid-info h4 a")?.InnerHtml);
                     novel.Slug = novelElement.QuerySelector("div.book-mid-info h4 a")?.Attributes["href"].Value.Replace("https://truyen.tangthuvien.vn/doc-truyen/", "");
-
-                    var strAuthor = HtmlEntity.DeEntitize(novelElement.QuerySelector("p[class='author'] a[class='name']")?.InnerHtml);
+                    
+                    var authorElement = novelElement.QuerySelector("p.author a.name");
+                    var id = authorElement?.Attributes["href"].Value.Replace("https://truyen.tangthuvien.vn/tac-gia?author=", "");
+                    var strAuthor = HtmlEntity.DeEntitize(authorElement?.InnerHtml);
                     var authorNames = strAuthor?.Split(',').Select(author => author.Trim()).ToArray();
                     if (authorNames != null)
                     {
@@ -385,6 +387,7 @@ namespace Source.TruyenTangThuVienVn
                         foreach (var name in authorNames)
                         {
                             var author = new Author();
+                            author.Slug = id;
                             author.Name = name;
                             listAuthor.Add(author);
                         }
