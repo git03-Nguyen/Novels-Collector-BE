@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using NovelsCollector.Core.Services.Plugins;
 using NovelsCollector.SDK.Models;
-using NovelsCollector.SDK.Plugins.ExporterPlugins;
 
 namespace NovelsCollector.Core.Controllers
 {
@@ -50,8 +49,8 @@ namespace NovelsCollector.Core.Controllers
             }
         }
 
-        [HttpGet("test")]
-        [EndpointSummary("Test an exporter plugin")]
+        [HttpGet("test1")]
+        [EndpointSummary("Test an exporter plugin (epub)")]
         public async Task<IActionResult> TestExporter([FromServices] SourcePluginsManager sourcePluginsManager)
         {
             var startChapter = 1;
@@ -75,6 +74,7 @@ namespace NovelsCollector.Core.Controllers
 
             // Assign the list of chapters to novel.Chapters, now we have a complete novel
             novel.Chapters = list.ToArray();
+            novel.Source = "TruyenFullVn";
 
             string? format = null;
 
@@ -90,6 +90,52 @@ namespace NovelsCollector.Core.Controllers
                 {
                     format,
                     path = "D:/tao-tac.epub",
+                }
+            });
+
+        }
+
+        [HttpGet("test2")]
+        [EndpointSummary("Test an exporter plugin (pdf)")]
+        public async Task<IActionResult> Test2Exporter([FromServices] SourcePluginsManager sourcePluginsManager)
+        {
+            var startChapter = 1;
+            var lastChapter = 2;
+
+            // Get the novel
+            Novel? novel = await sourcePluginsManager.GetNovelDetail("TruyenFullVn", "tao-tac");
+
+            // initiate novel.Chapters as an empty list
+            var list = new List<Chapter>();
+
+            // Get the chapters' content
+            for (int i = startChapter; i <= lastChapter; i++)
+            {
+                var chapter = await sourcePluginsManager.GetChapter("TruyenFullVn", "tao-tac", $"chuong-{i}");
+                if (chapter != null)
+                {
+                    list.Add(chapter);
+                }
+            }
+
+            // Assign the list of chapters to novel.Chapters, now we have a complete novel
+            novel.Chapters = list.ToArray();
+            novel.Source = "TruyenFullVn";
+
+            string? format = null;
+
+            // Export the novel
+            using (var stream = new FileStream("D:/tao-tac.pdf", FileMode.Create))
+            {
+                format = await _exporterPluginManager.Export("SimplePDF", novel, stream);
+            }
+
+            return Ok(new
+            {
+                data = new
+                {
+                    format,
+                    path = "D:/tao-tac.pdf",
                 }
             });
 

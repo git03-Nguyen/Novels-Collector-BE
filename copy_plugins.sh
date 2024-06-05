@@ -8,6 +8,7 @@ declare -A dirs=(
     ["./NovelsCollector.Plugins/Source.TruyenFullVn/bin/Debug/net8.0/"]="./NovelsCollector.Core/bin/Debug/net8.0/source-plugins/TruyenFullVn"
     ["./NovelsCollector.Plugins/Source.TruyenTangThuVienVn/bin/Debug/net8.0/"]="./NovelsCollector.Core/bin/Debug/net8.0/source-plugins/TruyenTangThuVienVn"
 	["./NovelsCollector.Plugins/Exporter.SimpleEPub/bin/Debug/net8.0/"]="./NovelsCollector.Core/bin/Debug/net8.0/exporter-plugins/SimpleEPub"
+	["./NovelsCollector.Plugins/Exporter.SimplePDF/bin/Debug/net8.0/"]="./NovelsCollector.Core/bin/Debug/net8.0/exporter-plugins/SimplePDF"
 )
 
 # Loop through each source and destination pair

@@ -26,14 +26,14 @@ namespace Exporter.SimpleEPub
 
             var title = (novel.Title != null) ? novel.Title : "Không tựa đề";
             var author = (novel.Authors != null && novel.Authors.Length > 0) ? novel.Authors[0].Name : "Khuyết danh";
-            var categories = (novel.Categories != null && novel.Categories.Length > 0) ? 
-                string.Join(" | ", novel.Categories.Take(3).Select(c => c.Title)) : 
+            var categories = (novel.Categories != null && novel.Categories.Length > 0) ?
+                string.Join(" | ", novel.Categories.Take(3).Select(c => c.Title)) :
                 "Không thể loại";
             var startChapter = (novel.Chapters != null && novel.Chapters.Length > 0) ? novel.Chapters[0].Number : 1;
             var lastChapter = (novel.Chapters != null && novel.Chapters.Length > 0) ? novel.Chapters[^1].Number : 1;
             var chaptersRange = (startChapter == lastChapter) ? $"Chương {startChapter}" : $"Chương {startChapter} - Chương {lastChapter}";
             var source = (novel.Source != null) ? novel.Source : "Không rõ";
-            
+
             // Create an Epub instance
             var doc = new Epub(title, author);
 
@@ -54,12 +54,6 @@ namespace Exporter.SimpleEPub
                     doc.AddResource("cover.jpg", EpubResourceType.JPEG, (Stream)coverStream, true);
                 }
             }
-
-            //// Adding images that are referenced in any of the sections
-            //using (var jpgStream = new FileStream("image.jpg", FileMode.Open))
-            //{
-            //    doc.AddResource("image.jpg", EpubResourceType.JPEG, jpgStream, true);
-            //}
 
             // Cover page
             string htmlCover = @$"

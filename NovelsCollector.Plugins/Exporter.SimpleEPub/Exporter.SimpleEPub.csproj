@@ -9,6 +9,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="custom.css" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="QuickEPUB" Version="1.2.0" />
   </ItemGroup>
 
@@ -17,6 +21,12 @@
 			<Private>false</Private>
 			<ExcludeAssets>runtime</ExcludeAssets>
 		</ProjectReference>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Content Include="custom.css">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </Content>
 	</ItemGroup>
 
 </Project>

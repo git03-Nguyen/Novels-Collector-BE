@@ -1,0 +1,68 @@
+* {
+    font-family: 'Georgia', serif;
+}
+
+.chapter-title {
+    font-size: 2.3rem; /* Font size */
+    font-weight: bold;
+    margin: 1.5rem 0;
+
+}
+
+.body-text, .body-text a {
+    color: #000000; 
+    font-size: 1.8rem; /* Font size */
+}
+
+.cover-page {
+    width: 100%;
+    margin: 0px;
+    padding: 1.2rem;
+    padding-top: 10%;
+    text-align: center;
+}
+
+.cover-image {
+    height: 35rem;
+    border-radius: 0.3rem;
+}
+
+.title {
+    font-size: 3rem;
+    font-weight: bold;
+    margin: 1.5rem 0;
+}
+
+.author {
+    font-size: 2.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.categories {
+    font-size: 2.3rem;
+    color: #666;
+    margin-bottom: 1.5rem;
+}
+
+.chapters {
+    font-size: 2.3rem;
+    margin-bottom: 1.5rem;
+}
+
+.source, .source a {
+    font-size: 1.5rem;
+    color: #888;
+    margin-bottom: 1.5rem;
+}
+
+hr {
+    border: none;
+    border-top: 0.15rem solid #ccc;
+    margin: 1.8rem 0;
+}
+
+.copyright, .copyright a {
+    font-size: 1.5rem;
+    color: #888;
+    margin-top: 1.5rem;
+}

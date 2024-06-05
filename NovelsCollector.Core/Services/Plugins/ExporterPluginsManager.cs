@@ -1,9 +1,7 @@
-﻿using Amazon.Runtime.Internal.Transform;
-using MongoDB.Driver;
+﻿using MongoDB.Driver;
 using NovelsCollector.Core.Utils;
 using NovelsCollector.SDK.Models;
 using NovelsCollector.SDK.Plugins.ExporterPlugins;
-using NovelsCollector.SDK.Plugins.SourcePlugins;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
@@ -26,7 +24,8 @@ namespace NovelsCollector.Core.Services.Plugins
         // FOR TESTING: The list of installed plugins
         private List<string> _enabledPlugins = new List<string>
         {
-            "SimpleEPub"
+            "SimpleEPub",
+            "SimplePDF"
         };
 
         // FOR DEBUGGING: The list of weak references to the unloaded contexts
@@ -43,7 +42,7 @@ namespace NovelsCollector.Core.Services.Plugins
             }
 
             // Load all installed plugins
-             ReloadPlugins();
+            ReloadPlugins();
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
@@ -169,7 +168,8 @@ namespace NovelsCollector.Core.Services.Plugins
             {
                 await executablePlugin.Export(novel, outputStream);
                 return plugin.FileFormat;
-            } else
+            }
+            else
             {
                 return null;
             }

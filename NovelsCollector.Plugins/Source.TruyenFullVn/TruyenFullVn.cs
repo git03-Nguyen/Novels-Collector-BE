@@ -309,7 +309,7 @@ namespace Source.TruyenFullVn
                     // Get number of chapter
                     var match = Regex.Match(titleStrings[0], @"\d+");
                     if (match.Success) number = int.Parse(match.Value);
-                    
+
 
                     var contentElement = containerElement.QuerySelector("#chapter-c");
 
