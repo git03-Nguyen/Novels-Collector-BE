@@ -26,7 +26,7 @@ namespace NovelsCollector.Core.Services.Plugins
         // FOR TESTING: The list of installed plugins
         private List<string> _enabledPlugins = new List<string>
         {
-            
+            "SimpleEPub"
         };
 
         // FOR DEBUGGING: The list of weak references to the unloaded contexts
@@ -43,7 +43,7 @@ namespace NovelsCollector.Core.Services.Plugins
             }
 
             // Load all installed plugins
-            // ReloadPlugins();
+             ReloadPlugins();
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]

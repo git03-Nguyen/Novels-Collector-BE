@@ -1,6 +1,7 @@
 ﻿using NovelsCollector.SDK.Models;
 using NovelsCollector.SDK.Plugins.ExporterPlugins;
 using QuickEPUB;
+using System.Reflection;
 
 namespace Exporter.SimpleEPub
 {
@@ -35,8 +36,11 @@ namespace Exporter.SimpleEPub
             // Create an Epub instance
             var doc = new Epub(title, author);
 
+            var rootPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            var pathToCss = Path.Combine(rootPath, "custom.css");
+
             // Add the CSS file referenced in the HTML content
-            using (var cssStream = new FileStream("custom.css", FileMode.Open))
+            using (var cssStream = new FileStream(pathToCss, FileMode.Open))
             {
                 doc.AddResource("custom.css", EpubResourceType.CSS, cssStream);
             }
@@ -59,7 +63,7 @@ namespace Exporter.SimpleEPub
             // Cover page
             string htmlCover = @$"
                 <div class=""cover-page"">
-                    <img src=""cover.jpg"" alt=""{title}"" class=""cover-image"">
+                    <img src=""cover.jpg"" alt=""{title}"" class=""cover-image"" style=""text-align: center;"" />
                     <div class=""title"">{title}</div>
                     <div class=""author"">{author}</div>
                     <div class=""categories""{categories}</div>
@@ -77,21 +81,12 @@ namespace Exporter.SimpleEPub
                 if (chapter == null || string.IsNullOrEmpty(chapter.Content)) continue;
                 var chapterTitle = $"Chương {chapter.Number}";
                 var chapterContent = $"<h2>Chương {chapter.Number}: {chapter.Title}</h2>";
-                doc.AddSection(chapterTitle, chapterContent + chapter.Content);
+                doc.AddSection(chapterTitle, $"{chapterContent}<p>{chapter.Content}</p>");
             }
 
-            //doc.AddSection("Chương 1", "<h2>Chương 1: Đây là chương 1</h2>" +
-                                        //"<p>- Dương tử! Muộn thế này rồi còn tới đây làm gì?<br><br>Tào Hữu Học cười nói, hỏi người thanh niên bên cạnh, thuận tay mở cửa xe rồi bước xuống. Hắn vươn vai một cái cho đỡ mỏi.<br><br>Tào Hữu Học hai mươi sáu tuổi là trinh sát hình sự của Cục cảnh sát.<br><br>Trong máy ngày trước, hắn vừa mới phá một vụ án liên quan tới ma túy, đồng thời thành công bắt cả đường dây của một trùm buôn thuốc phiện. Sau đó hắn nhận được khen thưởng. <a href=\"https://truyenfull.vn\" style=\"font-size:0px;\">Đọc Truyện Online mới nhất ở TruyenFull.vn</a><br><br>Nói về vụ án đó cũng có chút ly kỳ.<br><br>Vốn nó chỉ là một vụ án tự sát rất bình thường, sau đó các trinh sát điều tra lần theo dấu vết để lại mà phát hiện ra rất nhiều các vụ án mưu sát. Trong thời gian truy lùng, trinh sát hình sự bị ám sát khiến cho Tào Hữu Học tức giận. Sau khi nhận vụ án vào tay, cho dù gặp phải lực cản rất mạnh nhưng hắn vẫn không chịu bỏ, thậm chí tới lúc cuối cùng còn bị cách chức tạm thời nhưng vẫn tiếp tục lần theo...<br><br>Chỉ có điều hắn không ngờ được chân tướng của sự việc lại là....<br><br>Một cái xí nghiệp nổi tiếng vốn được khen thưởng không ngờ lại thuộc về một trùm buôn ma túy lớn. Mà sau lưng của kẻ đó lại là một vụ án tham ô nhận hối lộ động trời.<br><br>Gần như một nửa hệ thống thị chính của thành phố X đều liên quan.<br><br>Có vô số cán bộ sa ngã thậm chí cả những quan chức tai to mặt lớn.<br><br>Từ trước tới nay, đây là vụ phá án về đường dây buôn bán ma túy và tham ô, hối lộ lớn nhất trong cả nước...<br><br>Toàn bộ quá trình phá án diễn ra trong suốt hai năm. Trong thời gian đó, Tào Hữu Học trải qua vô số những lần sống chết, chịu đựng không biết cơ man nào là đau khổ. Cho tới nay, vụ án được phá xong, Tào Hữu Học cảm thấy hết sức thoải mái. Đứng bên cạnh bờ sông, nhìn ánh trăng lấp lánh trên mặt nước, trong lòng hắn tràn ngập một lòng tự hào, đồng thời cũng có một sự ưu thương khó có thể nói hết.<br><br>Đột nhiên, trong lòng Tào Hữu Học có một thứ gì đó báo động.<br><br>Trong hai năm qua, trải qua vô số chuyện sống chết khiến cho hắn có một trực giác nhạy bén đối với nguy hiểm.<br><br>Hắn theo bản năng nhào sang bên cạnh, nhưng trong tích tắc đó phía sau đã vang lên một tiếng súng. Một viên đạn xuyên qua lưng, đẩy hắn ngã văng ra đất.<br><br>Mặc dù hắn đã có phản ứng nhưng chuyện xảy ra quá bất ngờ.<br><br>Tào Hữu Học ngã ra đất, tay ôm lấy ngực, máu tươi chảy qua kẽ tay hắn. Hắn ngẩng đầu, khó tin nhìn người thanh niên đang bước xuống từ chiếc xe cảnh sát. Trong tay của y cầm một khẩu súng đen ngòm, nơi đầu súng vẫn còn đang bốc khói.<br><br>- Dương tử! Ngươi...<br><br>Tào Hữu Học không thể tin được sự thật đang xảy ra. Chính chiến hữu thân thiết nhất của mình không ngờ lại bắn mình.<br><br>Dưới ánh trăng, nét mặt người thanh niên thản nhiên, lẳng lặng nhìn Tào Hữu Học.<br><br>- Lão Tào! Lúc trước, ta đã khuyên ngươi đừng có điều tra... Vụ án này không đơn giản như ngươi tưởng tượng. Nhưng ngươi không nghe, sống chết cũng phải điều tra bằng được. Nhưng kết quả đâu?</p>");
-            // Adding sections of HTML content (that reference image files)
-            //doc.AddSection("Chương 2", "<p><img src=\"image.jpg\" alt=\"Image\" style=\"width: 50%; height:50%;\" /></p>");
-
-
-            // Adding sections of HTML content (that use a custom CSS stylesheet)
-            //doc.AddSection("Chương 3", "<p class=\"body-text\">Lorem ipsum dolor sit amet...</p>", "custom.css");
-
-
             // Export the result
-            using (var fs = new FileStream("sample.epub", FileMode.Create))
+            var pathResult = Path.Combine(rootPath, "sample.epub");
+            using (var fs = new FileStream(pathResult, FileMode.Create))
             {
                 doc.Export(fs);
             }

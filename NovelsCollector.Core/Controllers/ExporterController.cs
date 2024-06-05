@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using NovelsCollector.Core.Services.Plugins;
+using NovelsCollector.SDK.Models;
+using NovelsCollector.SDK.Plugins.ExporterPlugins;
 
 namespace NovelsCollector.Core.Controllers
 {
@@ -19,7 +21,6 @@ namespace NovelsCollector.Core.Controllers
         }
         #endregion
 
-        // GET: api/v1/exporters
         [HttpGet]
         [EndpointSummary("Get a list of all exporter plugins")]
         public IActionResult GetExporters()
@@ -27,10 +28,9 @@ namespace NovelsCollector.Core.Controllers
             return Ok(new
             {
                 data = _exporterPluginManager.Plugins.Values.ToArray(),
+                // TODO: add the unloaded/disabled plugins
             });
         }
-
-        // GET: api/v1/exporters/reload
 
         [HttpGet("reload")]
         [EndpointSummary("Reload exporter plugins")]
@@ -48,6 +48,37 @@ namespace NovelsCollector.Core.Controllers
             {
                 return StatusCode(500, new { error = new { code = ex.HResult, message = ex.Message } });
             }
+        }
+
+        [HttpGet("test")]
+        [EndpointSummary("Test an exporter plugin")]
+        public async Task<IActionResult> TestExporter([FromServices] SourcePluginsManager sourcePluginsManager)
+        {
+            var startChapter = 1;
+            var lastChapter = 2;
+
+            // Get the novel
+            Novel? novel = await sourcePluginsManager.GetNovelDetail("TruyenFullVn", "tao-tac");
+
+            // initiate novel.Chapters as an empty list
+            var list = new List<Chapter>();
+
+            // Get the chapters' content
+            for (int i = startChapter; i <= lastChapter; i++)
+            {
+                var chapter = await sourcePluginsManager.GetChapter("TruyenFullVn", "tao-tac", $"chuong-{i}");
+                if (chapter != null)
+                {
+                    list.Add(chapter);
+                }
+            }
+
+            novel.Chapters = list.ToArray();
+
+            _exporterPluginManager.Export(novel, "SimpleEPub");
+
+            return Ok();
+
         }
 
 
