@@ -10,13 +10,14 @@ namespace Exporter.SimpleEPub
         public SimpleEPub()
         {
             Name = "SimpleEPub";
+            FileFormat = "epub";
             Description = "This plugin is used to export the novel to EPub format with simple template.";
             Version = "1.0.0";
             Author = "Nguyen Dinh Anh";
             Enabled = true;
         }
 
-        public async Task<Stream> Export(Novel novel)
+        public async Task Export(Novel novel, Stream stream)
         {
             if (novel == null || novel.Chapters == null || novel.Chapters.Length == 0)
             {
@@ -84,14 +85,8 @@ namespace Exporter.SimpleEPub
                 doc.AddSection(chapterTitle, $"{chapterContent}<p>{chapter.Content}</p>");
             }
 
-            // Export the result
-            var pathResult = Path.Combine(rootPath, "sample.epub");
-            using (var fs = new FileStream(pathResult, FileMode.Create))
-            {
-                doc.Export(fs);
-            }
-
-            return null;
+            // Export the result to the stream
+            doc.Export(stream);
         }
 
         private async Task<IDisposable> DownloadImage(string cover)

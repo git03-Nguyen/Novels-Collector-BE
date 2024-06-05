@@ -156,22 +156,24 @@ namespace NovelsCollector.Core.Services.Plugins
         }
 
         // Export the novel using the plugin: Export(Novel novel, string pluginName), return a file stream
-        public async Task<(Stream?, string?)> Export(Novel novel, string pluginName)
+        public async Task<string?> Export(string pluginName, Novel novel, Stream outputStream)
         {
             if (!Plugins.ContainsKey(pluginName))
             {
                 _logger.LogError($"\tPlugin {pluginName} not found");
-                return (null, null);
+                return null;
             }
 
             var plugin = Plugins[pluginName];
             if (plugin is IExporterPlugin executablePlugin)
             {
-                var file = await executablePlugin.Export(novel);
-                return (file, plugin.FileFormat);
+                await executablePlugin.Export(novel, outputStream);
+                return plugin.FileFormat;
+            } else
+            {
+                return null;
             }
 
-            return (null, null);
         }
 
 

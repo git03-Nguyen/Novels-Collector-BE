@@ -5,7 +5,7 @@ namespace NovelsCollector.SDK.Plugins.ExporterPlugins
     public interface IExporterPlugin : IPlugin
     {
         // export the novel to the file
-        public Task<Stream> Export(Novel novel);
+        public Task Export(Novel novel, Stream stream);
 
         // ... More
     }

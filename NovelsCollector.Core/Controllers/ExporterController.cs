@@ -73,11 +73,25 @@ namespace NovelsCollector.Core.Controllers
                 }
             }
 
+            // Assign the list of chapters to novel.Chapters, now we have a complete novel
             novel.Chapters = list.ToArray();
 
-            _exporterPluginManager.Export(novel, "SimpleEPub");
+            string? format = null;
 
-            return Ok();
+            // Export the novel
+            using (var stream = new FileStream("D:/tao-tac.epub", FileMode.Create))
+            {
+                format = await _exporterPluginManager.Export("SimpleEPub", novel, stream);
+            }
+
+            return Ok(new
+            {
+                data = new
+                {
+                    format,
+                    path = "D:/tao-tac.epub",
+                }
+            });
 
         }
 
