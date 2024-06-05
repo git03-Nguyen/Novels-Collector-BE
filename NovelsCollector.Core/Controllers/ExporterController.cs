@@ -38,7 +38,7 @@ namespace NovelsCollector.Core.Controllers
         {
             try
             {
-                _exporterPluginManager.Reload();
+                _exporterPluginManager.ReloadPlugins();
                 return Ok(new
                 {
                     data = _exporterPluginManager.Plugins.Values.ToArray(),

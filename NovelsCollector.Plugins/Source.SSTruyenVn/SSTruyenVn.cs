@@ -256,6 +256,7 @@ namespace Source.TruyenSSVn
             var document = await LoadFromWebAsync(ChapterUrl.Replace("<novel-slug>", novelSlug).Replace("<chapter-slug>", chapterSlug));
             string content = "";
             string title = "";
+            int? number = null;
             try
             {
                 // Get content of chapter in html format
@@ -263,8 +264,13 @@ namespace Source.TruyenSSVn
                 content = contentElement?.InnerHtml;
 
                 // Get title
-                var titleElement = document.DocumentNode.QuerySelector("div.rv-chapt-title a");
-                title = titleElement?.InnerText;
+                var titleElement = document.DocumentNode.QuerySelector("div.rv-chapt-title a").InnerText;
+                var titleStrings = titleElement.Split(": ");
+                title = titleStrings[1].Trim();
+
+                // Get number
+                var match = Regex.Match(titleStrings[0], @"\d+");
+                if (match.Success) number = int.Parse(match.Value);
             }
             catch (Exception ex)
             {
@@ -272,6 +278,7 @@ namespace Source.TruyenSSVn
             }
 
             var chapter = new Chapter();
+            chapter.Number = number;
             chapter.Title = title;
             chapter.Content = content;
             return chapter;

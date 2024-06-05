@@ -252,10 +252,14 @@ namespace DTruyenCom
             var document = await LoadFromWebAsync(ChapterUrl.Replace("<novel-slug>", novelSlug).Replace("<chapter-slug>", chapterSlug));
             string? content = null;
             string? title = null;
+            int? number = null;
             try
             {
                 content = document.DocumentNode.QuerySelector("#chapter-content")?.InnerHtml;
-                title = document.DocumentNode.QuerySelector("#chapter h2.chapter-title")?.InnerText;
+                var titleStrings = (document.DocumentNode.QuerySelector("#chapter h2.chapter-title")?.InnerText).Split(": ");
+                title = titleStrings[1].Trim();
+                var match = Regex.Match(titleStrings[0], @"\d+");
+                if (match.Success) number = int.Parse(match.Value);
             }
             catch (Exception ex)
             {
@@ -263,6 +267,7 @@ namespace DTruyenCom
             }
 
             var chapter = new Chapter();
+            chapter.Number = number;
             chapter.Title = title;
             chapter.Content = content;
             return chapter;

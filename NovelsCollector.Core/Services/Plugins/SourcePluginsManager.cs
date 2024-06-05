@@ -22,7 +22,7 @@ namespace NovelsCollector.Core.Services.Plugins
         private IMongoCollection<SourcePlugin> _pluginsCollection = null;
 
         // FOR TESTING: The list of installed plugins
-        private List<string> _installedPlugins = new List<string>
+        private List<string> _enabledPlugins = new List<string>
         {
             "TruyenFullVn",
             "TruyenTangThuVienVn",
@@ -50,7 +50,7 @@ namespace NovelsCollector.Core.Services.Plugins
         [MethodImpl(MethodImplOptions.NoInlining)]
         public void UnloadAll()
         {
-            // FOR DEBUGGING: Clear the list of unloaded contexts
+            // FOR DEBUGGING: Clear the history of unloaded contexts
             unloadedContexts.Clear();
 
             if (Plugins.Count > 0 || _pluginLoadContexts.Count > 0)
@@ -74,7 +74,7 @@ namespace NovelsCollector.Core.Services.Plugins
         public void ReloadPlugins()
         {
             UnloadAll();
-            foreach (var plugin in _installedPlugins)
+            foreach (var plugin in _enabledPlugins)
             {
                 LoadPlugin(plugin);
             }
@@ -102,7 +102,7 @@ namespace NovelsCollector.Core.Services.Plugins
             }
 
             // Create a new context to load the plugin into
-            _logger.LogInformation($"\tLOADING {pluginName} from /Plugins/{pluginName}");
+            _logger.LogInformation($"\tLOADING {pluginName} from /source-plugins/{pluginName}");
             PluginLoadContext loadContext = new PluginLoadContext(pathToDll);
 
             // Load the plugin assembly ("Source.{pluginName}.dll")

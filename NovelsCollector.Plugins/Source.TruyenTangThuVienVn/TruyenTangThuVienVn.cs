@@ -296,6 +296,8 @@ namespace Source.TruyenTangThuVienVn
             var document = await LoadFromWebAsync(ChapterUrl.Replace("<novel-slug>", novelSlug).Replace("<chapter-slug>", chapterSlug));
             string content = "";
             string title = "";
+            int? number = null;
+
             try
             {
                 var contentElement = document.DocumentNode.QuerySelector("div.box-chap");
@@ -315,6 +317,11 @@ namespace Source.TruyenTangThuVienVn
                     title = HtmlEntity.DeEntitize(titleElement.InnerText)
                         .Replace("\r\n", "<br/>").Replace("\\\"", "\"").Replace("\\t", "  ");
                 }
+
+                // Get number of chapter
+                var match = Regex.Match(chapterSlug, @"\d+");
+                if (match.Success) number = int.Parse(match.Value);
+
             }
             catch (NullReferenceException ex)
             {
@@ -326,6 +333,7 @@ namespace Source.TruyenTangThuVienVn
             }
 
             var chapter = new Chapter();
+            chapter.Number = number;
             chapter.Title = title;
             chapter.Content = content;
             return chapter;

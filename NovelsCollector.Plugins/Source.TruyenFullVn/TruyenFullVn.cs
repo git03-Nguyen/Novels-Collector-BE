@@ -293,13 +293,23 @@ namespace Source.TruyenFullVn
 
                 string? content = null;
                 string? title = null;
+                int? number = null;
 
                 var containerElement = document.DocumentNode.QuerySelector("#chapter-big-container");
                 if (containerElement != null)
                 {
                     // Get title of chatper
-                    var titleElement = containerElement.QuerySelector(".chapter-title");
-                    title = titleElement.InnerText;
+                    var titleElement = containerElement.QuerySelector(".chapter-title").InnerText;
+                    var titleStrings = titleElement.Split(":");
+                    if (titleStrings.Length > 1)
+                    {
+                        title = titleStrings[1].Trim();
+                    }
+
+                    // Get number of chapter
+                    var match = Regex.Match(titleStrings[0], @"\d+");
+                    if (match.Success) number = int.Parse(match.Value);
+                    
 
                     var contentElement = containerElement.QuerySelector("#chapter-c");
 
@@ -314,6 +324,7 @@ namespace Source.TruyenFullVn
                     content = contentElement.InnerHtml;
                 }
 
+                chapter.Number = number;
                 chapter.Title = title;
                 chapter.Content = content;
             }
