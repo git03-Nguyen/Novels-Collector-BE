@@ -338,7 +338,8 @@ namespace DTruyenCom
                         {
                             if (attribute.Value.Contains("https://"))
                             {
-                                novel.Cover = attribute.Value;
+                                novel.Cover = attribute.Value.Replace("/images/small/", "/images/medium/");
+                                break;
                             }
                         }
                     }
