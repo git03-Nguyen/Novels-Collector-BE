@@ -1,6 +1,7 @@
 ﻿using HtmlAgilityPack;
 using HtmlAgilityPack.CssSelectors.NetCore;
 using log4net;
+using log4net.Core;
 using NovelsCollector.SDK.Models;
 using NovelsCollector.SDK.Plugins.SourcePlugins;
 using System.Text.Json;
@@ -414,7 +415,22 @@ namespace Source.TruyenFullVn
                     listNovel.Add(novel);
                 }
 
+                // Process for cropped image
 
+                var client = new HttpClient();
+                client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36");
+                client.DefaultRequestHeaders.Add("Accept", "text/html");
+                client.DefaultRequestHeaders.Add("Accept-Language", "en-US,en;q=0.9");
+
+                var listTask = new List<Task>();
+
+                foreach (var novel in listNovel)
+                {
+                    listTask.Add(crawlFullCovers(client, novel));
+                }
+
+                await Task.WhenAll(listTask);
+                Console.WriteLine("Done all full cover");
             }
             catch (Exception ex)
             {
@@ -422,6 +438,43 @@ namespace Source.TruyenFullVn
             }
 
             return new Tuple<Novel[], int>(listNovel.ToArray(), totalPage);
+        }
+
+        private async Task crawlFullCovers(HttpClient client, Novel novel)
+        {
+            if (!novel.Cover.Contains("https://static.8cache.com/cover/")) 
+                novel.Cover = novel.Cover.Replace("w60-h85", "w215-h322").Replace("w180-h80", "w215-h322");
+
+            try
+            {
+                Console.WriteLine($"Crawl: {novel.Title}");
+                var html = await client.GetStringAsync($"https://truyenfull.vn/{novel.Slug}/");
+                var doc = new HtmlDocument();
+                doc.LoadHtml(html);
+                var element = doc.DocumentNode.QuerySelector("div.books div.book img");
+                if (element != null)
+                {
+                    Console.WriteLine($"Done cover: {novel.Title}");
+                    if (element.Attributes.Contains("data-cfsrc"))
+                    {
+                        novel.Cover = element.Attributes["data-cfsrc"].Value;
+                    }
+                    else
+                    {
+                        novel.Cover = element.Attributes["src"].Value;
+                    }
+                }
+                else
+                {
+                    Console.WriteLine($"Not found cover: {novel.Title} - {novel.Slug}");
+                    Console.WriteLine(html);
+                }
+            }
+            catch (Exception ex)
+            {
+                log.Error("An error occurred: ", ex);
+            }
+
         }
 
         private async Task<HtmlDocument> LoadFromWebAsync(string url)
