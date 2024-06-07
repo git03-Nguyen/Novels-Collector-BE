@@ -3,6 +3,7 @@ using HtmlAgilityPack.CssSelectors.NetCore;
 using log4net;
 using NovelsCollector.SDK.Models;
 using NovelsCollector.SDK.Plugins.SourcePlugins;
+using System.Net;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 
@@ -421,14 +422,17 @@ namespace Source.TruyenFullVn
                 client.DefaultRequestHeaders.Add("Accept", "text/html");
                 client.DefaultRequestHeaders.Add("Accept-Language", "en-US,en;q=0.9");
 
-                var listTask = new List<Task>();
+                // max concurrent request
+                ServicePointManager.DefaultConnectionLimit = listNovel.Count;
 
-                foreach (var novel in listNovel)
-                {
-                    listTask.Add(crawlFullCovers(client, novel));
-                }
+                var tasks = listNovel.Select(novel => crawlFullCovers(client, novel)).ToArray();
 
-                await Task.WhenAll(listTask);
+                // Wait for all tasks to complete
+                Task.WaitAll(tasks);
+                await Task.WhenAll(tasks);
+
+                client.Dispose();
+
                 Console.WriteLine("Done all full cover");
             }
             catch (Exception ex)
