@@ -1,7 +1,6 @@
 ﻿using HtmlAgilityPack;
 using HtmlAgilityPack.CssSelectors.NetCore;
 using log4net;
-using log4net.Core;
 using NovelsCollector.SDK.Models;
 using NovelsCollector.SDK.Plugins.SourcePlugins;
 using System.Text.Json;
@@ -442,7 +441,7 @@ namespace Source.TruyenFullVn
 
         private async Task crawlFullCovers(HttpClient client, Novel novel)
         {
-            if (!novel.Cover.Contains("https://static.8cache.com/cover/")) 
+            if (!novel.Cover.Contains("https://static.8cache.com/cover/"))
                 novel.Cover = novel.Cover.Replace("w60-h85", "w215-h322").Replace("w180-h80", "w215-h322");
 
             try
