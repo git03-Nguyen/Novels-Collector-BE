@@ -416,24 +416,23 @@ namespace Source.TruyenFullVn
                 }
 
                 // Process for cropped image
+                using (var client = new HttpClient())
+                {
+                    client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36");
+                    client.DefaultRequestHeaders.Add("Accept", "text/html");
+                    client.DefaultRequestHeaders.Add("Accept-Language", "en-US,en;q=0.9");
 
-                var client = new HttpClient();
-                client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36");
-                client.DefaultRequestHeaders.Add("Accept", "text/html");
-                client.DefaultRequestHeaders.Add("Accept-Language", "en-US,en;q=0.9");
+                    // Limit the number of concurrent requests to a reasonable number
+                    int maxConcurrency = Math.Min(listNovel.Count, 20); // e.g., limit to 20 concurrent requests
+                    ServicePointManager.DefaultConnectionLimit = maxConcurrency;
 
-                // max concurrent request
-                ServicePointManager.DefaultConnectionLimit = listNovel.Count;
+                    var tasks = listNovel.Select(novel => crawlFullCovers(client, novel)).ToArray();
 
-                var tasks = listNovel.Select(novel => crawlFullCovers(client, novel)).ToArray();
+                    // Await the completion of all tasks
+                    await Task.WhenAll(tasks);
 
-                // Wait for all tasks to complete
-                Task.WaitAll(tasks);
-                await Task.WhenAll(tasks);
-
-                client.Dispose();
-
-                Console.WriteLine("Done all full cover");
+                    Console.WriteLine("Done all full cover");
+                }
             }
             catch (Exception ex)
             {
