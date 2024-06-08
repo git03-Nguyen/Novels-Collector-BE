@@ -175,7 +175,7 @@ namespace DTruyenCom
                 }
                 novel.Categories = listCategory.ToArray();
 
-                var statusElement = document.DocumentNode.QuerySelector("#story-detail div.info:has(i.fa-star)");
+                var statusElement = document.DocumentNode.QuerySelector("#story-detail div.infos").LastChild.PreviousSiblingElement().PreviousSiblingElement();
                 if (statusElement != null)
                 {
                     var status = statusElement.InnerText.Trim();
