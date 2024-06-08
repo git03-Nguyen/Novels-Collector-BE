@@ -141,7 +141,7 @@ namespace DTruyenCom
             {
                 var document = await LoadFromWebAsync(NovelUrl.Replace("<novel-slug>", novel.Slug));
 
-                novel.Title = document.DocumentNode.QuerySelector("#story-detail h1[itemprop='name']")?.Attributes["content"].Value;
+                novel.Title = document.DocumentNode.QuerySelector("div#story-detail h1.title").InnerText;
 
                 novel.MaxRating = 10;
 
