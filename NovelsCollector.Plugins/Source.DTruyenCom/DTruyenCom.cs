@@ -175,12 +175,27 @@ namespace DTruyenCom
                 }
                 novel.Categories = listCategory.ToArray();
 
-                string? status = document.DocumentNode.QuerySelector("#story-detail div.info:has(i.fa-star)")?.InnerText.Trim();
-                if (status == "Đang cập nhật") novel.Status = EnumStatus.OnGoing;
-                else if (status == "Hoàn Thành") novel.Status = EnumStatus.Completed;
-                else novel.Status = EnumStatus.ComingSoon; // Defualt value
+                var statusElement = document.DocumentNode.QuerySelector("#story-detail div.info:has(i.fa-star)");
+                if (statusElement != null)
+                {
+                    var status = statusElement.InnerText.Trim();
+                    if (status == "Đang cập nhật") novel.Status = EnumStatus.OnGoing;
+                    else if (status == "Hoàn Thành") novel.Status = EnumStatus.Completed;
+                    else novel.Status = EnumStatus.ComingSoon; // Defualt value
+                }
 
-                novel.Cover = document.DocumentNode.QuerySelector("meta[property='og:image']")?.Attributes["content"].Value;
+                var coverElement = document.DocumentNode.QuerySelector("div#story-detail img.cover");
+                if (coverElement != null)
+                {
+                    foreach (var attribute in coverElement.Attributes)
+                    {
+                        if (attribute.Value.Contains("https://"))
+                        {
+                            novel.Cover = attribute.Value;
+                            break;
+                        }
+                    }
+                }
             }
             catch (Exception ex)
             {
