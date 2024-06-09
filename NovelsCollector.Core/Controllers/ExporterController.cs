@@ -79,7 +79,7 @@ namespace NovelsCollector.Core.Controllers
             string? format = null;
 
             // Export the novel
-            using (var stream = new FileStream("D:/tao-tac.epub", FileMode.Create))
+            using (var stream = new FileStream("D:/SimpleEPub.epub", FileMode.Create))
             {
                 format = await _exporterPluginManager.Export("SimpleEPub", novel, stream);
             }
@@ -89,7 +89,7 @@ namespace NovelsCollector.Core.Controllers
                 data = new
                 {
                     format,
-                    path = "D:/tao-tac.epub",
+                    path = "D:/SimpleEPub.epub",
                 }
             });
 
@@ -125,7 +125,7 @@ namespace NovelsCollector.Core.Controllers
             string? format = null;
 
             // Export the novel
-            using (var stream = new FileStream("D:/tao-tac.pdf", FileMode.Create))
+            using (var stream = new FileStream("D:/SimplePDF.pdf", FileMode.Create))
             {
                 format = await _exporterPluginManager.Export("SimplePDF", novel, stream);
             }
@@ -135,7 +135,53 @@ namespace NovelsCollector.Core.Controllers
                 data = new
                 {
                     format,
-                    path = "D:/tao-tac.pdf",
+                    path = "D:/SimplePDF.pdf",
+                }
+            });
+
+        }
+
+        [HttpGet("test3")]
+        [EndpointSummary("Test an exporter plugin (mobi)")]
+        public async Task<IActionResult> Test3Exporter([FromServices] SourcePluginsManager sourcePluginsManager)
+        {
+            var startChapter = 1;
+            var lastChapter = 2;
+
+            // Get the novel
+            Novel? novel = await sourcePluginsManager.GetNovelDetail("TruyenFullVn", "tao-tac");
+
+            // initiate novel.Chapters as an empty list
+            var list = new List<Chapter>();
+
+            // Get the chapters' content
+            for (int i = startChapter; i <= lastChapter; i++)
+            {
+                var chapter = await sourcePluginsManager.GetChapter("TruyenFullVn", "tao-tac", $"chuong-{i}");
+                if (chapter != null)
+                {
+                    list.Add(chapter);
+                }
+            }
+
+            // Assign the list of chapters to novel.Chapters, now we have a complete novel
+            novel.Chapters = list.ToArray();
+            novel.Source = "TruyenFullVn";
+
+            string? format = null;
+
+            // Export the novel
+            using (var stream = new FileStream("D:/SimpleMobi.mobi", FileMode.Create))
+            {
+                format = await _exporterPluginManager.Export("SimpleMobi", novel, stream);
+            }
+
+            return Ok(new
+            {
+                data = new
+                {
+                    format,
+                    path = "D:/SimpleMobi.mobi",
                 }
             });
 

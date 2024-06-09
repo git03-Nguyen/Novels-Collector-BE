@@ -9,7 +9,7 @@ namespace NovelsCollector.Core.Services.Plugins
 {
     public class ExporterPluginsManager
     {
-        private readonly ILogger<SourcePluginsManager> _logger;
+        private readonly ILogger<ExporterPluginsManager> _logger;
 
         // 2 dictionaries to store the plugins and their own contexts
         public Dictionary<string, ExporterPlugin> Plugins { get; } = new Dictionary<string, ExporterPlugin>();
@@ -18,20 +18,21 @@ namespace NovelsCollector.Core.Services.Plugins
         // The path to the plugins folder
         private readonly string _pluginsPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "exporter-plugins");
 
-        // TODO: The collection of source-plugins in the database
+        // TODO: The collection of exporter-plugins in the database
         private IMongoCollection<ExporterPlugin> _pluginsCollection = null;
 
         // FOR TESTING: The list of installed plugins
         private List<string> _enabledPlugins = new List<string>
         {
             "SimpleEPub",
-            "SimplePDF"
+            "SimplePDF",
+            "SimpleMobi"
         };
 
         // FOR DEBUGGING: The list of weak references to the unloaded contexts
         public List<WeakReference> unloadedContexts = new List<WeakReference>();
 
-        public ExporterPluginsManager(ILogger<SourcePluginsManager> logger, MongoDbContext mongoDbContext)
+        public ExporterPluginsManager(ILogger<ExporterPluginsManager> logger, MongoDbContext mongoDbContext)
         {
             _logger = logger;
             _pluginsCollection = mongoDbContext.ExporterPlugins;
@@ -91,7 +92,7 @@ namespace NovelsCollector.Core.Services.Plugins
             // Path to the plugin folder. ie: Plugins/{pluginName}
             string pluginPath = Path.Combine(_pluginsPath, pluginName);
 
-            // Path to the plugin dll. ie: Plugins/{pluginName}/Source.{pluginName}.dll
+            // Path to the plugin dll. ie: Plugins/{pluginName}/Exporter.{pluginName}.dll
             string? pathToDll = Directory.GetFiles(pluginPath, $"Exporter.{pluginName}.dll").FirstOrDefault();
             if (pathToDll == null)
             {
@@ -103,10 +104,10 @@ namespace NovelsCollector.Core.Services.Plugins
             _logger.LogInformation($"\tLOADING {pluginName} from /exporter-plugins/{pluginName}");
             PluginLoadContext loadContext = new PluginLoadContext(pathToDll);
 
-            // Load the plugin assembly ("Source.{pluginName}.dll")
+            // Load the plugin assembly ("Exporter.{pluginName}.dll")
             Assembly pluginAssembly = loadContext.LoadFromAssemblyName(AssemblyName.GetAssemblyName(pathToDll));
             Type[] types = pluginAssembly.GetTypes();
-            var hasSourcePlugin = false;
+            var hasExporterPlugin = false;
             foreach (var type in types)
             {
                 if (typeof(ExporterPlugin).IsAssignableFrom(type) && !type.IsAbstract)
@@ -115,13 +116,13 @@ namespace NovelsCollector.Core.Services.Plugins
                     if (plugin == null) continue;
                     // Add the plugin (ExporterPlugin) to the dictionary => each assembly must have only 1 ExporterPlugin
                     Plugins.Add(pluginName, plugin);
-                    hasSourcePlugin = true;
+                    hasExporterPlugin = true;
                     break;
                 }
             }
 
-            // If there is no plugin SourcePlugin loaded, cancel the loading process
-            if (!hasSourcePlugin)
+            // If there is no plugin ExporterPlugin loaded, cancel the loading process
+            if (!hasExporterPlugin)
             {
                 _logger.LogError($"\tNo ExporterPlugin found in Exporter.{pluginName}.dll");
                 loadContext.Unload();
