@@ -237,36 +237,57 @@ namespace Source.TruyenFullVn
             {
                 var document = await LoadFromWebAsync($"{Url}{novelSlug}/");
 
-                totalPage = int.Parse(document.DocumentNode.QuerySelector("input#total-page")?.Attributes["value"].Value);
-                string? truyenId = document.DocumentNode.QuerySelector("input#truyen-id")?.Attributes["value"].Value;
-                string? truyenAscii = document.DocumentNode.QuerySelector("input#truyen-ascii")?.Attributes["value"].Value;
-                string? truyenName = document.DocumentNode.QuerySelector("h3.title")?.InnerText;
+                var totalPageElement = document.DocumentNode.QuerySelector("input#total-page");
+                totalPage = int.Parse(totalPageElement?.Attributes["value"].Value ?? "1");
 
-                // check page
-                if (page == -1 || page > totalPage) page = totalPage;
-                else if (page <= 0) page = 1;
+                // if the last page
+                if (page == -1) page = totalPage;
+                else if (page > totalPage || page < 1) return new Tuple<Chapter[]?, int>(null, totalPage);
 
-
-                var url = $"{Url}ajax.php?type=list_chapter&tid={truyenId}&tascii={truyenAscii}&tname={truyenName}&page={page}&totalp={totalPage}";
-
-                using (HttpClient client = new HttpClient())
+                if (totalPage == 1 && page == 1)
                 {
-                    client.DefaultRequestHeaders.Add("Accept", "*/*");
-                    client.DefaultRequestHeaders.Add("Referer", $"{Url}{novelSlug}/trang-1");
-                    client.DefaultRequestHeaders.Add("X-Requested-With", "XMLHttpRequest");
-                    client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36");
-
-                    var jsonStr = await client.GetStringAsync(url);
-                    var json = JsonSerializer.Deserialize<Dictionary<string, string>>(jsonStr);
-                    if (json == null) return new Tuple<Chapter[]?, int>(null, totalPage);
-                    document.LoadHtml(json["chap_list"]);
-                    var nodes = document.QuerySelectorAll("a");
+                    // get in the detail page
+                    var nodes = document.QuerySelectorAll("div#list-chapter ul.list-chapter li a");
                     foreach (var node in nodes)
                     {
                         var chapter = new Chapter();
-                        chapter.Title = node.Attributes["title"].Value;
-                        chapter.Slug = node.Attributes["href"].Value.Replace($"https://truyenfull.vn/{novelSlug}/", "").Replace("/", "");
+                        var titleStrings = node.Attributes["title"].Value.Split(" - ")[1].Split(": ");
+                        Match match = Regex.Match(titleStrings[0], @"\d+");
+                        if (match.Success) chapter.Number = int.Parse(match.Value);
+                        chapter.Title = titleStrings.Length > 1 ? titleStrings[1] : titleStrings[0];
+                        chapter.Slug = node.Attributes["href"].Value.Replace($"{Url}{novelSlug}/", "").Replace("/", "");
                         listChapter.Add(chapter);
+                    }
+                } else
+                {
+                    string? truyenId = document.DocumentNode.QuerySelector("input#truyen-id")?.Attributes["value"].Value;
+                    string? truyenAscii = document.DocumentNode.QuerySelector("input#truyen-ascii")?.Attributes["value"].Value;
+                    string? truyenName = document.DocumentNode.QuerySelector("h3.title")?.InnerText;
+
+                    var url = $"{Url}ajax.php?type=list_chapter&tid={truyenId}&tascii={truyenAscii}&tname={truyenName}&page={page}&totalp={totalPage}";
+
+                    using (HttpClient client = new HttpClient())
+                    {
+                        client.DefaultRequestHeaders.Add("Accept", "*/*");
+                        client.DefaultRequestHeaders.Add("Referer", $"{Url}{novelSlug}/trang-1");
+                        client.DefaultRequestHeaders.Add("X-Requested-With", "XMLHttpRequest");
+                        client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36");
+
+                        var jsonStr = await client.GetStringAsync(url);
+                        var json = JsonSerializer.Deserialize<Dictionary<string, string>>(jsonStr);
+                        if (json == null) return new Tuple<Chapter[]?, int>(null, totalPage);
+                        document.LoadHtml(json["chap_list"]);
+                        var nodes = document.QuerySelectorAll("a");
+                        foreach (var node in nodes)
+                        {
+                            var chapter = new Chapter();
+                            var titleStrings = node.Attributes["title"].Value.Split(": ");
+                            Match match = Regex.Match(titleStrings[0], @"\d+");
+                            if (match.Success) chapter.Number = int.Parse(match.Value);
+                            chapter.Title = titleStrings.Length > 1 ? titleStrings[1] : titleStrings[0];
+                            chapter.Slug = node.Attributes["href"].Value.Replace($"https://truyenfull.vn/{novelSlug}/", "").Replace("/", "");
+                            listChapter.Add(chapter);
+                        }
                     }
                 }
             }
