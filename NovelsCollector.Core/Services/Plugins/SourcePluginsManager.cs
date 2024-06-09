@@ -157,7 +157,7 @@ namespace NovelsCollector.Core.Services.Plugins
         }
 
         // -------------- MANAGE FOR SOURCE PLUGINS --------------
-        public async Task<Tuple<Novel[]?, int>> Search(string source, string keyword, string? author, string? year, int page = 1)
+        public async Task<Tuple<Novel[]?, int>> Search(string source, string? keyword, string? title, string? author, int page = 1)
         {
             if (Plugins.Count == 0)
             {
@@ -169,13 +169,30 @@ namespace NovelsCollector.Core.Services.Plugins
                 throw new Exception("Source not found");
             }
 
+            if (keyword == null && title == null && author == null)
+            {
+                throw new Exception("No query found");
+            }
+
             var plugin = Plugins[source];
             Novel[]? novels = null;
             int totalPage = -1;
 
             if (plugin is ISourcePlugin executablePlugin)
             {
-                (novels, totalPage) = await executablePlugin.CrawlSearch(keyword: keyword, page: page);
+                string query = keyword ?? author ?? title ?? "";
+                (novels, totalPage) = await executablePlugin.CrawlSearch(query, page);
+
+                // filter if search by title
+                if (query == title)
+                {
+                    novels = novels?.Where(novel => novel.Title.ToLower().Contains(title.ToLower())).ToArray();
+                }
+                // filter if search by author
+                else if (query == author)
+                {
+                    novels = novels?.Where(novel => novel.Authors[0]?.Name.ToLower().Contains(author.ToLower()) ?? false).ToArray();
+                }
             }
 
             if (novels == null)

@@ -33,12 +33,12 @@ namespace Source.TruyenTangThuVienVn
         /// <summary>
         /// Crawl novels by search
         /// </summary>
-        /// <param name="keyword"></param>
+        /// <param name="query"></param>
         /// <param name="page"></param>
         /// <returns>First: Novels, Second: total page</returns>
-        public async Task<Tuple<Novel[]?, int>> CrawlSearch(string? keyword, int page = 1)
+        public async Task<Tuple<Novel[]?, int>> CrawlSearch(string? query, int page = 1)
         {
-            var result = await CrawlNovels(SearchUrl.Replace("<keyword>", keyword), page);
+            var result = await CrawlNovels(SearchUrl.Replace("<keyword>", query), page);
             return result;
         }
 

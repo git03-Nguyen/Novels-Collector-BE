@@ -59,12 +59,12 @@ namespace Source.TruyenFullVn
         /// <summary>
         /// Crawl novels by search
         /// </summary>
-        /// <param name="keyword"></param>
+        /// <param name="query"></param>
         /// <param name="page"></param>
         /// <returns>First: Novels, Second: total page</returns>
-        public async Task<Tuple<Novel[]?, int>> CrawlSearch(string? keyword, int page = 1)
+        public async Task<Tuple<Novel[]?, int>> CrawlSearch(string? query, int page = 1)
         {
-            var reqStr = $"{Url}tim-kiem/?tukhoa={keyword}";
+            var reqStr = $"{Url}tim-kiem/?tukhoa={query}";
             if (page > 1) reqStr += $"&page={page}";
             var result = await CrawlNovels(reqStr, page);
             return result;
