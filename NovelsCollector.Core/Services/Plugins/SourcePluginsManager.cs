@@ -232,6 +232,40 @@ namespace NovelsCollector.Core.Services.Plugins
             return novel;
         }
 
+        public async Task<Dictionary<string, Novel>?> GetNovelInOtherSources(string excludedSource, Novel novel)
+        {
+            Dictionary<string, Novel> novels = new Dictionary<string, Novel>();
+
+            foreach (var plugin in Plugins)
+            {
+                if (plugin.Key == excludedSource) continue;
+
+                var otherPlugin = plugin.Value;
+                if (otherPlugin is ISourcePlugin executablePlugin)
+                {
+                    // search by title
+                    var (searchResults, _) = await executablePlugin.CrawlSearch(novel.Title, 1);
+                    if (novel == null) continue;
+
+                    // choose the novel with the same title and author
+                    var sameNovel = searchResults?.FirstOrDefault(n => n.Title == novel.Title && n.Authors[0]?.Name == novel.Authors[0]?.Name);
+                    if (sameNovel != null)
+                    {
+                        novels.Add(plugin.Key, sameNovel);
+                    }
+                }
+            }
+
+            if (novels.Count == 0) return null;
+
+            // only return the title and slug of each novel
+            return novels.ToDictionary(kvp => kvp.Key, kvp => new Novel
+            {
+                Title = kvp.Value.Title,
+                Slug = kvp.Value.Slug
+            });
+        }
+
         public async Task<Tuple<Chapter[]?, int>> GetChapters(string source, string novelSlug, int page = -1)
         {
             if (Plugins.Count == 0)

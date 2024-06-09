@@ -30,6 +30,8 @@ namespace NovelsCollector.Core.Controllers
                 meta = new
                 {
                     method = "GET",
+                    server = HttpContext.Request.Host.Value,
+                    httpVersion = HttpContext.Request.Protocol,
                     timestamp = DateTime.UtcNow
                 }
             });

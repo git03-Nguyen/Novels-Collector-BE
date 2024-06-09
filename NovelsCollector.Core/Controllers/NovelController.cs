@@ -37,6 +37,9 @@ namespace NovelsCollector.Core.Controllers
                 // Check if the novel is not found
                 if (novel == null) return NotFound(new { error = new { message = "Novel not found" } });
 
+                // Find novel in other sources
+                var otherSources = await _sourcesPlugins.GetNovelInOtherSources(source, novel);
+
                 // Return the novel
                 return Ok(new
                 {
@@ -44,7 +47,7 @@ namespace NovelsCollector.Core.Controllers
                     meta = new
                     {
                         source,
-                        //otherSources = novel.Sources.Where(s => s != source).ToArray()
+                        otherSources,
                     }
                 });
             }
