@@ -231,7 +231,10 @@ namespace Source.TruyenSSVn
                 foreach (var element in chapterElements)
                 {
                     Chapter chapter = new Chapter();
-                    chapter.Title = element.InnerText;
+                    var titleStrings = element.InnerText.Split(": ");
+                    Match match = Regex.Match(titleStrings[0], @"\d+");
+                    if (match.Success) chapter.Number = int.Parse(match.Value);
+                    chapter.Title = titleStrings.Length > 1 ? titleStrings[1] : titleStrings[0];
                     chapter.Slug = element.Attributes["href"].Value.Replace($"/{novelSlug}/", "").Replace("/", "");
                     listChapter.Add(chapter);
                 }

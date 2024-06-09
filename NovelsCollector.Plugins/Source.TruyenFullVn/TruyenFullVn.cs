@@ -258,7 +258,8 @@ namespace Source.TruyenFullVn
                         chapter.Slug = node.Attributes["href"].Value.Replace($"{Url}{novelSlug}/", "").Replace("/", "");
                         listChapter.Add(chapter);
                     }
-                } else
+                }
+                else
                 {
                     string? truyenId = document.DocumentNode.QuerySelector("input#truyen-id")?.Attributes["value"].Value;
                     string? truyenAscii = document.DocumentNode.QuerySelector("input#truyen-ascii")?.Attributes["value"].Value;
@@ -453,6 +454,9 @@ namespace Source.TruyenFullVn
                     await Task.WhenAll(tasks);
 
                     Console.WriteLine("Done all full cover");
+
+                    // Reset the default connection limit
+                    ServicePointManager.DefaultConnectionLimit = 10;
                 }
             }
             catch (Exception ex)

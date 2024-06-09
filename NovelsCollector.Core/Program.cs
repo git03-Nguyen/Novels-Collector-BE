@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.ResponseCompression;
 using NovelsCollector.Core.Utils;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -27,7 +28,18 @@ builder.Services.AddCors(options =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// Add compression for responses
+
+builder.Services.AddResponseCompression(options =>
+{
+    options.EnableForHttps = true;
+    options.Providers.Add<BrotliCompressionProvider>();
+    options.Providers.Add<GzipCompressionProvider>();
+});
+
 var app = builder.Build();
+
+app.UseResponseCompression();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

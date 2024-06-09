@@ -243,7 +243,10 @@ namespace DTruyenCom
                 foreach (var element in chapterElements)
                 {
                     var chapter = new Chapter();
-                    chapter.Title = element.QuerySelector("a").Attributes["title"].Value;
+                    var titleStrings = element.QuerySelector("a").Attributes["title"].Value.Split(": ");
+                    Match match = Regex.Match(titleStrings[0], @"\d+");
+                    if (match.Success) chapter.Number = int.Parse(match.Value);
+                    chapter.Title = titleStrings.Length > 1 ? titleStrings[1] : titleStrings[0];
                     chapter.Slug = element.QuerySelector("a").Attributes["href"].Value.Replace($"https://dtruyen.com/{novel.Slug}/", "").Replace("/", "");
                     listChapter.Add(chapter);
                 }

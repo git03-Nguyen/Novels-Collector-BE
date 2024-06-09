@@ -2,11 +2,12 @@
 
 ### Test connection
 GET {{https}}/api/v1/
+Accept-Encoding: br, gzip
 
 ### Get all sources
-GET {{https}}/api/v1/sources
+GET {{https}}/api/v1/source
 ### Reload sources
-GET {{https}}/api/v1/sources/reload
+GET {{https}}/api/v1/source/reload
 
 ### ------------------------------------------
 ### SOURCE 1:
