@@ -360,6 +360,18 @@ namespace Source.TruyenFullVn
             return chapter;
         }
 
+        public async Task<Chapter?> GetChapterSlug(string novelSlug, int chapterNumber)
+        {
+            const int PER_PAGE = 50;
+
+            // TODO
+            var chapter = new Chapter();
+            chapter.NovelSlug = novelSlug;
+            chapter.Number = chapterNumber;
+            chapter.Slug = "chuong-" + chapterNumber;
+            return chapter;
+        }
+
         #region helper method
         /// <summary>
         /// CrawlNovels to crawl all novel in list format

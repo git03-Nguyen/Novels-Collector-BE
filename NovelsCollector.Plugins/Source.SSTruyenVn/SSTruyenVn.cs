@@ -287,6 +287,26 @@ namespace Source.TruyenSSVn
             return chapter;
         }
 
+        public async Task<Chapter?> GetChapterSlug(string novelSlug, int chapterNumber)
+        {
+            if (chapterNumber <= 0) return null;
+
+            const int PER_PAGE = 32;
+            int page = (chapterNumber - 1) / PER_PAGE + 1;
+
+            var (listChapters, totalPage) = await CrawlListChapters(novelSlug, page);
+            if (listChapters == null) return null;
+            if (listChapters.Count(x => x.Number == chapterNumber) == 0) return null;
+
+            var chapter = new Chapter();
+            chapter.Source = Name;
+            chapter.NovelSlug = novelSlug;
+            chapter.Number = chapterNumber;
+            chapter.Slug = $"chuong-{chapterNumber}";
+
+            return chapter;
+        }
+
         #region helper method
         /// <summary>
         /// CrawlNovels to crawl all novel in list format

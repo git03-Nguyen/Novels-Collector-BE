@@ -291,6 +291,53 @@ namespace DTruyenCom
             return chapter;
         }
 
+        public async Task<Chapter?> GetChapterSlug(string novelSlug, int chapterNumber)
+        {
+            if (chapterNumber <= 0) return null;
+
+            var chapter = new Chapter();
+            chapter.Source = Name;
+            chapter.NovelSlug = novelSlug;
+            chapter.Number = chapterNumber;
+
+            const int PER_PAGE = 30;
+            int page = (chapterNumber - 1) / PER_PAGE + 1;
+
+            Chapter[]? listChapters = null;
+            int totalPage = 1;
+
+            // If it's greater than the last chapter in the page, maybe it's in the next page
+            do
+            {
+
+                (listChapters, totalPage) = await CrawlListChapters(novelSlug, page);
+                if (listChapters == null) return null;
+
+            } while (chapterNumber > listChapters.Last().Number && page < totalPage);
+
+            // If it's smaller than the first chapter in the page, maybe it's in the previous page
+            do
+            {
+                (listChapters, totalPage) = await CrawlListChapters(novelSlug, page);
+                if (listChapters == null) return null;
+
+            } while (chapterNumber < listChapters.First().Number && page > 1);
+
+            // Find the chapter in current page
+            foreach (var c in listChapters)
+            {
+                if (c.Number == chapterNumber)
+                {
+                    chapter.Slug = c.Slug;
+                    break;
+                }
+            }
+            if (chapter.Slug == null) return null;
+
+            return chapter;
+
+        }
+
         #region helper method
         /// <summary>
         /// CrawlNovels to crawl all novel in list format

@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using NovelsCollector.Core.Services.Plugins;
+using NovelsCollector.SDK.Models;
 
 namespace NovelsCollector.Core.Controllers
 {
@@ -46,7 +47,38 @@ namespace NovelsCollector.Core.Controllers
                         source,
                         novelSlug,
                         chapterSlug,
-                        // TODO: otherSources
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = new { code = ex.HResult, message = ex.Message } });
+            }
+        }
+
+        [HttpPost("{source}/{novelSlug}/{chapterNumber}/others")]
+        [EndpointSummary("Find this chapter in other sources")]
+        async public Task<IActionResult> GetOtherSources([FromRoute] string source, [FromRoute] string novelSlug, [FromRoute] int chapterNumber,
+            [FromBody] Dictionary<string, Novel> novelInOtherSources)
+        {
+            try
+            {
+                var currentChapter = new Chapter
+                {
+                    Source = source,
+                    NovelSlug = novelSlug,
+                    Number = chapterNumber
+                };
+
+                var chapterInOtherSources = await _sourcePluginManager.GetChapterFromOtherSources(novelInOtherSources, currentChapter);
+
+                // Return the chapter
+                return Ok(new
+                {
+                    data = chapterInOtherSources,
+                    meta = new
+                    {
+                        
                     }
                 });
             }

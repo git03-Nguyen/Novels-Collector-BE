@@ -232,7 +232,7 @@ namespace NovelsCollector.Core.Services.Plugins
             return novel;
         }
 
-        public async Task<Dictionary<string, Novel>?> GetNovelInOtherSources(string excludedSource, Novel novel)
+        public async Task<Dictionary<string, Novel>?> GetNovelFromOtherSources(string excludedSource, Novel novel)
         {
             Dictionary<string, Novel> novels = new Dictionary<string, Novel>();
 
@@ -264,6 +264,41 @@ namespace NovelsCollector.Core.Services.Plugins
                 Title = kvp.Value.Title,
                 Slug = kvp.Value.Slug
             });
+        }
+
+        public async Task<Dictionary<string, Chapter>?> GetChapterFromOtherSources(Dictionary<string, Novel> novelInOtherSources, Chapter currentChapter)
+        {
+            if (currentChapter.Source == null || currentChapter.NovelSlug == null || currentChapter.Number == null ||
+                novelInOtherSources.Count == 0)
+            {
+                return null;
+            }
+
+            Dictionary<string, Chapter> chapters = new Dictionary<string, Chapter>();
+            string thisSource = currentChapter.Source;
+            int thisChapterNumber = currentChapter.Number.Value;
+
+            foreach (var novel in novelInOtherSources)
+            {
+                var otherSource = novel.Key;
+                var otherNovel = novel.Value;
+
+                if (otherSource == thisSource || otherNovel.Slug == null) continue;
+
+                var otherPlugin = Plugins[otherSource];
+                if (otherPlugin is ISourcePlugin executablePlugin)
+                {
+                    // search for the chapter with the same number
+                    var otherChapter = await executablePlugin.GetChapterSlug(otherNovel.Slug, thisChapterNumber);
+                    if (otherChapter != null)
+                    {
+                        chapters.Add(otherSource, otherChapter);
+                    }
+                }
+            }
+
+            if (chapters.Count == 0) return null;
+            return chapters.ToDictionary(chapter => chapter.Key, chapter => chapter.Value);
         }
 
         public async Task<Tuple<Chapter[]?, int>> GetChapters(string source, string novelSlug, int page = -1)

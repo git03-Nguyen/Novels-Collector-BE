@@ -15,6 +15,7 @@ namespace NovelsCollector.SDK.Plugins.SourcePlugins
 
         // Get chapter content
         public Task<Chapter?> CrawlChapter(string novelSlug, string chapterSlug);
+        public Task<Chapter?> GetChapterSlug(string novelSlug, int chapterNumber);
 
         // Get list of categories
         public Task<Category[]> CrawlCategories();
@@ -33,7 +34,6 @@ namespace NovelsCollector.SDK.Plugins.SourcePlugins
 
         // Get completed novels
         public Task<Tuple<Novel[], int>> CrawlCompleted(int page = 1);
-
 
 
         // ... More
