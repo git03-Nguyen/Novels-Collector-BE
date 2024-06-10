@@ -32,9 +32,10 @@ To get the project up and running, follow these steps:
 	dotnet build
 	```
 2. **Run the script to copy plugins into the core app:**\
-	Due to local run, we have to install the plugins by hand:
+	With local run, we have to install the plugins by hand:
 	```bash
-	bash copy_plugins.sh
+	bash copy_source_plugins.sh
+	bash copy_exporter_plugins.sh
 	```
 3. **Run the project:**\
 	Start the project by using:
