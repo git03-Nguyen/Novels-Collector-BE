@@ -78,7 +78,7 @@ namespace NovelsCollector.Core.Controllers
                     data = chapterInOtherSources,
                     meta = new
                     {
-                        
+
                     }
                 });
             }

@@ -13,7 +13,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\..\NovelsCollector.SDK\NovelsCollector.SDK.csproj">
+		<ProjectReference Include="..\..\..\NovelsCollector.SDK\NovelsCollector.SDK.csproj">
 			<Private>false</Private>
 			<ExcludeAssets>runtime</ExcludeAssets>
 		</ProjectReference>
