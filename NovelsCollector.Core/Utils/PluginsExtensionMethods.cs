@@ -1,4 +1,4 @@
-﻿using NovelsCollector.Core.Services.Plugins;
+﻿using NovelsCollector.Core.Services;
 
 namespace NovelsCollector.Core.Utils
 {

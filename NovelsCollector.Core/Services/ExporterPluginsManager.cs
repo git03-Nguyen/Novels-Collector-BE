@@ -5,7 +5,7 @@ using NovelsCollector.SDK.Plugins.ExporterPlugins;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
-namespace NovelsCollector.Core.Services.Plugins
+namespace NovelsCollector.Core.Services
 {
     public class ExporterPluginsManager
     {
