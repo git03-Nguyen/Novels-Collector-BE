@@ -1,6 +1,5 @@
 ﻿using HtmlAgilityPack;
 using HtmlAgilityPack.CssSelectors.NetCore;
-using log4net;
 using NovelsCollector.SDK.Models;
 using NovelsCollector.SDK.Plugins.SourcePlugins;
 using System.Globalization;
@@ -11,7 +10,6 @@ namespace DTruyenCom
 {
     public class DTruyenCom : SourcePlugin, ISourcePlugin
     {
-        private static readonly ILog log = LogManager.GetLogger(typeof(DTruyenCom));
         public string SearchUrl => "https://dtruyen.com/searching/<keyword>/lastupdate/all/all/<page>/"; // keyword: using slug format
         public string HotUrl => "https://dtruyen.com/truyen-duoc-yeu-thich-nhat/<page>/";
         public string LatestUrl => "https://dtruyen.com/all/<page>/";
@@ -122,7 +120,7 @@ namespace DTruyenCom
             }
             catch (Exception ex)
             {
-                log.Error("An error occurred: ", ex);
+                Console.WriteLine("An error occurred: " + ex.Message);
             }
 
             return listCategory.ToArray();
@@ -199,7 +197,7 @@ namespace DTruyenCom
             }
             catch (Exception ex)
             {
-                log.Error("An error occurred: ", ex);
+                Console.WriteLine("An error occurred: " + ex.Message);
             }
 
             return novel;
@@ -253,7 +251,7 @@ namespace DTruyenCom
             }
             catch (Exception ex)
             {
-                log.Error("An error occurred: ", ex);
+                Console.WriteLine("An error occurred: " + ex.Message);
             }
 
             return new Tuple<Chapter[]?, int>(listChapter.ToArray(), totalPage);
@@ -281,7 +279,7 @@ namespace DTruyenCom
             }
             catch (Exception ex)
             {
-                log.Error("An error occurred: ", ex);
+                Console.WriteLine("An error occurred: " + ex.Message);
             }
 
             var chapter = new Chapter();
@@ -414,7 +412,7 @@ namespace DTruyenCom
             }
             catch (Exception ex)
             {
-                log.Error("An error occurred: ", ex);
+                Console.WriteLine("An error occurred: " + ex.Message);
             }
 
             return new Tuple<Novel[], int>(listNovel.ToArray(), totalPage);
@@ -449,7 +447,7 @@ namespace DTruyenCom
                 catch (HttpRequestException e)
                 {
                     // Handle any errors
-                    log.Error($"Request error: {e.Message}");
+                    Console.WriteLine("An error occurred: " + e.Message);
                 }
             }
 

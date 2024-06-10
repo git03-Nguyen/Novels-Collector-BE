@@ -1,6 +1,5 @@
 ﻿using HtmlAgilityPack;
 using HtmlAgilityPack.CssSelectors.NetCore;
-using log4net;
 using NovelsCollector.SDK.Models;
 using NovelsCollector.SDK.Plugins.SourcePlugins;
 using System.Net;
@@ -11,9 +10,6 @@ namespace Source.TruyenFullVn
 {
     public class TruyenFullVn : SourcePlugin, ISourcePlugin
     {
-
-        private static readonly ILog log = LogManager.GetLogger(typeof(TruyenFullVn));
-
         public string SearchUrl => "https://truyenfull.vn/tim-kiem/?tukhoa=<keyword>&page=<page>";
         public string HotUrl => "https://truyenfull.vn/danh-sach/truyen-hot/trang-<page>/";
         public string LatestUrl => "https://truyenfull.vn/danh-sach/truyen-moi/trang-<page>/";
@@ -150,7 +146,7 @@ namespace Source.TruyenFullVn
             }
             catch (Exception ex)
             {
-                log.Error("An error occurred: ", ex);
+                Console.WriteLine("An error occurred: " + ex.Message);
             }
 
             return listCategory.ToArray();
@@ -223,7 +219,7 @@ namespace Source.TruyenFullVn
             }
             catch (Exception ex)
             {
-                log.Error("An error occurred: ", ex);
+                Console.WriteLine("An error occurred: " + ex.Message);
             }
 
             return novel;
@@ -294,7 +290,7 @@ namespace Source.TruyenFullVn
             }
             catch (Exception ex)
             {
-                log.Error("An error occurred: ", ex);
+                Console.WriteLine("An error occurred: " + ex.Message);
             }
 
             return new Tuple<Chapter[]?, int>(listChapter.ToArray(), totalPage);
@@ -353,7 +349,7 @@ namespace Source.TruyenFullVn
             }
             catch (Exception ex)
             {
-                log.Error("An error occurred: ", ex);
+                Console.WriteLine("An error occurred: " + ex.Message);
 
             }
 
@@ -473,7 +469,7 @@ namespace Source.TruyenFullVn
             }
             catch (Exception ex)
             {
-                log.Error("An error occurred: ", ex);
+                Console.WriteLine("An error occurred: " + ex.Message);
             }
 
             return new Tuple<Novel[], int>(listNovel.ToArray(), totalPage);
@@ -511,7 +507,7 @@ namespace Source.TruyenFullVn
             }
             catch (Exception ex)
             {
-                log.Error("An error occurred: ", ex);
+                Console.WriteLine("An error occurred: " + ex.Message);
             }
 
         }
@@ -545,7 +541,7 @@ namespace Source.TruyenFullVn
                 catch (HttpRequestException e)
                 {
                     // Handle any errors
-                    log.Error($"Request error: {e.Message}");
+                    Console.WriteLine("An error occurred: " + e.Message);
                 }
             }
 

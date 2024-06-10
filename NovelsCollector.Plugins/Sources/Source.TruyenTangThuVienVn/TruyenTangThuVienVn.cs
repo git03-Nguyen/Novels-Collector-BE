@@ -1,6 +1,5 @@
 ﻿using HtmlAgilityPack;
 using HtmlAgilityPack.CssSelectors.NetCore;
-using log4net;
 using NovelsCollector.SDK.Models;
 using NovelsCollector.SDK.Plugins.SourcePlugins;
 using System.Text.Json;
@@ -10,7 +9,6 @@ namespace Source.TruyenTangThuVienVn
 {
     public class TruyenTangThuVienVn : SourcePlugin, ISourcePlugin
     {
-        private static readonly ILog log = LogManager.GetLogger(typeof(TruyenTangThuVienVn));
         public string SearchUrl => "https://truyen.tangthuvien.vn/ket-qua-tim-kiem?term=<keyword>&page=<page>";
         public string HotUrl => "https://truyen.tangthuvien.vn/tong-hop?rank=nm&time=m&page=<page>";
         public string LatestUrl => "https://truyen.tangthuvien.vn/tong-hop?tp=cv&page=<page>";
@@ -130,11 +128,11 @@ namespace Source.TruyenTangThuVienVn
             }
             catch (NullReferenceException ex)
             {
-                log.Error("Null Reference Exception: ", ex);
+                Console.WriteLine("Null Reference Exception: " + ex.Message);
             }
             catch (Exception ex)
             {
-                log.Error("An error occurred: ", ex);
+                Console.WriteLine("An error occurred: " + ex.Message);
             }
 
 
@@ -225,11 +223,11 @@ namespace Source.TruyenTangThuVienVn
             }
             catch (NullReferenceException ex)
             {
-                log.Error("Null Reference Exception: ", ex);
+                Console.WriteLine("Null Reference Exception: " + ex.Message);
             }
             catch (Exception ex)
             {
-                log.Error("An error occurred: ", ex);
+                Console.WriteLine("An error occurred: " + ex.Message);
             }
 
             return novel;
@@ -278,11 +276,11 @@ namespace Source.TruyenTangThuVienVn
             }
             catch (NullReferenceException ex)
             {
-                log.Error("Null Reference Exception: ", ex);
+                Console.WriteLine("Null Reference Exception: " + ex.Message);
             }
             catch (Exception ex)
             {
-                log.Error("An error occurred: ", ex);
+                Console.WriteLine("An error occurred: " + ex.Message);
             }
 
             return new Tuple<Chapter[]?, int>(listChapter.ToArray(), totalPage);
@@ -328,11 +326,11 @@ namespace Source.TruyenTangThuVienVn
             }
             catch (NullReferenceException ex)
             {
-                log.Error("Null Reference Exception: ", ex);
+                Console.WriteLine("Null Reference Exception: " + ex.Message);
             }
             catch (Exception ex)
             {
-                log.Error("An error occurred: ", ex);
+                Console.WriteLine("An error occurred: " + ex.Message);
             }
 
             var chapter = new Chapter();
@@ -423,11 +421,11 @@ namespace Source.TruyenTangThuVienVn
             }
             catch (NullReferenceException ex)
             {
-                log.Error("Null Reference Exception: ", ex);
+                Console.WriteLine("Null Reference Exception: " + ex.Message);
             }
             catch (Exception ex)
             {
-                log.Error("An error occurred: ", ex);
+                Console.WriteLine("An error occurred: " + ex.Message);
             }
 
             return new Tuple<Novel[], int>(listNovel.ToArray(), totalPage);
@@ -477,11 +475,11 @@ namespace Source.TruyenTangThuVienVn
             }
             catch (NullReferenceException ex)
             {
-                log.Error("Null Reference Exception: ", ex);
+                Console.WriteLine("Null Reference Exception: " + ex.Message);
             }
             catch (Exception ex)
             {
-                log.Error("An error occurred: ", ex);
+                Console.WriteLine("An error occurred: " + ex.Message);
             }
 
             return id;
@@ -516,7 +514,7 @@ namespace Source.TruyenTangThuVienVn
                 catch (HttpRequestException e)
                 {
                     // Handle any errors
-                    log.Error($"Request error: {e.Message}");
+                    Console.WriteLine("An error occurred: " + e.Message);
                 }
             }
 
