@@ -1,21 +1,14 @@
 ﻿using NovelsCollector.SDK.Models;
+using NovelsCollector.SDK.Models.Plugins;
 using NovelsCollector.SDK.Plugins.ExporterPlugins;
 using QuickEPUB;
 using System.Reflection;
 
 namespace Exporter.SimpleEPub
 {
-    public class SimpleEPub : ExporterPlugin, IExporterPlugin
+    public class SimpleEPub : IExporterPlugin
     {
-        public SimpleEPub()
-        {
-            Name = "SimpleEPub";
-            FileFormat = "epub";
-            Description = "This plugin is used to export the novel to EPub format with simple template.";
-            Version = "1.0.0";
-            Author = "Nguyen Dinh Anh";
-            Enabled = true;
-        }
+        public SimpleEPub() { }
 
         public async Task Export(Novel novel, Stream stream)
         {

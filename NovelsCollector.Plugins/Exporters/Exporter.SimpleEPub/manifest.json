@@ -1,0 +1,8 @@
+{
+  "name": "SimpleEPub",
+  "description": "Plugin này xuất truyện ra định dạng EPUB.",
+  "version": "1.0.0",
+  "author": "Nguyễn Đình Ánh",
+  "extension": "epub",
+  "icon": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f2/Epub_logo_color.svg/1200px-Epub_logo_color.svg.png"
+}

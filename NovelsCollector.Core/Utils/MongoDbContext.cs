@@ -1,6 +1,5 @@
 ﻿using MongoDB.Driver;
-using NovelsCollector.SDK.Plugins.ExporterPlugins;
-using NovelsCollector.SDK.Plugins.SourcePlugins;
+using NovelsCollector.SDK.Models.Plugins;
 
 namespace NovelsCollector.Core.Utils
 {

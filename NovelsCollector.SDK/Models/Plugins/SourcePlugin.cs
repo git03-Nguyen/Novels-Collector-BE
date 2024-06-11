@@ -1,4 +1,4 @@
-﻿namespace NovelsCollector.SDK.Plugins.SourcePlugins
+﻿namespace NovelsCollector.SDK.Models.Plugins
 {
     public abstract class SourcePlugin : BasePlugin
     {

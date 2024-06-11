@@ -1,6 +1,7 @@
 ﻿using HtmlAgilityPack;
 using HtmlAgilityPack.CssSelectors.NetCore;
 using NovelsCollector.SDK.Models;
+using NovelsCollector.SDK.Models.Plugins;
 using NovelsCollector.SDK.Plugins.SourcePlugins;
 using System.Globalization;
 using System.Text;
@@ -8,8 +9,9 @@ using System.Text.RegularExpressions;
 
 namespace Source.TruyenSSVn
 {
-    public class SSTruyenVn : SourcePlugin, ISourcePlugin
+    public class SSTruyenVn : ISourcePlugin
     {
+        private const string mainUrl = "https://sstruyen.vn/";
         public string SearchUrl => "https://sstruyen.vn/tim-truyen/<keyword>/";
         public string HotUrl => "https://sstruyen.vn/?lib=all&ct=&order=1&greater=0&lesser=1000000000&hot=hot&p=<page>";
         public string LatestUrl => "https://sstruyen.vn/?lib=all&ct=&order=8&greater=0&lesser=1000000000&p=<page>";
@@ -19,15 +21,7 @@ namespace Source.TruyenSSVn
         public string NovelUrl => "https://sstruyen.vn/<novel-slug>/";
         public string ChapterUrl => "https://sstruyen.vn/<novel-slug>/<chapter-slug>";
 
-        public SSTruyenVn()
-        {
-            Url = "https://sstruyen.vn/";
-            Name = "SSTruyenVn";
-            Description = "This plugin is used to crawl novels from TruyenSSVn website";
-            Version = "1.0.0";
-            Author = "Nguyen Tuan Dat";
-            Enabled = true;
-        }
+        public SSTruyenVn() { }
 
         /// <summary>
         /// Crawl novels by search
@@ -104,7 +98,7 @@ namespace Source.TruyenSSVn
             List<Category> listCategory = new List<Category>();
             try
             {
-                var document = await LoadFromWebAsync(Url);
+                var document = await LoadFromWebAsync(mainUrl);
 
                 var categoryElements = document.DocumentNode.QuerySelectorAll("div.section-header ul.sub-menu.sub-menu-cat a[href*='/danh-sach/']");
                 foreach (var categoryElement in categoryElements)
@@ -297,7 +291,6 @@ namespace Source.TruyenSSVn
             if (listChapters.Count(x => x.Number == chapterNumber) == 0) return null;
 
             var chapter = new Chapter();
-            chapter.Source = Name;
             chapter.NovelSlug = novelSlug;
             chapter.Number = chapterNumber;
             chapter.Slug = $"chuong-{chapterNumber}";

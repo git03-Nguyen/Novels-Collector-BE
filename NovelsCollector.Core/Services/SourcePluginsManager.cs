@@ -2,6 +2,7 @@
 using NovelsCollector.Core.Exceptions;
 using NovelsCollector.Core.Utils;
 using NovelsCollector.SDK.Models;
+using NovelsCollector.SDK.Models.Plugins;
 using NovelsCollector.SDK.Plugins.SourcePlugins;
 using System.IO.Compression;
 using System.Net;
@@ -235,19 +236,20 @@ namespace NovelsCollector.Core.Services
                 throw new NotFoundException("Plugin not found");
             }
 
-            // Delete the plugin folder
-            string pluginPath = Path.Combine(_pluginsPath, pluginName);
-            if (Directory.Exists(pluginPath))
-            {
-                Directory.Delete(pluginPath, true);
-            }
-
             // Remove the plugin from the list
             _enabledPlugins.Remove(pluginName);
             UnloadPlugin(pluginName);
 
             // Remove the plugin from the database
             //await _pluginsCollection.DeleteOneAsync(plugin => plugin.Name == pluginName);
+
+
+            // Delete the plugin folder
+            string pluginPath = Path.Combine(_pluginsPath, pluginName);
+            if (Directory.Exists(pluginPath))
+            {
+                Directory.Delete(pluginPath, true);
+            }
 
             _logger.LogInformation($"\tPlugin {pluginName} removed successfully");
         }
@@ -388,6 +390,7 @@ namespace NovelsCollector.Core.Services
                     var otherChapter = await executablePlugin.GetChapterSlug(otherNovel.Slug, thisChapterNumber);
                     if (otherChapter != null)
                     {
+                        otherChapter.Source = otherSource;
                         chapters.Add(otherSource, otherChapter);
                     }
                 }

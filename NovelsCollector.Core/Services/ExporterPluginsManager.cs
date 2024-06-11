@@ -1,6 +1,7 @@
 ﻿using MongoDB.Driver;
 using NovelsCollector.Core.Utils;
 using NovelsCollector.SDK.Models;
+using NovelsCollector.SDK.Models.Plugins;
 using NovelsCollector.SDK.Plugins.ExporterPlugins;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -168,7 +169,7 @@ namespace NovelsCollector.Core.Services
             if (plugin is IExporterPlugin executablePlugin)
             {
                 await executablePlugin.Export(novel, outputStream);
-                return plugin.FileFormat;
+                return plugin.Extension;
             }
             else
             {

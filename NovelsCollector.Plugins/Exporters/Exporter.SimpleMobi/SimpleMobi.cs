@@ -1,23 +1,16 @@
 ﻿using GroupDocs.Editor;
 using GroupDocs.Editor.Options;
 using NovelsCollector.SDK.Models;
+using NovelsCollector.SDK.Models.Plugins;
 using NovelsCollector.SDK.Plugins.ExporterPlugins;
 using System.Reflection;
 using System.Text;
 
 namespace Exporter.SimpleMobi
 {
-    public class SimpleMobi : ExporterPlugin, IExporterPlugin
+    public class SimpleMobi : IExporterPlugin
     {
-        public SimpleMobi()
-        {
-            Name = "SimpleMobi";
-            FileFormat = "mobi";
-            Description = "This plugin is used to export the novel to Kindle .mobi format with simple template.";
-            Version = "1.0.0";
-            Author = "Nguyen Dinh Anh";
-            Enabled = true;
-        }
+        public SimpleMobi() { }
 
         public async Task Export(Novel novel, Stream stream)
         {
