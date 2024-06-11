@@ -3,7 +3,6 @@ using NovelsCollector.Core.Exceptions;
 using NovelsCollector.Core.Models;
 using NovelsCollector.Core.Utils;
 using NovelsCollector.SDK.Plugins;
-using NovelsCollector.SDK.Plugins.SourcePlugins;
 using System.IO.Compression;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -11,21 +10,21 @@ using System.Text.Json;
 
 namespace NovelsCollector.Core.Services
 {
-    public abstract class BasePluginsManager <Abstract, Interface> where Abstract : BasePlugin where Interface : IPlugin
+    public abstract class BasePluginsManager<Abstract, Interface> where Abstract : BasePlugin where Interface : IPlugin
     {
         #region Properties
 
-        private readonly ILogger<BasePluginsManager<Abstract, Interface>> _logger;
+        protected readonly ILogger _logger;
 
         // Storing the plugins and their own contexts
         public List<Abstract> Installed { get; }
 
         // The path to the /___-plugins and /temp folders
-        private string _tempPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "temp");
-        private string _pluginsPath;
+        protected string _tempPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "temp");
+        protected string _pluginsPath;
 
         // The collection of source-plugins in the database
-        private IMongoCollection<Abstract> _pluginsCollection;
+        protected IMongoCollection<Abstract> _pluginsCollection;
 
         // FOR DEBUGGING: The list of weak references to the unloaded contexts in the past
         public List<WeakReference> unloadedHistory = new List<WeakReference>();
@@ -39,7 +38,7 @@ namespace NovelsCollector.Core.Services
         /// <param name="mongoDbContext"> The MongoDB context, injected by the DI. </param>
         /// <param name="collectionName"> The name of the collection in the database. e.g: "Sources". </param>
         /// <param name="pluginsFolderName"> The name of the folder to store the plugins. e.g: "source-plugins". </param>
-        public BasePluginsManager(ILogger<BasePluginsManager<Abstract, Interface>> logger, MongoDbContext mongoDbContext, string collectionName, string pluginsFolderName)
+        public BasePluginsManager(ILogger logger, MongoDbContext mongoDbContext, string collectionName, string pluginsFolderName)
         {
             _logger = logger;
             _pluginsCollection = mongoDbContext.GetCollection<Abstract>(collectionName);
@@ -60,7 +59,7 @@ namespace NovelsCollector.Core.Services
         /// Load all installed plugins.
         /// </summary>
         [MethodImpl(MethodImplOptions.NoInlining)] // Avoid JIT optimizations which causes issues with PluginLoadContext.Unload() (cannot GC)
-        private void loadAll()
+        protected void loadAll()
         {
             unloadAll();
             foreach (var plugin in Installed)
@@ -83,7 +82,7 @@ namespace NovelsCollector.Core.Services
         /// Unload all loaded plugins.
         /// </summary>
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private void unloadAll()
+        protected void unloadAll()
         {
             foreach (var plugin in Installed)
             {
@@ -154,7 +153,7 @@ namespace NovelsCollector.Core.Services
             foreach (var type in types)
             {
                 // If the type implementing the ISourcePlugin/IExporter interface, then create an instance of it
-                if (type.GetInterface(nameof(Interface)) != null)
+                if (typeof(Interface).IsAssignableFrom(type) && !type.IsInterface && !type.IsAbstract)
                 {
                     if (Activator.CreateInstance(type) is Interface plugin)
                     {
@@ -247,7 +246,8 @@ namespace NovelsCollector.Core.Services
 
             // Deserialize manifest and get the new plugin
             string manifestContent = File.ReadAllText(manifestPath);
-            var newPlugin = JsonSerializer.Deserialize<Abstract>(manifestContent, new JsonSerializerOptions { 
+            var newPlugin = JsonSerializer.Deserialize<Abstract>(manifestContent, new JsonSerializerOptions
+            {
                 PropertyNameCaseInsensitive = true,
                 AllowTrailingCommas = true
             });
@@ -301,9 +301,6 @@ namespace NovelsCollector.Core.Services
                 try
                 {
                     UnloadPlugin(pluginName);
-                    // Ensure the plugin is unloaded
-                    GC.Collect();
-                    GC.WaitForPendingFinalizers();
                 }
                 catch (Exception ex)
                 {
@@ -317,9 +314,19 @@ namespace NovelsCollector.Core.Services
             // Remove the plugin from the database
             await _pluginsCollection.DeleteOneAsync(plugin => plugin.Name == pluginName);
 
+            // Ensure the plugin is unloaded, before deleting the folder, to avoid file locks
+            var count = 10;
+            do
+            {
+                count--;
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+            } while (unloadedHistory.LastOrDefault()?.IsAlive == true && count > 0);
+
             // Delete the plugin folder
             string pluginPath = Path.Combine(_pluginsPath, pluginName);
-            if (Directory.Exists(pluginPath)) Directory.Delete(pluginPath, true);
+            if (Directory.Exists(pluginPath)) 
+                try { Directory.Delete(pluginPath, true); } catch { Console.WriteLine("Error deleting plugin folder"); }
 
             _logger.LogInformation($"\tPlugin {pluginName} REMOVED successfully");
         }

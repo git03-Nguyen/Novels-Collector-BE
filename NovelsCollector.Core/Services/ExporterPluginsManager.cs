@@ -8,42 +8,15 @@ using System.Runtime.CompilerServices;
 
 namespace NovelsCollector.Core.Services
 {
-    public class ExporterPluginsManager
+    public class ExporterPluginsManager : BasePluginsManager<ExporterPlugin, IExporterPlugin>
     {
-        private readonly ILogger<ExporterPluginsManager> _logger;
-
-        // Storing the plugins and their own contexts
-        public List<ExporterPlugin> Installed { get; }
-
-        // The path to the /source-plugins and /temp folders
-        private readonly string _pluginsPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "exporter-plugins");
-        private readonly string _tempPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "temp");
-
-        // The collection of source-plugins in the database
-        private IMongoCollection<ExporterPlugin> _pluginsCollection;
-
-        // FOR DEBUGGING: The list of weak references to the unloaded contexts in the past
-        public List<WeakReference> unloadedHistory = new List<WeakReference>();
+        private const string pluginsFolderName = "exporter-plugins";
+        private const string collectionName = "Exporters"; // TODO: move to a constant file
 
         public ExporterPluginsManager(ILogger<ExporterPluginsManager> logger, MongoDbContext mongoDbContext)
-        {
-            _logger = logger;
-            _pluginsCollection = mongoDbContext.ExporterPlugins;
+            : base(logger, mongoDbContext, collectionName, pluginsFolderName) { }
 
-            // Get installed plugins from the database
-            Installed = _pluginsCollection.Find(plugin => true).ToList();
-
-            // Create the /exporter-plugins and /temp folders if not exist
-            if (!Directory.Exists(_pluginsPath)) Directory.CreateDirectory(_pluginsPath);
-            if (!Directory.Exists(_tempPath)) Directory.CreateDirectory(_tempPath);
-
-            // Load all installed plugins
-            //loadAll();
-        }
-
-
-        // ------------------- EXPORTERs MANAGEMENT -------------------
-        [MethodImpl(MethodImplOptions.NoInlining)]
+        // -------------- MANAGE FOR EXPORTER FEATURES --------------
 
         // Export the novel using the plugin: Export(Novel novel, string pluginName), return a file stream
         public async Task<string?> Export(string pluginName, Novel novel, Stream outputStream)

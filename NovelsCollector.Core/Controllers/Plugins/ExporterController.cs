@@ -2,7 +2,7 @@
 using NovelsCollector.Core.Services;
 using NovelsCollector.SDK.Models;
 
-namespace NovelsCollector.Core.Controllers
+namespace NovelsCollector.Core.Controllers.Plugins
 {
     [ApiController]
     [Tags("08. Exporters")]
@@ -24,16 +24,15 @@ namespace NovelsCollector.Core.Controllers
         /// Get a list of all exporter plugins
         /// </summary>
         /// <returns> A list of all exporter plugins. </returns>
-        //[HttpGet]
-        //[EndpointSummary("Get a list of all exporter plugins")]
-        //public IActionResult GetExporters()
-        //{
-        //    return Ok(new
-        //    {
-        //        data = _exporterPluginManager.Plugins.Values.ToArray(),
-        //        // TODO: add the unloaded/disabled plugins
-        //    });
-        //}
+        [HttpGet]
+        [EndpointSummary("Get a list of all exporter plugins")]
+        public IActionResult GetExporters()
+        {
+            return Ok(new
+            {
+                data = _exporterPluginManager.Installed.ToArray()
+            });
+        }
 
         /// <summary>
         /// Reload all exporter plugins
