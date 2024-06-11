@@ -20,6 +20,10 @@ namespace NovelsCollector.Core.Controllers
         }
         #endregion
 
+        /// <summary>
+        /// Get a list of all exporter plugins
+        /// </summary>
+        /// <returns> A list of all exporter plugins. </returns>
         [HttpGet]
         [EndpointSummary("Get a list of all exporter plugins")]
         public IActionResult GetExporters()
@@ -31,22 +35,19 @@ namespace NovelsCollector.Core.Controllers
             });
         }
 
+        /// <summary>
+        /// Reload all exporter plugins
+        /// </summary>
+        /// <returns> A list of all exporter plugins. </returns>
         [HttpGet("reload")]
-        [EndpointSummary("Reload exporter plugins")]
+        [EndpointSummary("Reload all exporter plugins")]
         public IActionResult Reload()
         {
-            try
+            _exporterPluginManager.ReloadPlugins();
+            return Ok(new
             {
-                _exporterPluginManager.ReloadPlugins();
-                return Ok(new
-                {
-                    data = _exporterPluginManager.Plugins.Values.ToArray(),
-                });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { error = new { code = ex.HResult, message = ex.Message } });
-            }
+                data = _exporterPluginManager.Plugins.Values.ToArray(),
+            });
         }
 
         [HttpGet("test1")]

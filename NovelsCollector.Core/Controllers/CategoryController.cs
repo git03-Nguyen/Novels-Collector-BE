@@ -19,120 +19,120 @@ namespace NovelsCollector.Core.Controllers
         }
         #endregion
 
+        /// <summary>
+        /// Get all categories from a source
+        /// </summary>
+        /// <param name="source"> The source name. e.g. 'TruyenFullVn' </param>
+        /// <returns> A list of categories from a source </returns>
         [HttpGet("{source}")]
         [EndpointSummary("Get all categories from a source")]
         public async Task<IActionResult> Get([FromRoute] string source)
         {
-            try
+            var categories = await _sourcesPlugins.GetCategories(source);
+
+            return Ok(new
             {
-                var categories = await _sourcesPlugins.GetCategories(source);
-                return Ok(new
-                {
-                    data = categories,
-                    meta = new { source = source }
-                });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { error = new { code = ex.HResult, message = ex.Message } });
-            }
+                data = categories,
+                meta = new { source }
+            });
         }
 
+        /// <summary>
+        /// Get novels by category from a source
+        /// </summary>
+        /// <param name="source"> The source name. e.g. 'TruyenFullVn' </param>
+        /// <param name="categorySlug"> The category slug. e.g. 'ngon-tinh' </param>
+        /// <param name="page"> The page number. Default is 1 </param>
+        /// <returns></returns>
         [HttpGet("{source}/{categorySlug}")]
         [EndpointSummary("Get novels by category from a source")]
         public async Task<IActionResult> Get([FromRoute] string source, [FromRoute] string categorySlug, [FromQuery] int page = 1)
         {
-            try
+            var (novels, totalPage) = await _sourcesPlugins.GetNovelsByCategory(source, categorySlug, page);
+
+            return Ok(new
             {
-                var (novels, totalPage) = await _sourcesPlugins.GetNovelsByCategory(source, categorySlug, page);
-                return Ok(new
+                data = novels,
+                meta = new
                 {
-                    data = novels,
-                    meta = new
-                    {
-                        source,
-                        categorySlug,
-                        page,
-                        totalPage
-                    }
-                });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { error = new { code = ex.HResult, message = ex.Message } });
-            }
+                    source,
+                    categorySlug,
+                    page,
+                    totalPage
+                }
+            });
         }
 
+        /// <summary>
+        /// Get hot novels from a source
+        /// </summary>
+        /// <param name="source"> The source name. e.g. 'TruyenFullVn' </param>
+        /// <param name="page"> The page number. Default is 1 </param>
+        /// <returns> A list of hot novels from a source </returns>
         [HttpGet("{source}/hot")]
         [EndpointSummary("Get hot novels from a source")]
         public async Task<IActionResult> GetHot([FromRoute] string source, [FromQuery] int page = 1)
         {
-            try
+            var (novels, totalPage) = await _sourcesPlugins.GetHotNovels(source, page);
+
+            return Ok(new
             {
-                var (novels, totalPage) = await _sourcesPlugins.GetHotNovels(source, page);
-                return Ok(new
+                data = novels,
+                meta = new
                 {
-                    data = novels,
-                    meta = new
-                    {
-                        source,
-                        page,
-                        totalPage
-                    }
-                });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { error = new { code = ex.HResult, message = ex.Message } });
-            }
+                    source,
+                    page,
+                    totalPage
+                }
+            });
         }
 
+        /// <summary>
+        /// Get latest novels from a source
+        /// </summary>
+        /// <param name="source"> The source name. e.g. 'TruyenFullVn' </param>
+        /// <param name="page"> The page number. Default is 1 </param>
+        /// <returns> A list of latest novels from a source </returns>
         [HttpGet("{source}/latest")]
         [EndpointSummary("Get latest novels from a source")]
         public async Task<IActionResult> GetLatest([FromRoute] string source, [FromQuery] int page = 1)
         {
-            try
+            var (novels, totalPage) = await _sourcesPlugins.GetLatestNovels(source, page);
+
+            return Ok(new
             {
-                var (novels, totalPage) = await _sourcesPlugins.GetLatestNovels(source, page);
-                return Ok(new
+                data = novels,
+                meta = new
                 {
-                    data = novels,
-                    meta = new
-                    {
-                        source,
-                        page,
-                        totalPage
-                    }
-                });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { error = new { code = ex.HResult, message = ex.Message } });
-            }
+                    source,
+                    page,
+                    totalPage
+                }
+            });
         }
 
+        /// <summary>
+        /// Get completed novels from a source
+        /// </summary>
+        /// <param name="source"> The source name. e.g. 'TruyenFullVn' </param>
+        /// <param name="page"> The page number. Default is 1 </param>
+        /// <returns> A list of completed novels from a source </returns>
         [HttpGet("{source}/completed")]
         [EndpointSummary("Get completed novels from a source")]
         public async Task<IActionResult> GetCompleted([FromRoute] string source, [FromQuery] int page = 1)
         {
-            try
+            var (novels, totalPage) = await _sourcesPlugins.GetCompletedNovels(source, page);
+
+            return Ok(new
             {
-                var (novels, totalPage) = await _sourcesPlugins.GetCompletedNovels(source, page);
-                return Ok(new
+                data = novels,
+                meta = new
                 {
-                    data = novels,
-                    meta = new
-                    {
-                        source,
-                        page,
-                        totalPage
-                    }
-                });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { error = new { code = ex.HResult, message = ex.Message } });
-            }
+                    source,
+                    page,
+                    totalPage
+                }
+            });
         }
 
 

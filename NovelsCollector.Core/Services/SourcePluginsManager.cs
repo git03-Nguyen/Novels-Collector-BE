@@ -44,7 +44,7 @@ namespace NovelsCollector.Core.Services
             }
 
             // Load all installed plugins
-            ReloadPlugins();
+            reloadAll();
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
@@ -71,7 +71,7 @@ namespace NovelsCollector.Core.Services
 
         // Avoid JIT optimizations that may cause issues with the PluginLoadContext.Unload() (cannot GC)
         [MethodImpl(MethodImplOptions.NoInlining)]
-        public void ReloadPlugins()
+        private void reloadAll()
         {
             UnloadAll();
             foreach (var plugin in _enabledPlugins)
@@ -81,7 +81,7 @@ namespace NovelsCollector.Core.Services
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private bool LoadPlugin(string pluginName)
+        public bool LoadPlugin(string pluginName)
         {
             // Check if the plugin is already loaded
             if (Plugins.ContainsKey(pluginName))

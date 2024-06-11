@@ -1,15 +1,24 @@
 using Microsoft.AspNetCore.ResponseCompression;
+using NovelsCollector.Core.Exceptions;
 using NovelsCollector.Core.Utils;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
+//builder.Services.AddLogging();
+
 // Add services to the container
-builder.Services.AddControllers().AddJsonOptions(options =>
-{
-    options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
-});
+builder.Services
+    .AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+    });
+
+builder.Services.AddExceptionHandler<MyExceptionHandler>();
+builder.Services.AddProblemDetails();
+
 builder.Services.AddPlugins();
 
 // Add CORS for frontend: http://localhost:3000         TODO: move to config
@@ -38,6 +47,8 @@ builder.Services.AddResponseCompression(options =>
 
 var app = builder.Build();
 
+app.UseExceptionHandler();
+
 app.UseResponseCompression();
 
 // Configure the HTTP request pipeline.
@@ -53,18 +64,12 @@ app.UseCors(corsName);
 
 app.UseHttpsRedirection();
 
+
 app.UseAuthorization();
 
 app.MapControllers();
 
 app.UseStatusCodePages(async context =>
-{
-    if (context.HttpContext.Response.StatusCode == 404)
-    {
-        context.HttpContext.Response.ContentType = "application/json";
-        await context.HttpContext.Response.WriteAsync(
-            JsonSerializer.Serialize(new { error = new { message = "Not found" } }));
-    }
-});
+    throw new NotFoundException("Not found!"));
 
 app.Run();

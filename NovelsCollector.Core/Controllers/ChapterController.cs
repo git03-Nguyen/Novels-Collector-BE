@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using NovelsCollector.Core.Exceptions;
 using NovelsCollector.Core.Services;
 using NovelsCollector.SDK.Models;
 
@@ -31,61 +32,52 @@ namespace NovelsCollector.Core.Controllers
         [EndpointSummary("Read a chapter of a novel by source, novel slug and chapter slug")]
         async public Task<IActionResult> Get([FromRoute] string source, [FromRoute] string novelSlug, [FromRoute] string chapterSlug)
         {
-            try
+            // Get the chapter from the source
+            var chapter = await _sourcePluginManager.GetChapter(source, novelSlug, chapterSlug);
+
+            // Check if the chapter is not found
+            if (chapter == null) throw new NotFoundException("Không tìm thấy chương này.");
+
+            // Return the chapter
+            return Ok(new
             {
-                var chapter = await _sourcePluginManager.GetChapter(source, novelSlug, chapterSlug);
-
-                // Check if the chapter is not found
-                if (chapter == null) return NotFound(new { error = new { message = "Chapter not found" } });
-
-                // Return the chapter
-                return Ok(new
+                data = chapter,
+                meta = new
                 {
-                    data = chapter,
-                    meta = new
-                    {
-                        source,
-                        novelSlug,
-                        chapterSlug,
-                    }
-                });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { error = new { code = ex.HResult, message = ex.Message } });
-            }
+                    source,
+                    novelSlug,
+                    chapterSlug,
+                }
+            });
         }
 
+        /// <summary>
+        /// Get the same chapter in other sources
+        /// </summary>
+        /// <param name="source"> The source of the novel (e.g., DTruyenCom, SSTruyenVn). </param>
+        /// <param name="novelSlug"> The slug identifier for the novel (e.g., tao-tac). </param>
+        /// <param name="chapterNumber"> The number of the chapter (e.g., 1). </param>
+        /// <param name="novelInOtherSources"> The list of the same novels in other sources. </param>
+        /// <returns> An IActionResult containing the same chapter in other sources. </returns>
         [HttpPost("{source}/{novelSlug}/{chapterNumber}/others")]
         [EndpointSummary("Find this chapter in other sources")]
         async public Task<IActionResult> GetOtherSources([FromRoute] string source, [FromRoute] string novelSlug, [FromRoute] int chapterNumber,
             [FromBody] Dictionary<string, Novel> novelInOtherSources)
         {
-            try
+            var currentChapter = new Chapter
             {
-                var currentChapter = new Chapter
-                {
-                    Source = source,
-                    NovelSlug = novelSlug,
-                    Number = chapterNumber
-                };
+                Source = source,
+                NovelSlug = novelSlug,
+                Number = chapterNumber
+            };
 
-                var chapterInOtherSources = await _sourcePluginManager.GetChapterFromOtherSources(novelInOtherSources, currentChapter);
+            var chapterInOtherSources = await _sourcePluginManager.GetChapterFromOtherSources(novelInOtherSources, currentChapter);
 
-                // Return the chapter
-                return Ok(new
-                {
-                    data = chapterInOtherSources,
-                    meta = new
-                    {
-
-                    }
-                });
-            }
-            catch (Exception ex)
+            // Return the same chapter in other sources
+            return Ok(new
             {
-                return StatusCode(500, new { error = new { code = ex.HResult, message = ex.Message } });
-            }
+                data = chapterInOtherSources
+            });
         }
     }
 }

@@ -22,7 +22,7 @@ namespace NovelsCollector.Core.Controllers
         /// <summary>
         /// Get a list of all source plugins being loaded in the system
         /// </summary>
-        /// <returns> An IActionResult containing the list of source plugins or an error message. </returns>
+        /// <returns> The list of source plugins being loaded in the system. </returns>
         [HttpGet]
         [EndpointSummary("Get a list of all source plugins")]
         public IActionResult Get()
@@ -35,71 +35,73 @@ namespace NovelsCollector.Core.Controllers
         }
 
         /// <summary>
-        /// Reload all enabled source plugins
+        /// Load a source plugin by name
         /// </summary>
-        /// <returns> An IActionResult containing the reloaded source plugins or an error message. </returns>
-        [HttpGet("reload")]
-        [EndpointSummary("Reload source plugins")]
-        public IActionResult Reload()
+        /// <param name="pluginName"> The name of the source plugin to load. </param>
+        /// <returns> List of loaded source plugins. </returns>
+        [HttpGet("load/{pluginName}")]
+        [EndpointSummary("Load a source plugin by name")]
+        public IActionResult Load([FromRoute] string pluginName)
         {
-            try
+            _sourcesPlugins.LoadPlugin(pluginName);
+            return Ok(new
             {
-                _sourcesPlugins.ReloadPlugins();
-                return Ok(new
-                {
-                    data = _sourcesPlugins.Plugins.Values.ToArray(),
-                });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { error = new { code = ex.HResult, message = ex.Message } });
-            }
-        }
-
-        /// <summary>
-        /// Unload all source plugins
-        /// </summary>
-        /// <returns> An IActionResult containing the being-loaded source plugins or an error message. </returns>
-        [HttpGet("unload/all")]
-        [EndpointSummary("Unload all source plugins")]
-        public IActionResult Unload()
-        {
-            try
-            {
-                _sourcesPlugins.UnloadAll();
-                return Ok(new
-                {
-                    data = _sourcesPlugins.Plugins.Values.ToArray(),
-                });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { error = new { code = ex.HResult, message = ex.Message } });
-            }
+                data = _sourcesPlugins.Plugins.Values.ToArray(),
+                meta = new { loaded = pluginName }
+            });
         }
 
         /// <summary>
         /// Unload a source plugin by name
         /// </summary>
         /// <param name="pluginName"> The name of the source plugin to unload. </param>
-        /// <returns> An IActionResult containing the list of loaded source plugins or an error message. </returns>
+        /// <returns> The list of loaded source plugins. </returns>
         [HttpGet("unload/{pluginName}")]
         [EndpointSummary("Unload a source plugin by name")]
         public IActionResult Unload([FromRoute] string pluginName)
         {
-            try
+            _sourcesPlugins.UnloadPlugin(pluginName);
+            return Ok(new
             {
-                _sourcesPlugins.UnloadPlugin(pluginName);
-                return Ok(new
-                {
-                    data = _sourcesPlugins.Plugins.Values.ToArray(),
-                    meta = new { unloaded = pluginName }
-                });
-            }
-            catch (Exception ex)
+                data = _sourcesPlugins.Plugins.Values.ToArray(),
+                meta = new { unloaded = pluginName }
+            });
+        }
+
+        /// <summary>
+        /// Add a new source plugin
+        /// </summary>
+        /// <param name="file"> The source plugin file to add (TODO: maybe .zip). </param>
+        /// <returns> An IActionResult containing the information of just added source plugin or an error message. </returns>
+        [HttpPost("add")]
+        [EndpointSummary("Add a new source plugin")]
+        public async Task<IActionResult> Post([FromBody] string file)
+        {
+            // TODO: implement
+
+            return Ok(new
             {
-                return StatusCode(500, new { error = new { code = ex.HResult, message = ex.Message } });
-            }
+                data = new { },
+                meta = new { added = file }
+            });
+        }
+
+        /// <summary>
+        /// Remove a source plugin out of the disk/database by name.
+        /// </summary>
+        /// <param name="pluginName"> The name of the source plugin to remove. </param>
+        /// <returns> An IActionResult containing the list of loaded source plugins or an error message. </returns>
+        [HttpDelete("delete/{pluginName}")]
+        [EndpointSummary("Remove a source plugin out of the disk by name")]
+        public IActionResult Delete([FromRoute] string pluginName)
+        {
+            // TODO: implement
+
+            return Ok(new
+            {
+                data = _sourcesPlugins.Plugins.Values.ToArray(),
+                meta = new { removed = pluginName }
+            });
         }
 
         /// <summary>
@@ -117,54 +119,6 @@ namespace NovelsCollector.Core.Controllers
             {
                 data = _sourcesPlugins.unloadedContexts.Select(wr => wr.IsAlive ? "Alive" : "Dead").ToArray(),
             });
-        }
-
-        /// <summary>
-        /// Add a new source plugin
-        /// </summary>
-        /// <param name="file"> The source plugin file to add (TODO: maybe .zip). </param>
-        /// <returns> An IActionResult containing the information of just added source plugin or an error message. </returns>
-        [HttpPost("add")]
-        [EndpointSummary("Add a new source plugin")]
-        public async Task<IActionResult> Post([FromBody] string file)
-        {
-            try
-            {
-                return Ok(new
-                {
-                    // TODO: implement
-                    data = new { },
-                    meta = new { added = file }
-                });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { error = new { code = ex.HResult, message = ex.Message } });
-            }
-        }
-
-        /// <summary>
-        /// Remove a source plugin out of the disk/database by name.
-        /// </summary>
-        /// <param name="pluginName"> The name of the source plugin to remove. </param>
-        /// <returns> An IActionResult containing the list of loaded source plugins or an error message. </returns>
-        [HttpDelete("delete/{pluginName}")]
-        [EndpointSummary("Remove a source plugin out of the disk by name")]
-        public IActionResult Delete([FromRoute] string pluginName)
-        {
-            try
-            {
-                // TODO: implement
-                return Ok(new
-                {
-                    data = _sourcesPlugins.Plugins.Values.ToArray(),
-                    meta = new { removed = pluginName }
-                });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { error = new { code = ex.HResult, message = ex.Message } });
-            }
         }
 
 

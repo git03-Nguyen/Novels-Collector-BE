@@ -1,4 +1,5 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
+using NovelsCollector.Core.Exceptions;
 
 namespace NovelsCollector.Core.Controllers
 {
@@ -9,7 +10,6 @@ namespace NovelsCollector.Core.Controllers
     {
         #region Injected Services
         private readonly ILogger<HomeController> _logger;
-
         public HomeController(ILogger<HomeController> logger) => _logger = logger;
         #endregion
 

@@ -19,29 +19,30 @@ namespace NovelsCollector.Core.Controllers
         }
         #endregion
 
+        /// <summary>
+        /// Get novels by author from a source
+        /// </summary>
+        /// <param name="source"> The source name. e.g. 'TruyenFullVn' </param>
+        /// <param name="authorSlug"> The author slug. e.g. 'tieu-tinh' </param>
+        /// <param name="page"> The page number. Default is 1 </param>
+        /// <returns> A list of novels by author from a source </returns>
         [HttpGet("{source}/{authorSlug}")]
         [EndpointSummary("Get novels by author from a source")]
         public async Task<IActionResult> Get([FromRoute] string source, [FromRoute] string authorSlug, [FromQuery] int page = 1)
         {
-            try
+            var (novels, totalPage) = await _sourcesPlugins.GetNovelsByAuthor(source, authorSlug, page);
+
+            return Ok(new
             {
-                var (novels, totalPage) = await _sourcesPlugins.GetNovelsByAuthor(source, authorSlug, page);
-                return Ok(new
+                data = novels,
+                meta = new
                 {
-                    data = novels,
-                    meta = new
-                    {
-                        source,
-                        authorSlug,
-                        page,
-                        totalPage
-                    }
-                });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { error = new { code = ex.HResult, message = ex.Message } });
-            }
+                    source,
+                    authorSlug,
+                    page,
+                    totalPage
+                }
+            });
         }
     }
 }
