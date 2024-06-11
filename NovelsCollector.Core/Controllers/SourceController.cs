@@ -71,18 +71,18 @@ namespace NovelsCollector.Core.Controllers
         /// <summary>
         /// Add a new source plugin
         /// </summary>
-        /// <param name="file"> The source plugin file to add (TODO: maybe .zip). </param>
+        /// <param name="downloadUrl"> The download URL of the source plugin to add (.zip file). </param>
         /// <returns> An IActionResult containing the information of just added source plugin or an error message. </returns>
         [HttpPost("add")]
         [EndpointSummary("Add a new source plugin")]
-        public async Task<IActionResult> Post([FromBody] string file)
+        public async Task<IActionResult> Post(IFormFile file)
         {
-            // TODO: implement
+            var added = await _sourcesPlugins.AddPluginFromFile(file);
 
             return Ok(new
             {
-                data = new { },
-                meta = new { added = file }
+                data = _sourcesPlugins.Plugins.Values.ToArray(),
+                meta = new { added }
             });
         }
 

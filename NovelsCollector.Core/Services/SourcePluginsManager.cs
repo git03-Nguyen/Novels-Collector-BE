@@ -1,9 +1,13 @@
 ﻿using MongoDB.Driver;
+using NovelsCollector.Core.Exceptions;
 using NovelsCollector.Core.Utils;
 using NovelsCollector.SDK.Models;
 using NovelsCollector.SDK.Plugins.SourcePlugins;
+using System.IO.Compression;
+using System.Net;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Text.Json;
 
 namespace NovelsCollector.Core.Services
 {
@@ -17,6 +21,7 @@ namespace NovelsCollector.Core.Services
 
         // The path to the plugins folder
         private readonly string _pluginsPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "source-plugins");
+        private readonly string _tempPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "temp");
 
         // TODO: The collection of source-plugins in the database
         private IMongoCollection<SourcePlugin> _pluginsCollection = null;
@@ -26,9 +31,17 @@ namespace NovelsCollector.Core.Services
         {
             "TruyenFullVn",
             "TruyenTangThuVienVn",
-            "SSTruyenVn",
+            //"SSTruyenVn",
             "DTruyenCom"
         };
+
+        string maninfest = @"
+            'Name': 'SSTruyenVN',
+            'Description': 'Đây là plugin crawl truyện từ trang sstruyen.vn',
+            'Version': '1.0.0',
+            'Author': 'Nguyễn Tuấn Đạt',
+            'Url': 'https://sstruyen.vn',
+        ";
 
         // FOR DEBUGGING: The list of weak references to the unloaded contexts
         public List<WeakReference> unloadedContexts = new List<WeakReference>();
@@ -38,17 +51,15 @@ namespace NovelsCollector.Core.Services
             _logger = logger;
             _pluginsCollection = mongoDbContext.SourcePlugins;
 
-            if (!Directory.Exists(_pluginsPath))
-            {
-                Directory.CreateDirectory(_pluginsPath);
-            }
+            if (!Directory.Exists(_pluginsPath)) Directory.CreateDirectory(_pluginsPath);
+            if (!Directory.Exists(_tempPath)) Directory.CreateDirectory(_tempPath);
 
             // Load all installed plugins
-            reloadAll();
+            loadAll();
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        public void UnloadAll()
+        private void unloadAll()
         {
             // FOR DEBUGGING: Clear the history of unloaded contexts
             unloadedContexts.Clear();
@@ -71,9 +82,9 @@ namespace NovelsCollector.Core.Services
 
         // Avoid JIT optimizations that may cause issues with the PluginLoadContext.Unload() (cannot GC)
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private void reloadAll()
+        private void loadAll()
         {
-            UnloadAll();
+            unloadAll();
             foreach (var plugin in _enabledPlugins)
             {
                 LoadPlugin(plugin);
@@ -154,6 +165,91 @@ namespace NovelsCollector.Core.Services
             // Remove all references, except the weak reference
             Plugins.Remove(pluginName);
             _pluginLoadContexts.Remove(pluginName);
+        }
+
+        public async Task<string> AddPluginFromFile(IFormFile file)
+        {
+            // Get the timestamp to create a unique folder
+            string timestamp = DateTime.Now.ToString("yyyyMMddHHmmss");
+
+            // Download the plugin into the folder
+            string pluginZipPath = Path.Combine(_tempPath, timestamp + ".zip");
+            string tempPath = Path.Combine(_tempPath, timestamp);
+            Directory.CreateDirectory(tempPath);
+
+            // Download the plugin
+            _logger.LogInformation($"\tDownloading new plugin");
+            using (var stream = new FileStream(pluginZipPath, FileMode.Create))
+            {
+                await file.CopyToAsync(stream);
+            }
+
+            // Extract the plugin
+            _logger.LogInformation($"\tExtracting plugin to /temp/{timestamp}");
+            ZipFile.ExtractToDirectory(pluginZipPath, tempPath);
+            // Delete the zip file
+            File.Delete(pluginZipPath);
+
+            // Read the plugin name, author, version, etc. from the manifest file: parse an object
+            string manifestPath = Path.Combine(tempPath, "manifest.json");
+            if (!File.Exists(manifestPath))
+                throw new NotFoundException("Manifest file not found");
+
+            string manifestContent = File.ReadAllText(manifestPath);
+            var manifest = JsonSerializer.Deserialize<Dictionary<string, string>>(manifestContent);
+            if (manifest == null)
+                throw new NotFoundException("Manifest file is invalid");
+
+
+            string pluginName = manifest["Name"];
+            if (Plugins.ContainsKey(pluginName) || _enabledPlugins.Contains(pluginName))
+            {
+                throw new Exception("Plugin already exists");
+            }
+
+            // Move the plugin to the plugins folder
+            string pluginPath = Path.Combine(_pluginsPath, pluginName);
+            Directory.Move(tempPath, pluginPath);
+
+            // Load the plugin
+            //_enabledPlugins.Add(pluginName);
+            //LoadPlugin(pluginName);
+
+            // Save the plugin to the database
+            //var plugin = new SourcePlugin
+            //{
+            //    Name = pluginName,
+            //    DownloadUrl = downloadUrl
+            //};
+            //await _pluginsCollection.InsertOneAsync(plugin);
+
+            _logger.LogInformation($"\tPlugin {pluginName} added successfully");
+            return pluginName;
+        }
+
+        public async void RemovePlugin(string pluginName)
+        {
+            if (!_enabledPlugins.Contains(pluginName))
+            {
+                _logger.LogWarning($"\tPlugin {pluginName} not found");
+                throw new NotFoundException("Plugin not found");
+            }
+
+            // Delete the plugin folder
+            string pluginPath = Path.Combine(_pluginsPath, pluginName);
+            if (Directory.Exists(pluginPath))
+            {
+                Directory.Delete(pluginPath, true);
+            }
+
+            // Remove the plugin from the list
+            _enabledPlugins.Remove(pluginName);
+            UnloadPlugin(pluginName);
+
+            // Remove the plugin from the database
+            //await _pluginsCollection.DeleteOneAsync(plugin => plugin.Name == pluginName);
+
+            _logger.LogInformation($"\tPlugin {pluginName} removed successfully");
         }
 
         // -------------- MANAGE FOR SOURCE PLUGINS --------------
