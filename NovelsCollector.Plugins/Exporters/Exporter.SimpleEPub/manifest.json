@@ -4,5 +4,6 @@
   "version": "1.0.0",
   "author": "Nguyễn Đình Ánh",
   "extension": "epub",
+  "assembly": "Exporter.SimpleEPub.dll",
   "icon": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f2/Epub_logo_color.svg/1200px-Epub_logo_color.svg.png"
 }

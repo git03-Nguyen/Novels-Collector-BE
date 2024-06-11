@@ -14,7 +14,7 @@ namespace NovelsCollector.Core.Models
         public string? Description { get; set; }
         public string? Version { get; set; }
         public string? Author { get; set; }
-        public string? AssemblyPath { get; set; }
+        public string? Assembly { get; set; }
         public string? Icon { get; set; }
 
         [BsonIgnore]

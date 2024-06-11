@@ -132,18 +132,20 @@ namespace NovelsCollector.Core.Services
 
             // If the plugin is not loaded, load it
 
-            // Path to the plugin dll. ie: source-plugins/{pluginName}/Source.{pluginName}.dll
+            // Path to the plugin dll: source-plugins/{pluginName}/{loadingPlugin.Assembly} .e.g: source-plugins/{pluginName}/Source.{pluginName}.dll
             string pluginNameFolder = Path.Combine(_pluginsPath, pluginName);
             if (!Directory.Exists(pluginNameFolder))
                 throw new NotFoundException($"Plugin folder /source-plugins/{pluginName} not found");
-            string? pluginDll = Directory.GetFiles(pluginNameFolder, $"Source.{pluginName}.dll").FirstOrDefault();
+            string assemblyName = loadingPlugin.Assembly;
+            if (!assemblyName.EndsWith(".dll")) assemblyName += ".dll";
+            string? pluginDll = Directory.GetFiles(pluginNameFolder, $"{assemblyName}").FirstOrDefault();
             if (pluginDll == null)
-                throw new NotFoundException($"Plugin Source.{pluginName}.dll not found");
+                throw new NotFoundException($"Assembly {assemblyName} not found");
 
             // Create a new context to load the plugin into
             PluginLoadContext loadContext = new PluginLoadContext(pluginDll);
 
-            // Load the plugin assembly ("Source.{pluginName}.dll")
+            // Load the plugin assembly: {plugin.Assembly} .e.g: Source.{pluginName}.dll
             Assembly pluginAssembly = loadContext.LoadFromAssemblyName(AssemblyName.GetAssemblyName(pluginDll));
             Type[] types = pluginAssembly.GetTypes();
             foreach (var type in types)
@@ -158,7 +160,7 @@ namespace NovelsCollector.Core.Services
                         loadingPlugin.PluginInstance = plugin;
                         loadingPlugin.IsLoaded = true;
                         loadingPlugin.LoadContext = loadContext;
-                        _logger.LogInformation($"\tLOADED plugin Source.{pluginName}.dll");
+                        _logger.LogInformation($"\tLOADED plugin {pluginName} from {assemblyName}");
                         return;
                     }
                 }
@@ -169,7 +171,7 @@ namespace NovelsCollector.Core.Services
             loadingPlugin.PluginInstance = null;
             loadingPlugin.IsLoaded = false;
             loadingPlugin.LoadContext = null;
-            throw new NotFoundException($"No ISourcePlugin found in Source.{pluginName}.dll");
+            throw new NotFoundException($"No plugin found in {assemblyName}");
 
         }
 
@@ -199,7 +201,7 @@ namespace NovelsCollector.Core.Services
             unloadingPlugin.PluginInstance = null;
             unloadingPlugin.IsLoaded = false;
             unloadingPlugin.LoadContext = null;
-            _logger.LogInformation($"\tUNLOADING plugin Source.{pluginName}.dll has been initiated");
+            _logger.LogInformation($"\tUNLOADING plugin {pluginName} has been initiated");
 
         }
 
@@ -241,25 +243,15 @@ namespace NovelsCollector.Core.Services
             if (!File.Exists(manifestPath))
                 throw new NotFoundException("Manifest file not found");
 
+            // Get the new plugin
             string manifestContent = File.ReadAllText(manifestPath);
-            var manifest = JsonSerializer.Deserialize<Dictionary<string, string>>(manifestContent);
-            if (manifest == null)
-                throw new NotFoundException("Manifest file is invalid");
-
-            // Get the new plugin 
-            var newPlugin = new SourcePlugin
+            var newPlugin = JsonSerializer.Deserialize<SourcePlugin>(manifestContent, new JsonSerializerOptions
             {
-                Name = manifest["name"],
-                Author = manifest["author"],
-                Version = manifest["version"],
-                Description = manifest["description"],
-                Url = manifest["url"],
-                Icon = manifest["icon"],
-                AssemblyPath = null,
-                IsLoaded = false,
-                PluginInstance = null,
-                LoadContext = null
-            };
+                PropertyNameCaseInsensitive = true,
+                AllowTrailingCommas = true
+            });
+            if (newPlugin == null)
+                throw new NotFoundException("Manifest file is invalid");
 
             // Check if the plugin already exists
             if (Installed.Any(plugin => plugin.Name == newPlugin.Name))

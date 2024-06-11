@@ -19,6 +19,7 @@ namespace NovelsCollector.Core.Utils
 
         public MongoDbContext()
         {
+            // TODO: Move to appsettings.json
             var settings = new DatabaseSettings
             {
                 ConnectionString = "mongodb://localhost:27017",
@@ -34,6 +35,11 @@ namespace NovelsCollector.Core.Utils
 
         public IMongoCollection<SourcePlugin> SourcePlugins => _sourcePlugins;
         public IMongoCollection<ExporterPlugin> ExporterPlugins => _exporterPlugins;
+
+        public IMongoCollection<T> GetCollection<T>(string collectionName)
+        {
+            return _database.GetCollection<T>(collectionName);
+        }
 
     }
 }

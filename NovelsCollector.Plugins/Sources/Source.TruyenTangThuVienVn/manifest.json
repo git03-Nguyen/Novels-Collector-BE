@@ -3,6 +3,7 @@
   "description": "Plugin này crawl truyện từ website truyen.tangthuvien.vn",
   "version": "1.0.0",
   "author": "Nguyễn Tuấn Đạt",
+  "assembly": "Source.TruyenTangThuVienVn.dll",
   "url": "https://truyen.tangthuvien.vn/",
   "icon": "https://play-lh.googleusercontent.com/ySl8uNRjXrdZoY4xJZWZ0A875z4lTVLvJckaE3ECsL8OitY0g5UES9QMpNhO7OO1hH4"
 }
