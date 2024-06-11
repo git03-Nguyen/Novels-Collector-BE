@@ -1,5 +1,4 @@
 ﻿using NovelsCollector.SDK.Models;
-using NovelsCollector.SDK.Models.Plugins;
 using NovelsCollector.SDK.Plugins.ExporterPlugins;
 using System.Reflection;
 

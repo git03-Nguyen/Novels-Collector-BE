@@ -1,5 +1,5 @@
 ﻿using MongoDB.Driver;
-using NovelsCollector.SDK.Models.Plugins;
+using NovelsCollector.Core.Models;
 
 namespace NovelsCollector.Core.Utils
 {

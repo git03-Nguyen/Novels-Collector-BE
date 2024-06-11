@@ -33,7 +33,7 @@ namespace NovelsCollector.Core.Controllers
         async public Task<IActionResult> Get([FromRoute] string source, [FromRoute] string novelSlug, [FromRoute] string chapterSlug)
         {
             // Get the chapter from the source
-            var chapter = await _sourcePluginManager.GetChapter(source, novelSlug, chapterSlug);
+            var chapter = await _sourcePluginManager.GetChapterContent(source, novelSlug, chapterSlug);
 
             // Check if the chapter is not found
             if (chapter == null) throw new NotFoundException("Không tìm thấy chương này.");

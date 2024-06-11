@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using NovelsCollector.Core.Exceptions;
 using NovelsCollector.Core.Services;
-using System.ComponentModel.DataAnnotations;
 
 namespace NovelsCollector.Core.Controllers
 {
@@ -67,7 +66,7 @@ namespace NovelsCollector.Core.Controllers
             if (page == 0) throw new BadHttpRequestException("Trang không hợp lệ.");
 
             // Get the chapters
-            var (chapters, totalPage) = await _sourcesPlugins.GetChapters(source, novelSlug, page);
+            var (chapters, totalPage) = await _sourcesPlugins.GetChaptersList(source, novelSlug, page);
 
             // Check if the novel is not found
             if (chapters == null) throw new NotFoundException("Không tìm thấy chương cho truyện này.");

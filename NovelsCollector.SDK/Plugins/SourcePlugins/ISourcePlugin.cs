@@ -15,7 +15,7 @@ namespace NovelsCollector.SDK.Plugins.SourcePlugins
 
         // Get chapter content
         public Task<Chapter?> CrawlChapter(string novelSlug, string chapterSlug);
-        public Task<Chapter?> GetChapterSlug(string novelSlug, int chapterNumber);
+        public Task<Chapter?> GetChapterAddrByNumber(string novelSlug, int chapterNumber);
 
         // Get list of categories
         public Task<Category[]> CrawlCategories();

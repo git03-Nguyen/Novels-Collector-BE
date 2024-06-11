@@ -1,7 +1,6 @@
 ﻿using HtmlAgilityPack;
 using HtmlAgilityPack.CssSelectors.NetCore;
 using NovelsCollector.SDK.Models;
-using NovelsCollector.SDK.Models.Plugins;
 using NovelsCollector.SDK.Plugins.SourcePlugins;
 using System.Globalization;
 using System.Text;
@@ -283,7 +282,7 @@ namespace DTruyenCom
             return chapter;
         }
 
-        public async Task<Chapter?> GetChapterSlug(string novelSlug, int chapterNumber)
+        public async Task<Chapter?> GetChapterAddrByNumber(string novelSlug, int chapterNumber)
         {
             if (chapterNumber <= 0) return null;
 

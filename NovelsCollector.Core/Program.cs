@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.ResponseCompression;
 using NovelsCollector.Core.Exceptions;
 using NovelsCollector.Core.Utils;
-using System.Text.Json;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);

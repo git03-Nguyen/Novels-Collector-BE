@@ -1,14 +1,13 @@
 ﻿using HtmlAgilityPack;
 using HtmlAgilityPack.CssSelectors.NetCore;
 using NovelsCollector.SDK.Models;
-using NovelsCollector.SDK.Models.Plugins;
 using NovelsCollector.SDK.Plugins.SourcePlugins;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 
 namespace Source.TruyenTangThuVienVn
 {
-    public class TruyenTangThuVienVn : SourcePlugin, ISourcePlugin
+    public class TruyenTangThuVienVn : ISourcePlugin
     {
         private const string mainUrl = "https://truyen.tangthuvien.vn/";
         public string SearchUrl => "https://truyen.tangthuvien.vn/ket-qua-tim-kiem?term=<keyword>&page=<page>";
@@ -334,7 +333,7 @@ namespace Source.TruyenTangThuVienVn
             return chapter;
         }
 
-        public async Task<Chapter?> GetChapterSlug(string novelSlug, int chapterNumber)
+        public async Task<Chapter?> GetChapterAddrByNumber(string novelSlug, int chapterNumber)
         {
             const int PER_PAGE = 75;
 

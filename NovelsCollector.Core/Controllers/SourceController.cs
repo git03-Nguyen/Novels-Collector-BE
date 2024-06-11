@@ -29,8 +29,7 @@ namespace NovelsCollector.Core.Controllers
         {
             return Ok(new
             {
-                data = _sourcesPlugins.Plugins.Values.ToArray(),
-                // TODO: add the unloaded/disabled plugins
+                data = _sourcesPlugins.Installed.ToArray()
             });
         }
 
@@ -46,7 +45,7 @@ namespace NovelsCollector.Core.Controllers
             _sourcesPlugins.LoadPlugin(pluginName);
             return Ok(new
             {
-                data = _sourcesPlugins.Plugins.Values.ToArray(),
+                data = _sourcesPlugins.Installed.ToArray(),
                 meta = new { loaded = pluginName }
             });
         }
@@ -63,7 +62,7 @@ namespace NovelsCollector.Core.Controllers
             _sourcesPlugins.UnloadPlugin(pluginName);
             return Ok(new
             {
-                data = _sourcesPlugins.Plugins.Values.ToArray(),
+                data = _sourcesPlugins.Installed.ToArray(),
                 meta = new { unloaded = pluginName }
             });
         }
@@ -81,7 +80,7 @@ namespace NovelsCollector.Core.Controllers
 
             return Ok(new
             {
-                data = _sourcesPlugins.Plugins.Values.ToArray(),
+                data = _sourcesPlugins.Installed.ToArray(),
                 meta = new { added }
             });
         }
@@ -95,11 +94,10 @@ namespace NovelsCollector.Core.Controllers
         [EndpointSummary("Remove a source plugin out of the disk by name")]
         public IActionResult Delete([FromRoute] string pluginName)
         {
-            // TODO: implement
-
+            _sourcesPlugins.RemovePlugin(pluginName);
             return Ok(new
             {
-                data = _sourcesPlugins.Plugins.Values.ToArray(),
+                data = _sourcesPlugins.Installed.ToArray(),
                 meta = new { removed = pluginName }
             });
         }
@@ -117,7 +115,7 @@ namespace NovelsCollector.Core.Controllers
 
             return Ok(new
             {
-                data = _sourcesPlugins.unloadedContexts.Select(wr => wr.IsAlive ? "Alive" : "Dead").ToArray(),
+                data = _sourcesPlugins.unloadedHistory.Select(wr => wr.IsAlive ? "Alive" : "Dead").ToArray(),
             });
         }
 

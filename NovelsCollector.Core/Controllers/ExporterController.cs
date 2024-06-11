@@ -24,31 +24,31 @@ namespace NovelsCollector.Core.Controllers
         /// Get a list of all exporter plugins
         /// </summary>
         /// <returns> A list of all exporter plugins. </returns>
-        [HttpGet]
-        [EndpointSummary("Get a list of all exporter plugins")]
-        public IActionResult GetExporters()
-        {
-            return Ok(new
-            {
-                data = _exporterPluginManager.Plugins.Values.ToArray(),
-                // TODO: add the unloaded/disabled plugins
-            });
-        }
+        //[HttpGet]
+        //[EndpointSummary("Get a list of all exporter plugins")]
+        //public IActionResult GetExporters()
+        //{
+        //    return Ok(new
+        //    {
+        //        data = _exporterPluginManager.Plugins.Values.ToArray(),
+        //        // TODO: add the unloaded/disabled plugins
+        //    });
+        //}
 
         /// <summary>
         /// Reload all exporter plugins
         /// </summary>
         /// <returns> A list of all exporter plugins. </returns>
-        [HttpGet("reload")]
-        [EndpointSummary("Reload all exporter plugins")]
-        public IActionResult Reload()
-        {
-            _exporterPluginManager.ReloadPlugins();
-            return Ok(new
-            {
-                data = _exporterPluginManager.Plugins.Values.ToArray(),
-            });
-        }
+        //[HttpGet("reload")]
+        //[EndpointSummary("Reload all exporter plugins")]
+        //public IActionResult Reload()
+        //{
+        //    _exporterPluginManager.ReloadPlugins();
+        //    return Ok(new
+        //    {
+        //        data = _exporterPluginManager.Plugins.Values.ToArray(),
+        //    });
+        //}
 
         [HttpGet("test1")]
         [EndpointSummary("Test an exporter plugin (epub)")]
@@ -66,7 +66,7 @@ namespace NovelsCollector.Core.Controllers
             // Get the chapters' content
             for (int i = startChapter; i <= lastChapter; i++)
             {
-                var chapter = await sourcePluginsManager.GetChapter("TruyenFullVn", "tao-tac", $"chuong-{i}");
+                var chapter = await sourcePluginsManager.GetChapterContent("TruyenFullVn", "tao-tac", $"chuong-{i}");
                 if (chapter != null)
                 {
                     list.Add(chapter);
@@ -112,7 +112,7 @@ namespace NovelsCollector.Core.Controllers
             // Get the chapters' content
             for (int i = startChapter; i <= lastChapter; i++)
             {
-                var chapter = await sourcePluginsManager.GetChapter("TruyenFullVn", "tao-tac", $"chuong-{i}");
+                var chapter = await sourcePluginsManager.GetChapterContent("TruyenFullVn", "tao-tac", $"chuong-{i}");
                 if (chapter != null)
                 {
                     list.Add(chapter);
@@ -158,7 +158,7 @@ namespace NovelsCollector.Core.Controllers
             // Get the chapters' content
             for (int i = startChapter; i <= lastChapter; i++)
             {
-                var chapter = await sourcePluginsManager.GetChapter("TruyenFullVn", "tao-tac", $"chuong-{i}");
+                var chapter = await sourcePluginsManager.GetChapterContent("TruyenFullVn", "tao-tac", $"chuong-{i}");
                 if (chapter != null)
                 {
                     list.Add(chapter);

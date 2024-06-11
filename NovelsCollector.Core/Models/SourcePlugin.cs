@@ -1,6 +1,6 @@
-﻿namespace NovelsCollector.SDK.Models.Plugins
+﻿namespace NovelsCollector.Core.Models
 {
-    public abstract class SourcePlugin : BasePlugin
+    public class SourcePlugin : BasePlugin
     {
         public string? Url { get; set; }
         // Other specific properties for source plugins

@@ -1,9 +1,9 @@
 ﻿using MongoDB.Driver;
+using NovelsCollector.Core.Exceptions;
+using NovelsCollector.Core.Models;
 using NovelsCollector.Core.Utils;
 using NovelsCollector.SDK.Models;
-using NovelsCollector.SDK.Models.Plugins;
 using NovelsCollector.SDK.Plugins.ExporterPlugins;
-using System.Reflection;
 using System.Runtime.CompilerServices;
 
 namespace NovelsCollector.Core.Services
@@ -12,161 +12,53 @@ namespace NovelsCollector.Core.Services
     {
         private readonly ILogger<ExporterPluginsManager> _logger;
 
-        // 2 dictionaries to store the plugins and their own contexts
-        public Dictionary<string, ExporterPlugin> Plugins { get; } = new Dictionary<string, ExporterPlugin>();
-        private Dictionary<string, PluginLoadContext> _pluginLoadContexts = new Dictionary<string, PluginLoadContext>();
+        // Storing the plugins and their own contexts
+        public List<ExporterPlugin> Installed { get; }
 
-        // The path to the plugins folder
+        // The path to the /source-plugins and /temp folders
         private readonly string _pluginsPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "exporter-plugins");
+        private readonly string _tempPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "temp");
 
-        // TODO: The collection of exporter-plugins in the database
-        private IMongoCollection<ExporterPlugin> _pluginsCollection = null;
+        // The collection of source-plugins in the database
+        private IMongoCollection<ExporterPlugin> _pluginsCollection;
 
-        // FOR TESTING: The list of installed plugins
-        private List<string> _enabledPlugins = new List<string>
-        {
-            "SimpleEPub",
-            "SimplePDF",
-            "SimpleMobi"
-        };
-
-        // FOR DEBUGGING: The list of weak references to the unloaded contexts
-        public List<WeakReference> unloadedContexts = new List<WeakReference>();
+        // FOR DEBUGGING: The list of weak references to the unloaded contexts in the past
+        public List<WeakReference> unloadedHistory = new List<WeakReference>();
 
         public ExporterPluginsManager(ILogger<ExporterPluginsManager> logger, MongoDbContext mongoDbContext)
         {
             _logger = logger;
             _pluginsCollection = mongoDbContext.ExporterPlugins;
 
-            if (!Directory.Exists(_pluginsPath))
-            {
-                Directory.CreateDirectory(_pluginsPath);
-            }
+            // Get installed plugins from the database
+            Installed = _pluginsCollection.Find(plugin => true).ToList();
+
+            // Create the /exporter-plugins and /temp folders if not exist
+            if (!Directory.Exists(_pluginsPath)) Directory.CreateDirectory(_pluginsPath);
+            if (!Directory.Exists(_tempPath)) Directory.CreateDirectory(_tempPath);
 
             // Load all installed plugins
-            ReloadPlugins();
+            //loadAll();
         }
 
+
+        // ------------------- EXPORTERs MANAGEMENT -------------------
         [MethodImpl(MethodImplOptions.NoInlining)]
-        public void UnloadAll()
-        {
-            // FOR DEBUGGING: Clear the history of unloaded contexts
-            unloadedContexts.Clear();
-
-            if (Plugins.Count > 0 || _pluginLoadContexts.Count > 0)
-            {
-                foreach (var plugin in Plugins)
-                {
-                    UnloadPlugin(plugin.Key);
-                }
-            }
-
-            Plugins.Clear();
-            _pluginLoadContexts.Clear();
-            _logger.LogInformation("\tAll plugins unloaded");
-
-            //GC.Collect();
-            //GC.WaitForPendingFinalizers();
-        }
-
-        // Avoid JIT optimizations that may cause issues with the PluginLoadContext.Unload() (cannot GC)
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public void ReloadPlugins()
-        {
-            UnloadAll();
-            foreach (var plugin in _enabledPlugins)
-            {
-                LoadPlugin(plugin);
-            }
-        }
-
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        private bool LoadPlugin(string pluginName)
-        {
-            // Check if the plugin is already loaded
-            if (Plugins.ContainsKey(pluginName))
-            {
-                _logger.LogError($"\tPlugin {pluginName} already loaded");
-                return false;
-            }
-
-            // Path to the plugin folder. ie: Plugins/{pluginName}
-            string pluginPath = Path.Combine(_pluginsPath, pluginName);
-
-            // Path to the plugin dll. ie: Plugins/{pluginName}/Exporter.{pluginName}.dll
-            string? pathToDll = Directory.GetFiles(pluginPath, $"Exporter.{pluginName}.dll").FirstOrDefault();
-            if (pathToDll == null)
-            {
-                _logger.LogError($"\tPlugin \"Exporter.{pluginName}.dll\" not found");
-                return false;
-            }
-
-            // Create a new context to load the plugin into
-            _logger.LogInformation($"\tLOADING {pluginName} from /exporter-plugins/{pluginName}");
-            PluginLoadContext loadContext = new PluginLoadContext(pathToDll);
-
-            // Load the plugin assembly ("Exporter.{pluginName}.dll")
-            Assembly pluginAssembly = loadContext.LoadFromAssemblyName(AssemblyName.GetAssemblyName(pathToDll));
-            Type[] types = pluginAssembly.GetTypes();
-            var hasExporterPlugin = false;
-            foreach (var type in types)
-            {
-                if (typeof(ExporterPlugin).IsAssignableFrom(type) && !type.IsAbstract)
-                {
-                    var plugin = Activator.CreateInstance(type) as ExporterPlugin;
-                    if (plugin == null) continue;
-                    // Add the plugin (ExporterPlugin) to the dictionary => each assembly must have only 1 ExporterPlugin
-                    Plugins.Add(pluginName, plugin);
-                    hasExporterPlugin = true;
-                    break;
-                }
-            }
-
-            // If there is no plugin ExporterPlugin loaded, cancel the loading process
-            if (!hasExporterPlugin)
-            {
-                _logger.LogError($"\tNo ExporterPlugin found in Exporter.{pluginName}.dll");
-                loadContext.Unload();
-                return false;
-            }
-
-            // Else, successfully, add the context to the dictionary
-            _pluginLoadContexts.Add(pluginName, loadContext);
-            return true;
-        }
-
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public void UnloadPlugin(string pluginName)
-        {
-            if (!Plugins.ContainsKey(pluginName)
-                || !_pluginLoadContexts.ContainsKey(pluginName))
-            {
-                _logger.LogWarning($"\tCannot unload {pluginName} because it wasn't loaded");
-            }
-
-            // Unload the plugin
-            _logger.LogInformation($"\tUNLOADING plugin {pluginName}");
-
-            // Initiate the unloading process
-            unloadedContexts.Add(new WeakReference(_pluginLoadContexts[pluginName])); // FOR DEBUGGING
-            _pluginLoadContexts[pluginName].Unload();
-
-            // Remove all references, except the weak reference
-            Plugins.Remove(pluginName);
-            _pluginLoadContexts.Remove(pluginName);
-        }
 
         // Export the novel using the plugin: Export(Novel novel, string pluginName), return a file stream
         public async Task<string?> Export(string pluginName, Novel novel, Stream outputStream)
         {
-            if (!Plugins.ContainsKey(pluginName))
-            {
-                _logger.LogError($"\tPlugin {pluginName} not found");
-                return null;
-            }
+            // Find the plugin by name
+            var plugin = Installed.Find(plugin => plugin.Name == pluginName);
 
-            var plugin = Plugins[pluginName];
-            if (plugin is IExporterPlugin executablePlugin)
+            // If the plugin is not found or not loaded, return null
+            if (plugin == null)
+                throw new NotFoundException("Exporter plugin not found");
+            if (plugin.PluginInstance == null)
+                throw new BadHttpRequestException("Exporter plugin not loaded");
+
+            // If the plugin is loaded, call the Export method
+            if (plugin.PluginInstance is IExporterPlugin executablePlugin)
             {
                 await executablePlugin.Export(novel, outputStream);
                 return plugin.Extension;

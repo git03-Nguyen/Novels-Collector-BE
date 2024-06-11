@@ -1,7 +1,6 @@
 ﻿using HtmlAgilityPack;
 using HtmlAgilityPack.CssSelectors.NetCore;
 using NovelsCollector.SDK.Models;
-using NovelsCollector.SDK.Models.Plugins;
 using NovelsCollector.SDK.Plugins.SourcePlugins;
 using System.Net;
 using System.Text.Json;
@@ -9,7 +8,7 @@ using System.Text.RegularExpressions;
 
 namespace Source.TruyenFullVn
 {
-    public class TruyenFullVn : SourcePlugin, ISourcePlugin
+    public class TruyenFullVn : ISourcePlugin
     {
         private const string mainUrl = "https://truyenfull.vn/";
         public string SearchUrl => "https://truyenfull.vn/tim-kiem/?tukhoa=<keyword>&page=<page>";
@@ -350,7 +349,7 @@ namespace Source.TruyenFullVn
             return chapter;
         }
 
-        public async Task<Chapter?> GetChapterSlug(string novelSlug, int chapterNumber)
+        public async Task<Chapter?> GetChapterAddrByNumber(string novelSlug, int chapterNumber)
         {
             const int PER_PAGE = 50;
 
