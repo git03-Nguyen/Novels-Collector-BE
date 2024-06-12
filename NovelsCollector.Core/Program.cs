@@ -1,10 +1,16 @@
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.ResponseCompression;
 using NovelsCollector.Core.Exceptions;
+using NovelsCollector.Core.Models;
+using NovelsCollector.Core.Services;
 using NovelsCollector.Core.Utils;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Database settings
+builder.Services.Configure<DatabaseSettings>(builder.Configuration.GetSection(nameof(DatabaseSettings)));
+builder.Services.AddSingleton<MyMongoRepository>();
 
 // Max upload size: 500MB
 builder.WebHost.ConfigureKestrel(options =>

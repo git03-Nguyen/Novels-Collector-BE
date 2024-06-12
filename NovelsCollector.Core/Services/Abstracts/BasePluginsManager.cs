@@ -1,6 +1,6 @@
 ﻿using MongoDB.Driver;
 using NovelsCollector.Core.Exceptions;
-using NovelsCollector.Core.Models;
+using NovelsCollector.Core.Models.Abstracts;
 using NovelsCollector.Core.Utils;
 using NovelsCollector.SDK.Plugins;
 using System.IO.Compression;
@@ -8,13 +8,18 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 
-namespace NovelsCollector.Core.Services
+namespace NovelsCollector.Core.Services.Abstracts
 {
-    public abstract class BasePluginsManager<Abstract, Interface> where Abstract : BasePlugin where Interface : IPlugin
+    public abstract class BasePluginsManager<Abstract, Interface>
+        where Abstract : BasePlugin, new()
+        where Interface : IPlugin
     {
         #region Properties
 
         protected readonly ILogger _logger;
+
+        // The service to access plugins in the database
+        protected readonly PluginService<Abstract> _pluginService;
 
         // Storing the plugins and their own contexts
         public List<Abstract> Installed { get; }
@@ -22,9 +27,6 @@ namespace NovelsCollector.Core.Services
         // The path to the /___-plugins and /temp folders
         protected string _tempPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "temp");
         protected string _pluginsPath;
-
-        // The collection of source-plugins in the database
-        protected IMongoCollection<Abstract> _pluginsCollection;
 
         // FOR DEBUGGING: The list of weak references to the unloaded contexts in the past
         public List<WeakReference> unloadedHistory = new List<WeakReference>();
@@ -35,17 +37,16 @@ namespace NovelsCollector.Core.Services
         /// The constructor of the BasePluginsManager class.
         /// </summary>
         /// <param name="logger"> The logger, injected by the DI. </param>
-        /// <param name="mongoDbContext"> The MongoDB context, injected by the DI. </param>
-        /// <param name="collectionName"> The name of the collection in the database. e.g: "Sources". </param>
+        /// <param name="myMongoRepository"> The repository to access the database. </param>
         /// <param name="pluginsFolderName"> The name of the folder to store the plugins. e.g: "source-plugins". </param>
-        public BasePluginsManager(ILogger logger, MongoDbContext mongoDbContext, string collectionName, string pluginsFolderName)
+        public BasePluginsManager(ILogger logger, MyMongoRepository myMongoRepository, string pluginsFolderName)
         {
             _logger = logger;
-            _pluginsCollection = mongoDbContext.GetCollection<Abstract>(collectionName);
+            _pluginService = new PluginService<Abstract>(myMongoRepository);
             _pluginsPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, pluginsFolderName);
 
             // Get installed plugins from the database
-            Installed = _pluginsCollection.Find(plugin => true).ToList();
+            Installed = _pluginService.GetAllPluginsAsync().Result.ToList();
 
             // Create the /___-plugins and /temp folders if not exist
             if (!Directory.Exists(_pluginsPath)) Directory.CreateDirectory(_pluginsPath);
@@ -280,7 +281,7 @@ namespace NovelsCollector.Core.Services
             }
 
             // If loaded successfully, add the plugin to the database
-            await _pluginsCollection.InsertOneAsync(newPlugin);
+            await _pluginService.AddPluginAsync(newPlugin);
 
             _logger.LogInformation($"\tPlugin {newPlugin.Name} ADDED successfully");
             return newPlugin.Name;
@@ -312,7 +313,8 @@ namespace NovelsCollector.Core.Services
             Installed.Remove(removingPlugin);
 
             // Remove the plugin from the database
-            await _pluginsCollection.DeleteOneAsync(plugin => plugin.Name == pluginName);
+            await _pluginService.DeletePluginAsync(removingPlugin);
+            removingPlugin = null;
 
             // Ensure the plugin is unloaded, before deleting the folder, to avoid file locks
             var count = 10;

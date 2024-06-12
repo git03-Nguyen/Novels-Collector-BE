@@ -28,6 +28,9 @@ for src in "${!dirs[@]}"; do
     
     # Copy all files from the source to the destination
     cp -r "$src"* "$dest"
+	
+	# Delete all .pdb files in the destination directory
+    find "$dest" -name "*.pdb" -type f -delete
     
     # Print a message indicating the operation was successful
     echo "Copied files from $src to $dest"

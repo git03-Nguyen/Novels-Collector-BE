@@ -1,6 +1,6 @@
 ﻿using NovelsCollector.Core.Exceptions;
 using NovelsCollector.Core.Models;
-using NovelsCollector.Core.Utils;
+using NovelsCollector.Core.Services.Abstracts;
 using NovelsCollector.SDK.Models;
 using NovelsCollector.SDK.Plugins.ExporterPlugins;
 
@@ -8,11 +8,11 @@ namespace NovelsCollector.Core.Services
 {
     public class ExporterPluginsManager : BasePluginsManager<ExporterPlugin, IExporterPlugin>
     {
-        private const string pluginsFolderName = "exporter-plugins";
-        private const string collectionName = "Exporters"; // TODO: move to a constant file
 
-        public ExporterPluginsManager(ILogger<ExporterPluginsManager> logger, MongoDbContext mongoDbContext)
-            : base(logger, mongoDbContext, collectionName, pluginsFolderName) { }
+        private const string _pluginsFolderName = "exporter-plugins";
+
+        public ExporterPluginsManager(ILogger<ExporterPluginsManager> logger, MyMongoRepository myMongoRepository)
+            : base(logger, myMongoRepository, _pluginsFolderName) { }
 
         // -------------- MANAGE FOR EXPORTER FEATURES --------------
 

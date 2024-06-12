@@ -1,4 +1,6 @@
-﻿namespace NovelsCollector.Core.Models
+﻿using NovelsCollector.Core.Models.Abstracts;
+
+namespace NovelsCollector.Core.Models
 {
     public class ExporterPlugin : BasePlugin
     {

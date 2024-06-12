@@ -1,15 +1,12 @@
-﻿using MongoDB.Bson;
-using MongoDB.Bson.Serialization.Attributes;
+﻿using MongoDB.Bson.Serialization.Attributes;
 using NovelsCollector.Core.Utils;
 using NovelsCollector.SDK.Plugins;
 using System.Text.Json.Serialization;
 
-namespace NovelsCollector.Core.Models
+namespace NovelsCollector.Core.Models.Abstracts
 {
-    public abstract class BasePlugin
+    public abstract class BasePlugin : BaseEntity
     {
-        [BsonId]
-        [BsonElement("_id")]
         public string? Name { get; set; }
         public string? Description { get; set; }
         public string? Version { get; set; }
@@ -18,7 +15,7 @@ namespace NovelsCollector.Core.Models
         public string? Icon { get; set; }
 
         [BsonIgnore]
-        public bool? IsLoaded { get; set; }
+        public bool? IsLoaded { get; set; } = false;
 
         [BsonIgnore]
         [JsonIgnore]
@@ -27,6 +24,5 @@ namespace NovelsCollector.Core.Models
         [BsonIgnore]
         [JsonIgnore]
         public PluginLoadContext? LoadContext { get; set; }
-
     }
 }

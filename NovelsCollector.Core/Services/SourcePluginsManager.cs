@@ -1,7 +1,6 @@
-﻿using MongoDB.Driver;
-using NovelsCollector.Core.Exceptions;
+﻿using NovelsCollector.Core.Exceptions;
 using NovelsCollector.Core.Models;
-using NovelsCollector.Core.Utils;
+using NovelsCollector.Core.Services.Abstracts;
 using NovelsCollector.SDK.Models;
 using NovelsCollector.SDK.Plugins.SourcePlugins;
 
@@ -10,10 +9,9 @@ namespace NovelsCollector.Core.Services
     public class SourcePluginsManager : BasePluginsManager<SourcePlugin, ISourcePlugin>
     {
         private const string pluginsFolderName = "source-plugins";
-        private const string collectionName = "Sources"; // TODO: move to a constant file
 
-        public SourcePluginsManager(ILogger<SourcePluginsManager> logger, MongoDbContext mongoDbContext)
-            : base(logger, mongoDbContext, collectionName, pluginsFolderName) { }
+        public SourcePluginsManager(ILogger<SourcePluginsManager> logger, MyMongoRepository myMongoRepository)
+            : base(logger, myMongoRepository, pluginsFolderName) { }
 
 
         // -------------- MANAGE FOR SOURCE FEATURES --------------
