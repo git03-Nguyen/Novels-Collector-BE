@@ -7,8 +7,9 @@ using System.Text.RegularExpressions;
 
 namespace Source.TruyenTangThuVienVn
 {
-    public class TruyenTangThuVienVn : SourcePlugin, ISourcePlugin
+    public class TruyenTangThuVienVn : ISourcePlugin
     {
+        private const string mainUrl = "https://truyen.tangthuvien.vn/";
         public string SearchUrl => "https://truyen.tangthuvien.vn/ket-qua-tim-kiem?term=<keyword>&page=<page>";
         public string HotUrl => "https://truyen.tangthuvien.vn/tong-hop?rank=nm&time=m&page=<page>";
         public string LatestUrl => "https://truyen.tangthuvien.vn/tong-hop?tp=cv&page=<page>";
@@ -18,15 +19,7 @@ namespace Source.TruyenTangThuVienVn
         public string NovelUrl => "https://truyen.tangthuvien.vn/doc-truyen/<novel-slug>";
         public string ChapterUrl => "https://truyen.tangthuvien.vn/doc-truyen/<novel-slug>/<chapter-slug>";
 
-        public TruyenTangThuVienVn()
-        {
-            Url = "https://truyen.tangthuvien.vn/";
-            Name = "TruyenTangThuVienVn";
-            Description = "This plugin is used to crawl novels from TruyenTangThuVienVn website";
-            Version = "1.0.0";
-            Author = "Nguyen Tuan Dat";
-            Enabled = true;
-        }
+        public TruyenTangThuVienVn() { }
 
         /// <summary>
         /// Crawl novels by search
@@ -104,7 +97,7 @@ namespace Source.TruyenTangThuVienVn
             List<Category> listCategory = new List<Category>();
             try
             {
-                var document = await LoadFromWebAsync(Url);
+                var document = await LoadFromWebAsync(mainUrl);
                 var categoryElements = document.DocumentNode.QuerySelectorAll("div.classify-list a[href*='https://truyen.tangthuvien.vn/the-loai/']");
                 foreach (var categoryElement in categoryElements)
                 {
@@ -340,7 +333,7 @@ namespace Source.TruyenTangThuVienVn
             return chapter;
         }
 
-        public async Task<Chapter?> GetChapterSlug(string novelSlug, int chapterNumber)
+        public async Task<Chapter?> GetChapterAddrByNumber(string novelSlug, int chapterNumber)
         {
             const int PER_PAGE = 75;
 

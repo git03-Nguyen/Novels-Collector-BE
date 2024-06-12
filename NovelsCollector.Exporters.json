@@ -1,0 +1,27 @@
+[{
+  "_id": "SimpleEPub",
+  "Description": "Plugin này xuất truyện ra định dạng EPUB.",
+  "Version": "1.0.0",
+  "Author": "Nguyễn Đình Ánh",
+  "Assembly": "Exporter.SimpleEPub.dll",
+  "Icon": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f2/Epub_logo_color.svg/1200px-Epub_logo_color.svg.png",
+  "Extension": "epub"
+},
+{
+  "_id": "SimplePDF",
+  "Description": "Plugin này xuất truyện ra định dạng PDF.",
+  "Version": "1.0.0",
+  "Author": "Nguyễn Đình Ánh",
+  "Assembly": "Exporter.SimplePDF.dll",
+  "Icon": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTGAA4Wd4bco5Xv33GasXrnDdQT5OFXwa3HUQ&s",
+  "Extension": "pdf"
+},
+{
+  "_id": "SimpleMobi",
+  "Description": "Plugin này xuất truyện ra định dạng MOBI.",
+  "Version": "1.0.0",
+  "Author": "Nguyễn Đình Ánh",
+  "Assembly": "Exporter.SimpleMobi.dll",
+  "Icon": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTSZJ13K1tb2_0ggt0M42C4xcKFmDCL2lYVbQ&s",
+  "Extension": "mobi"
+}]

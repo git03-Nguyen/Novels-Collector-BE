@@ -1,10 +1,24 @@
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.ResponseCompression;
 using NovelsCollector.Core.Exceptions;
 using NovelsCollector.Core.Utils;
-using System.Text.Json;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Max upload size: 500MB
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.Limits.MaxRequestBodySize = 524288000;
+});
+
+// max request body size: 300MB
+builder.Services.Configure<FormOptions>(options =>
+{
+    options.ValueLengthLimit = 314572800;
+    options.MultipartBodyLengthLimit = 314572800;
+    options.MultipartHeadersLengthLimit = 314572800;
+});
 
 //builder.Services.AddLogging();
 

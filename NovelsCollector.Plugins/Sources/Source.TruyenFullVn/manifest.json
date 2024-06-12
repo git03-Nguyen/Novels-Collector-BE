@@ -1,0 +1,9 @@
+{
+  "name": "TruyenFullVn",
+  "description": "Plugin này crawl truyện từ website truyenfull.vn",
+  "version": "1.0.0",
+  "author": "Nguyễn Tuấn Đạt",
+  "assembly": "Source.TruyenFullVn.dll",
+  "url": "https://truyenfull.vn/",
+  "icon": "https://play-lh.googleusercontent.com/cdpInmzWgAUfbdtbEJnYyVdm-yjVtWe6oVOsiXYdCdVulhV8cBit9sbpykwVKXZ3kZw"
+}

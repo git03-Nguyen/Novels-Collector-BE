@@ -1,0 +1,9 @@
+{
+  "name": "SimplePDF",
+  "description": "Plugin này xuất truyện ra định dạng PDF.",
+  "version": "1.0.0",
+  "author": "Nguyễn Đình Ánh",
+  "extension": "pdf",
+  "assembly": "Exporter.SimplePDF.dll",
+  "icon": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTGAA4Wd4bco5Xv33GasXrnDdQT5OFXwa3HUQ&s"
+}

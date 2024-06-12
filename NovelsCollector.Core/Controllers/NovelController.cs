@@ -1,7 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using NovelsCollector.Core.Exceptions;
+using NovelsCollector.Core.Models;
 using NovelsCollector.Core.Services;
-using System.ComponentModel.DataAnnotations;
+using NovelsCollector.SDK.Models;
 
 namespace NovelsCollector.Core.Controllers
 {
@@ -12,14 +13,18 @@ namespace NovelsCollector.Core.Controllers
     {
 
         #region Injected Services
+
         private readonly ILogger<NovelController> _logger;
         private readonly SourcePluginsManager _sourcesPlugins;
+        private readonly ExporterPluginsManager _exporterPlugins;
 
-        public NovelController(ILogger<NovelController> logger, SourcePluginsManager sourcePluginManager)
+        public NovelController(ILogger<NovelController> logger, SourcePluginsManager sourcePluginManager, ExporterPluginsManager exporterPluginManager)
         {
             _logger = logger;
             _sourcesPlugins = sourcePluginManager;
+            _exporterPlugins = exporterPluginManager;
         }
+
         #endregion
 
         /// <summary>
@@ -67,7 +72,7 @@ namespace NovelsCollector.Core.Controllers
             if (page == 0) throw new BadHttpRequestException("Trang không hợp lệ.");
 
             // Get the chapters
-            var (chapters, totalPage) = await _sourcesPlugins.GetChapters(source, novelSlug, page);
+            var (chapters, totalPage) = await _sourcesPlugins.GetChaptersList(source, novelSlug, page);
 
             // Check if the novel is not found
             if (chapters == null) throw new NotFoundException("Không tìm thấy chương cho truyện này.");
@@ -86,11 +91,76 @@ namespace NovelsCollector.Core.Controllers
             });
         }
 
+        /// <summary>
+        /// Export some chapters of a novel to a file (e.g., epub, pdf).
+        /// </summary>
+        /// <param name="source"> The source of the novel (e.g., DTruyenCom, SSTruyenVn). </param>
+        /// <param name="novelSlug"> The slug identifier for the novel (e.g., tao-tac). </param>
+        /// <param name="request"> The request object contains the plugin name and the list of chapters to export. </param>
+        /// <returns> The path to the exported file. </returns>
+        /// <exception cref="BadHttpRequestException"> If the list of chapters is invalid. </exception>
+        /// <exception cref="NotFoundException"> If the plugin is not found. </exception>
+        [HttpPost("{source}/{novelSlug}/export")]
+        [EndpointSummary("Export some chapters of a novel to a file")]
+        public async Task<IActionResult> ExportChapters([FromRoute] string source, [FromRoute] string novelSlug, [FromBody] ExportRequest request)
+        {
+            // Check if no chapters are provided
+            if (request.ChapterSlugs.Count == 0)
+                throw new BadHttpRequestException("Danh sách chương không hợp lệ.");
 
+            // Check if no plugin is found
+            if (!_exporterPlugins.Installed.Any(x => x.Name == request.Plugin.Name))
+                throw new NotFoundException($"Không tìm thấy plugin {request.Plugin.Name}.");
 
+            // DEBUG mode: number of chapters to export is <= 10
+            const int maxChapters = 10;
+            if (request.ChapterSlugs.Count > maxChapters)
+                throw new BadHttpRequestException($"Số lượng chương xuất không được vượt quá {maxChapters} chương.");
 
+            // Get the novel
+            Novel? novel = await _sourcesPlugins.GetNovelDetail(source, novelSlug);
+            if (novel == null)
+                throw new NotFoundException("Không tìm thấy truyện này.");
 
+            // Get the chapters' content
+            var listChapters = new List<Chapter>();
+            foreach (var slug in request.ChapterSlugs)
+            {
+                var chapter = await _sourcesPlugins.GetChapterContent(source, novelSlug, slug);
+                if (chapter != null)
+                    listChapters.Add(chapter);
+            }
 
+            // Assign the list of chapters to novel.Chapters, now we have a complete novel
+            novel.Chapters = listChapters.ToArray();
+            novel.Source = source;
 
+            // Get the timestamp for the random file name
+            string timestamp = DateTime.Now.ToString("yyyyMMddHHmmss");
+
+            // Export the novel
+            // TODO: save the file to the cloud storage
+            using (var stream = new FileStream($"D:/{timestamp}.{request.Plugin.Extension}", FileMode.Create))
+            {
+                await _exporterPlugins.Export(request.Plugin.Name, novel, stream);
+            }
+
+            return Ok(new
+            {
+                data = new
+                {
+                    extension = request.Plugin.Extension,
+                    path = $"D:/{timestamp}.{request.Plugin.Extension}",
+                }
+            });
+
+        }
+
+    }
+
+    public class ExportRequest
+    {
+        public ExporterPlugin Plugin { get; set; }
+        public List<string> ChapterSlugs { get; set; }
     }
 }

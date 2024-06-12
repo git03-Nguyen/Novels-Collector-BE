@@ -17,7 +17,7 @@ namespace NovelsCollector.Core.Utils
             string? assemblyPath = _resolver.ResolveAssemblyToPath(assemblyName);
             if (assemblyPath != null)
             {
-                Console.WriteLine($"\tLoading assembly {assemblyName} into the context #{GetHashCode()}");
+                Console.WriteLine($"Context #{GetHashCode()}: LOADING assembly {assemblyName}.");
                 return LoadFromAssemblyPath(assemblyPath);
             }
 

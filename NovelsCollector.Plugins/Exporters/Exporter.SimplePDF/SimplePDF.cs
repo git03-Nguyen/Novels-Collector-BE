@@ -4,17 +4,9 @@ using System.Reflection;
 
 namespace Exporter.SimplePDF
 {
-    public class SimplePDF : ExporterPlugin, IExporterPlugin
+    public class SimplePDF : IExporterPlugin
     {
-        public SimplePDF()
-        {
-            Name = "SimplePDF";
-            FileFormat = "pdf";
-            Description = "This plugin is used to export the novel to PDF format with simple template.";
-            Version = "1.0.0";
-            Author = "Nguyen Dinh Anh";
-            Enabled = true;
-        }
+        public SimplePDF() { }
 
         public async Task Export(Novel novel, Stream stream)
         {

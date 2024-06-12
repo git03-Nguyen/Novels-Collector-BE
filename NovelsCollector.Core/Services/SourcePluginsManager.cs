@@ -1,186 +1,45 @@
 ﻿using MongoDB.Driver;
+using NovelsCollector.Core.Exceptions;
+using NovelsCollector.Core.Models;
 using NovelsCollector.Core.Utils;
 using NovelsCollector.SDK.Models;
 using NovelsCollector.SDK.Plugins.SourcePlugins;
-using System.Reflection;
-using System.Runtime.CompilerServices;
 
 namespace NovelsCollector.Core.Services
 {
-    public class SourcePluginsManager
+    public class SourcePluginsManager : BasePluginsManager<SourcePlugin, ISourcePlugin>
     {
-        private readonly ILogger<SourcePluginsManager> _logger;
-
-        // 2 dictionaries to store the plugins and their own contexts
-        public Dictionary<string, SourcePlugin> Plugins { get; } = new Dictionary<string, SourcePlugin>();
-        private Dictionary<string, PluginLoadContext> _pluginLoadContexts = new Dictionary<string, PluginLoadContext>();
-
-        // The path to the plugins folder
-        private readonly string _pluginsPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "source-plugins");
-
-        // TODO: The collection of source-plugins in the database
-        private IMongoCollection<SourcePlugin> _pluginsCollection = null;
-
-        // FOR TESTING: The list of installed plugins
-        private List<string> _enabledPlugins = new List<string>
-        {
-            "TruyenFullVn",
-            "TruyenTangThuVienVn",
-            "SSTruyenVn",
-            "DTruyenCom"
-        };
-
-        // FOR DEBUGGING: The list of weak references to the unloaded contexts
-        public List<WeakReference> unloadedContexts = new List<WeakReference>();
+        private const string pluginsFolderName = "source-plugins";
+        private const string collectionName = "Sources"; // TODO: move to a constant file
 
         public SourcePluginsManager(ILogger<SourcePluginsManager> logger, MongoDbContext mongoDbContext)
-        {
-            _logger = logger;
-            _pluginsCollection = mongoDbContext.SourcePlugins;
+            : base(logger, mongoDbContext, collectionName, pluginsFolderName) { }
 
-            if (!Directory.Exists(_pluginsPath))
-            {
-                Directory.CreateDirectory(_pluginsPath);
-            }
 
-            // Load all installed plugins
-            reloadAll();
-        }
-
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public void UnloadAll()
-        {
-            // FOR DEBUGGING: Clear the history of unloaded contexts
-            unloadedContexts.Clear();
-
-            if (Plugins.Count > 0 || _pluginLoadContexts.Count > 0)
-            {
-                foreach (var plugin in Plugins)
-                {
-                    UnloadPlugin(plugin.Key);
-                }
-            }
-
-            Plugins.Clear();
-            _pluginLoadContexts.Clear();
-            _logger.LogInformation("\tAll plugins unloaded");
-
-            //GC.Collect();
-            //GC.WaitForPendingFinalizers();
-        }
-
-        // Avoid JIT optimizations that may cause issues with the PluginLoadContext.Unload() (cannot GC)
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        private void reloadAll()
-        {
-            UnloadAll();
-            foreach (var plugin in _enabledPlugins)
-            {
-                LoadPlugin(plugin);
-            }
-        }
-
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public bool LoadPlugin(string pluginName)
-        {
-            // Check if the plugin is already loaded
-            if (Plugins.ContainsKey(pluginName))
-            {
-                _logger.LogError($"\tPlugin {pluginName} already loaded");
-                return false;
-            }
-
-            // Path to the plugin folder. ie: Plugins/{pluginName}
-            string pluginPath = Path.Combine(_pluginsPath, pluginName);
-
-            // Path to the plugin dll. ie: Plugins/{pluginName}/Source.{pluginName}.dll
-            string? pathToDll = Directory.GetFiles(pluginPath, $"Source.{pluginName}.dll").FirstOrDefault();
-            if (pathToDll == null)
-            {
-                _logger.LogError($"\tPlugin \"Source.{pluginName}.dll\" not found");
-                return false;
-            }
-
-            // Create a new context to load the plugin into
-            _logger.LogInformation($"\tLOADING {pluginName} from /source-plugins/{pluginName}");
-            PluginLoadContext loadContext = new PluginLoadContext(pathToDll);
-
-            // Load the plugin assembly ("Source.{pluginName}.dll")
-            Assembly pluginAssembly = loadContext.LoadFromAssemblyName(AssemblyName.GetAssemblyName(pathToDll));
-            Type[] types = pluginAssembly.GetTypes();
-            var hasSourcePlugin = false;
-            foreach (var type in types)
-            {
-                if (typeof(SourcePlugin).IsAssignableFrom(type) && !type.IsAbstract)
-                {
-                    var plugin = Activator.CreateInstance(type) as SourcePlugin;
-                    if (plugin == null) continue;
-                    // Add the plugin (SourcePlugin) to the dictionary => each assembly must have only 1 SourcePlugin
-                    Plugins.Add(pluginName, plugin);
-                    hasSourcePlugin = true;
-                    break;
-                }
-            }
-
-            // If there is no plugin SourcePlugin loaded, cancel the loading process
-            if (!hasSourcePlugin)
-            {
-                _logger.LogError($"\tNo SourcePlugin found in Source.{pluginName}.dll");
-                loadContext.Unload();
-                return false;
-            }
-
-            // Else, successfully, add the context to the dictionary
-            _pluginLoadContexts.Add(pluginName, loadContext);
-            return true;
-        }
-
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public void UnloadPlugin(string pluginName)
-        {
-            if (!Plugins.ContainsKey(pluginName)
-                || !_pluginLoadContexts.ContainsKey(pluginName))
-            {
-                _logger.LogWarning($"\tCannot unload {pluginName} because it wasn't loaded");
-            }
-
-            // Unload the plugin
-            _logger.LogInformation($"\tUNLOADING plugin {pluginName}");
-
-            // Initiate the unloading process
-            unloadedContexts.Add(new WeakReference(_pluginLoadContexts[pluginName])); // FOR DEBUGGING
-            _pluginLoadContexts[pluginName].Unload();
-
-            // Remove all references, except the weak reference
-            Plugins.Remove(pluginName);
-            _pluginLoadContexts.Remove(pluginName);
-        }
-
-        // -------------- MANAGE FOR SOURCE PLUGINS --------------
+        // -------------- MANAGE FOR SOURCE FEATURES --------------
         public async Task<Tuple<Novel[]?, int>> Search(string source, string? keyword, string? title, string? author, int page = 1)
         {
-            if (Plugins.Count == 0)
-            {
-                throw new Exception("No plugins loaded");
-            }
-
-            if (!Plugins.ContainsKey(source))
-            {
-                throw new Exception("Source not found");
-            }
-
+            // Check if query is empty
             if (keyword == null && title == null && author == null)
-            {
-                throw new Exception("No query found");
-            }
+                throw new BadHttpRequestException("Query is empty");
 
-            var plugin = Plugins[source];
+            // Get the plugin in the Installed list
+            var plugin = Installed.Find(p => p.Name == source);
+
+            // If the plugin is not found or not loaded, throw an exception
+            if (plugin == null)
+                throw new NotFoundException("Plugin not found");
+            if (plugin.PluginInstance == null)
+                throw new Exception("Plugin not loaded");
+
+            // If the plugin is loaded, search for novels
             Novel[]? novels = null;
             int totalPage = -1;
+            string query = keyword ?? author ?? title ?? "";
 
-            if (plugin is ISourcePlugin executablePlugin)
+            // Execute the plugin
+            if (plugin.PluginInstance is ISourcePlugin executablePlugin)
             {
-                string query = keyword ?? author ?? title ?? "";
                 (novels, totalPage) = await executablePlugin.CrawlSearch(query, page);
 
                 // filter if search by title
@@ -193,105 +52,104 @@ namespace NovelsCollector.Core.Services
                 {
                     novels = novels?.Where(novel => novel.Authors[0]?.Name.ToLower().Contains(author.ToLower()) ?? false).ToArray();
                 }
+                // else if search by keyword, do nothing
             }
 
-            if (novels == null)
-            {
-                throw new Exception("No result found");
-            }
+            if (novels == null) throw new NotFoundException("No result found");
 
             return new Tuple<Novel[]?, int>(novels, totalPage);
         }
 
         public async Task<Novel?> GetNovelDetail(string source, string novelSlug)
         {
-            if (Plugins.Count == 0)
-            {
-                throw new Exception("No plugins loaded");
-            }
+            // Get the plugin in the Installed list
+            var plugin = Installed.Find(p => p.Name == source);
 
-            if (!Plugins.ContainsKey(source))
-            {
-                throw new Exception("Source not found");
-            }
+            // If the plugin is not found or not loaded, throw an exception
+            if (plugin == null)
+                throw new NotFoundException("Plugin not found");
+            if (plugin.PluginInstance == null)
+                throw new Exception("Plugin not loaded");
 
-            var plugin = Plugins[source];
-
+            // If the plugin is loaded, get the novel detail
             Novel? novel = null;
 
-            if (plugin is ISourcePlugin executablePlugin)
+            // Execute the plugin
+            if (plugin.PluginInstance is ISourcePlugin executablePlugin)
             {
                 novel = await executablePlugin.CrawlDetail(novelSlug);
             }
 
-            if (novel == null)
-            {
-                throw new Exception("No result found");
-            }
-
-            return novel;
+            return novel ?? throw new NotFoundException("No result found");
         }
 
         public async Task<Dictionary<string, Novel>?> GetNovelFromOtherSources(string excludedSource, Novel novel)
         {
+            // Check if the novel is null
+            if (novel == null || novel.Title == null || novel.Authors == null || novel.Authors[0]?.Name == null)
+                return null;
+
+            // Search for the novel in other sources
             Dictionary<string, Novel> novels = new Dictionary<string, Novel>();
-
-            foreach (var plugin in Plugins)
+            foreach (var plugin in Installed)
             {
-                if (plugin.Key == excludedSource) continue;
+                if (plugin.Name == excludedSource) continue;
 
-                var otherPlugin = plugin.Value;
-                if (otherPlugin is ISourcePlugin executablePlugin)
+                if (plugin.PluginInstance is ISourcePlugin executablePlugin)
                 {
-                    // search by title
-                    var (searchResults, _) = await executablePlugin.CrawlSearch(novel.Title, 1);
-                    if (novel == null) continue;
+                    // Step 1: Search by title
+                    var (searchResults, _) = await executablePlugin.CrawlSearch(novel?.Title, 1);
+                    if (searchResults == null) continue;
 
-                    // choose the novel with the same title and author
-                    var sameNovel = searchResults?.FirstOrDefault(n => n.Title == novel.Title && n.Authors[0]?.Name == novel.Authors[0]?.Name);
+                    // Step 2: Choose the novel with the same title and author
+                    var sameNovel = searchResults.FirstOrDefault(n => (n.Title == novel?.Title && n.Authors?[0]?.Name == novel?.Authors[0]?.Name));
                     if (sameNovel != null)
-                    {
-                        novels.Add(plugin.Key, sameNovel);
-                    }
+                        novels.Add(plugin.Name, sameNovel);
                 }
             }
 
             if (novels.Count == 0) return null;
 
-            // only return the title and slug of each novel
+            // Only return the title, author and slug of each novel
             return novels.ToDictionary(kvp => kvp.Key, kvp => new Novel
             {
                 Title = kvp.Value.Title,
-                Slug = kvp.Value.Slug
+                Slug = kvp.Value.Slug,
+                Authors = [new Author { Name = kvp.Value.Authors?[0]?.Name }]
             });
         }
 
         public async Task<Dictionary<string, Chapter>?> GetChapterFromOtherSources(Dictionary<string, Novel> novelInOtherSources, Chapter currentChapter)
         {
+            // Check if the current chapter is null
             if (currentChapter.Source == null || currentChapter.NovelSlug == null || currentChapter.Number == null ||
                 novelInOtherSources.Count == 0)
             {
                 return null;
             }
 
+            // Search for the chapter in other sources
             Dictionary<string, Chapter> chapters = new Dictionary<string, Chapter>();
             string thisSource = currentChapter.Source;
             int thisChapterNumber = currentChapter.Number.Value;
 
-            foreach (var novel in novelInOtherSources)
+            foreach (var (otherSource, otherNovel) in novelInOtherSources)
             {
-                var otherSource = novel.Key;
-                var otherNovel = novel.Value;
-
+                // Skip if the source is the same or the novel slug is null
                 if (otherSource == thisSource || otherNovel.Slug == null) continue;
 
-                var otherPlugin = Plugins[otherSource];
-                if (otherPlugin is ISourcePlugin executablePlugin)
+                // Get the plugin in the Installed list
+                var otherPlugin = Installed.Find(p => p.Name == otherSource);
+                if (otherPlugin == null) continue;
+
+                // Execute the plugin
+                if (otherPlugin.PluginInstance is ISourcePlugin executablePlugin)
                 {
-                    // search for the chapter with the same number
-                    var otherChapter = await executablePlugin.GetChapterSlug(otherNovel.Slug, thisChapterNumber);
+                    // Search for the chapter with the same number
+                    var otherChapter = await executablePlugin.GetChapterAddrByNumber(otherNovel.Slug, thisChapterNumber);
                     if (otherChapter != null)
                     {
+                        otherChapter.Source = otherSource;
                         chapters.Add(otherSource, otherChapter);
                     }
                 }
@@ -301,74 +159,72 @@ namespace NovelsCollector.Core.Services
             return chapters.ToDictionary(chapter => chapter.Key, chapter => chapter.Value);
         }
 
-        public async Task<Tuple<Chapter[]?, int>> GetChapters(string source, string novelSlug, int page = -1)
+        public async Task<Tuple<Chapter[]?, int>> GetChaptersList(string source, string novelSlug, int page = -1)
         {
-            if (Plugins.Count == 0)
-            {
-                throw new Exception("No plugins loaded");
-            }
+            // Get the plugin in the Installed list
+            var plugin = Installed.Find(p => p.Name == source);
 
-            if (!Plugins.ContainsKey(source))
-            {
-                throw new Exception("Source not found");
-            }
+            // If the plugin is not found or not loaded, throw an exception
+            if (plugin == null)
+                throw new NotFoundException("Plugin not found");
+            if (plugin.PluginInstance == null)
+                throw new Exception("Plugin not loaded");
 
-            var plugin = Plugins[source];
-
+            // If the plugin is loaded, get the list of chapters
             Chapter[]? chapters = null;
             int totalPage = -1;
 
-            if (plugin is ISourcePlugin executablePlugin)
+            // Execute the plugin
+            if (plugin.PluginInstance is ISourcePlugin executablePlugin)
             {
                 (chapters, totalPage) = await executablePlugin.CrawlListChapters(novelSlug, page);
             }
 
             if (chapters == null)
             {
-                throw new Exception("No result found");
+                throw new NotFoundException("No result found");
             }
 
             return new Tuple<Chapter[]?, int>(chapters, totalPage);
         }
 
-        public async Task<Chapter?> GetChapter(string source, string novelSlug, string chapterSlug)
+        public async Task<Chapter?> GetChapterContent(string source, string novelSlug, string chapterSlug)
         {
-            if (Plugins.Count == 0)
-            {
-                throw new Exception("No plugins loaded");
-            }
+            // Get the plugin in the Installed list
+            var plugin = Installed.Find(p => p.Name == source);
 
-            if (!Plugins.ContainsKey(source))
-            {
-                throw new Exception("Source not found");
-            }
+            // If the plugin is not found or not loaded, throw an exception
+            if (plugin == null)
+                throw new NotFoundException("Plugin not found");
+            if (plugin.PluginInstance == null)
+                throw new Exception("Plugin not loaded");
 
-            var plugin = Plugins[source];
-
+            // If the plugin is loaded, get the chapter content
             Chapter? chapter = null;
-            if (plugin is ISourcePlugin executablePlugin)
+
+            // Execute the plugin
+            if (plugin.PluginInstance is ISourcePlugin executablePlugin)
             {
                 chapter = await executablePlugin.CrawlChapter(novelSlug, chapterSlug);
             }
 
-            if (chapter == null)
-            {
-                throw new Exception("No result found");
-            }
-
-            return chapter;
+            return chapter ?? throw new NotFoundException("No result found");
         }
 
         public async Task<Category[]> GetCategories(string source)
         {
-            if (Plugins.Count == 0) throw new Exception("No plugins loaded");
+            // Get the plugin in the Installed list
+            var plugin = Installed.Find(p => p.Name == source);
 
-            if (!Plugins.ContainsKey(source)) throw new Exception("Source not found");
+            // If the plugin is not found or not loaded, throw an exception
+            if (plugin == null)
+                throw new NotFoundException("Plugin not found");
+            if (plugin.PluginInstance == null)
+                throw new Exception("Plugin not loaded");
 
-            var plugin = Plugins[source];
-
+            // If the plugin is loaded, get the list of categories
             Category[]? categories = null;
-            if (plugin is ISourcePlugin executablePlugin)
+            if (plugin.PluginInstance is ISourcePlugin executablePlugin)
             {
                 categories = await executablePlugin.CrawlCategories();
             }
@@ -383,15 +239,19 @@ namespace NovelsCollector.Core.Services
 
         public async Task<Tuple<Novel[], int>> GetNovelsByCategory(string source, string categorySlug, int page = 1)
         {
-            if (Plugins.Count == 0) throw new Exception("No plugins loaded");
+            // Get the plugin in the Installed list
+            var plugin = Installed.Find(p => p.Name == source);
 
-            if (!Plugins.ContainsKey(source)) throw new Exception("Source not found");
+            // If the plugin is not found or not loaded, throw an exception
+            if (plugin == null)
+                throw new NotFoundException("Plugin not found");
+            if (plugin.PluginInstance == null)
+                throw new Exception("Plugin not loaded");
 
-            var plugin = Plugins[source];
-
+            // If the plugin is loaded, get the novels by category
             Novel[]? novels = null;
             int totalPage = -1;
-            if (plugin is ISourcePlugin executablePlugin)
+            if (plugin.PluginInstance is ISourcePlugin executablePlugin)
             {
                 (novels, totalPage) = await executablePlugin.CrawlByCategory(categorySlug, page);
             }
@@ -406,15 +266,19 @@ namespace NovelsCollector.Core.Services
 
         public async Task<Tuple<Novel[], int>> GetNovelsByAuthor(string source, string authorSlug, int page = 1)
         {
-            if (Plugins.Count == 0) throw new Exception("No plugins loaded");
+            // Get the plugin in the Installed list
+            var plugin = Installed.Find(p => p.Name == source);
 
-            if (!Plugins.ContainsKey(source)) throw new Exception("Source not found");
+            // If the plugin is not found or not loaded, throw an exception
+            if (plugin == null)
+                throw new NotFoundException("Plugin not found");
+            if (plugin.PluginInstance == null)
+                throw new Exception("Plugin not loaded");
 
-            var plugin = Plugins[source];
-
+            // If the plugin is loaded, get the novels by author
             Novel[]? novels = null;
             int totalPage = -1;
-            if (plugin is ISourcePlugin executablePlugin)
+            if (plugin.PluginInstance is ISourcePlugin executablePlugin)
             {
                 (novels, totalPage) = await executablePlugin.CrawlByAuthor(authorSlug, page);
             }
@@ -429,15 +293,19 @@ namespace NovelsCollector.Core.Services
 
         public async Task<Tuple<Novel[], int>> GetHotNovels(string source, int page = 1)
         {
-            if (Plugins.Count == 0) throw new Exception("No plugins loaded");
+            // Get the plugin in the Installed list
+            var plugin = Installed.Find(p => p.Name == source);
 
-            if (!Plugins.ContainsKey(source)) throw new Exception("Source not found");
+            // If the plugin is not found or not loaded, throw an exception
+            if (plugin == null)
+                throw new NotFoundException("Plugin not found");
+            if (plugin.PluginInstance == null)
+                throw new Exception("Plugin not loaded");
 
-            var plugin = Plugins[source];
-
+            // If the plugin is loaded, get the hot novels
             Novel[]? novels = null;
             int totalPage = -1;
-            if (plugin is ISourcePlugin executablePlugin)
+            if (plugin.PluginInstance is ISourcePlugin executablePlugin)
             {
                 (novels, totalPage) = await executablePlugin.CrawlHot(page);
             }
@@ -452,15 +320,19 @@ namespace NovelsCollector.Core.Services
 
         public async Task<Tuple<Novel[], int>> GetLatestNovels(string source, int page = 1)
         {
-            if (Plugins.Count == 0) throw new Exception("No plugins loaded");
+            // Get the plugin in the Installed list
+            var plugin = Installed.Find(p => p.Name == source);
 
-            if (!Plugins.ContainsKey(source)) throw new Exception("Source not found");
+            // If the plugin is not found or not loaded, throw an exception
+            if (plugin == null)
+                throw new NotFoundException("Plugin not found");
+            if (plugin.PluginInstance == null)
+                throw new Exception("Plugin not loaded");
 
-            var plugin = Plugins[source];
-
+            // If the plugin is loaded, get the latest novels
             Novel[]? novels = null;
             int totalPage = -1;
-            if (plugin is ISourcePlugin executablePlugin)
+            if (plugin.PluginInstance is ISourcePlugin executablePlugin)
             {
                 (novels, totalPage) = await executablePlugin.CrawlLatest(page);
             }
@@ -475,15 +347,19 @@ namespace NovelsCollector.Core.Services
 
         public async Task<Tuple<Novel[], int>> GetCompletedNovels(string source, int page = 1)
         {
-            if (Plugins.Count == 0) throw new Exception("No plugins loaded");
+            // Get the plugin in the Installed list
+            var plugin = Installed.Find(p => p.Name == source);
 
-            if (!Plugins.ContainsKey(source)) throw new Exception("Source not found");
+            // If the plugin is not found or not loaded, throw an exception
+            if (plugin == null)
+                throw new NotFoundException("Plugin not found");
+            if (plugin.PluginInstance == null)
+                throw new Exception("Plugin not loaded");
 
-            var plugin = Plugins[source];
-
+            // If the plugin is loaded, get the completed novels
             Novel[]? novels = null;
             int totalPage = -1;
-            if (plugin is ISourcePlugin executablePlugin)
+            if (plugin.PluginInstance is ISourcePlugin executablePlugin)
             {
                 (novels, totalPage) = await executablePlugin.CrawlCompleted(page);
             }

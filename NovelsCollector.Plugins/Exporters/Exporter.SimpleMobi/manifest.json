@@ -1,0 +1,9 @@
+{
+  "name": "SimpleMobi",
+  "description": "Plugin này xuất truyện ra định dạng MOBI.",
+  "version": "1.0.0",
+  "author": "Nguyễn Đình Ánh",
+  "extension": "mobi",
+  "assembly": "Exporter.SimpleMobi.dll",
+  "icon": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTSZJ13K1tb2_0ggt0M42C4xcKFmDCL2lYVbQ&s"
+}

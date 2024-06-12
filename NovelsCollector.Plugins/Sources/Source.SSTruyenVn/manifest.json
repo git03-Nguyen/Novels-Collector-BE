@@ -1,0 +1,9 @@
+{
+  "name": "SSTruyenVn",
+  "description": "Plugin này crawl truyện từ website sstruyen.vn",
+  "version": "1.0.0",
+  "author": "Nguyễn Tuấn Đạt",
+  "assembly": "Source.SSTruyenVn.dll",
+  "url": "https://sstruyen.vn",
+  "icon": "https://nguoinoitieng.tv/images/nnt/106/0/bjfe.jpg"
+}

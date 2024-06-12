@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using NovelsCollector.Core.Exceptions;
 
 namespace NovelsCollector.Core.Controllers
 {

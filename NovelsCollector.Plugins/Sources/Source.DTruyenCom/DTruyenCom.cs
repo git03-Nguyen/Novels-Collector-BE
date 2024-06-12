@@ -8,8 +8,9 @@ using System.Text.RegularExpressions;
 
 namespace DTruyenCom
 {
-    public class DTruyenCom : SourcePlugin, ISourcePlugin
+    public class DTruyenCom : ISourcePlugin
     {
+        private const string mainUrl = "https://dtruyen.com/";
         public string SearchUrl => "https://dtruyen.com/searching/<keyword>/lastupdate/all/all/<page>/"; // keyword: using slug format
         public string HotUrl => "https://dtruyen.com/truyen-duoc-yeu-thich-nhat/<page>/";
         public string LatestUrl => "https://dtruyen.com/all/<page>/";
@@ -19,15 +20,7 @@ namespace DTruyenCom
         public string NovelUrl => "https://dtruyen.com/<novel-slug>/";
         public string ChapterUrl => "https://dtruyen.com/<novel-slug>/<chapter-slug>";
 
-        public DTruyenCom()
-        {
-            Url = "https://dtruyen.com/";
-            Name = "DTruyenCom";
-            Description = "This plugin is used to crawl novels from DTruyenCom website";
-            Version = "1.0.0";
-            Author = "Nguyen Tuan Dat";
-            Enabled = true;
-        }
+        public DTruyenCom() { }
 
         /// <summary>
         /// Crawl novels by search
@@ -104,7 +97,7 @@ namespace DTruyenCom
             List<Category> listCategory = new List<Category>();
             try
             {
-                var document = await LoadFromWebAsync(Url);
+                var document = await LoadFromWebAsync(mainUrl);
                 var categoryElements = document.DocumentNode.QuerySelectorAll("div.categories.clearfix a[href*='https://dtruyen.com/']");
                 foreach (var categoryElement in categoryElements)
                 {
@@ -289,12 +282,11 @@ namespace DTruyenCom
             return chapter;
         }
 
-        public async Task<Chapter?> GetChapterSlug(string novelSlug, int chapterNumber)
+        public async Task<Chapter?> GetChapterAddrByNumber(string novelSlug, int chapterNumber)
         {
             if (chapterNumber <= 0) return null;
 
             var chapter = new Chapter();
-            chapter.Source = Name;
             chapter.NovelSlug = novelSlug;
             chapter.Number = chapterNumber;
 
