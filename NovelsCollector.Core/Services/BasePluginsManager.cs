@@ -325,7 +325,7 @@ namespace NovelsCollector.Core.Services
 
             // Delete the plugin folder
             string pluginPath = Path.Combine(_pluginsPath, pluginName);
-            if (Directory.Exists(pluginPath)) 
+            if (Directory.Exists(pluginPath))
                 try { Directory.Delete(pluginPath, true); } catch { Console.WriteLine("Error deleting plugin folder"); }
 
             _logger.LogInformation($"\tPlugin {pluginName} REMOVED successfully");

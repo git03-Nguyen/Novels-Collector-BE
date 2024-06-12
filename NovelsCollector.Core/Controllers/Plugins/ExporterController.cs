@@ -11,17 +11,17 @@ namespace NovelsCollector.Core.Controllers.Plugins
     {
         #region Injected Services
         private readonly ILogger<ExporterController> _logger;
-        private readonly ExporterPluginsManager _exporterPluginManager;
+        private readonly ExporterPluginsManager _pluginsManager;
 
         public ExporterController(ILogger<ExporterController> logger, ExporterPluginsManager exporterPluginManager)
         {
             _logger = logger;
-            _exporterPluginManager = exporterPluginManager;
+            _pluginsManager = exporterPluginManager;
         }
         #endregion
 
         /// <summary>
-        /// Get a list of all exporter plugins
+        /// Get a list of all exporter plugins.
         /// </summary>
         /// <returns> A list of all exporter plugins. </returns>
         [HttpGet]
@@ -30,163 +30,98 @@ namespace NovelsCollector.Core.Controllers.Plugins
         {
             return Ok(new
             {
-                data = _exporterPluginManager.Installed.ToArray()
+                data = _pluginsManager.Installed.ToArray()
             });
         }
 
         /// <summary>
-        /// Reload all exporter plugins
+        /// Load an exporter plugin by name.
         /// </summary>
-        /// <returns> A list of all exporter plugins. </returns>
-        //[HttpGet("reload")]
-        //[EndpointSummary("Reload all exporter plugins")]
-        //public IActionResult Reload()
-        //{
-        //    _exporterPluginManager.ReloadPlugins();
-        //    return Ok(new
-        //    {
-        //        data = _exporterPluginManager.Plugins.Values.ToArray(),
-        //    });
-        //}
-
-        [HttpGet("test1")]
-        [EndpointSummary("Test an exporter plugin (epub)")]
-        public async Task<IActionResult> TestExporter([FromServices] SourcePluginsManager sourcePluginsManager)
+        /// <param name="pluginName"> The name of the exporter plugin to load. </param>
+        /// <returns> List of loaded exporter plugins and the just loaded plugin. </returns>
+        [HttpGet("load/{pluginName}")]
+        [EndpointSummary("Load an exporter plugin by name")]
+        public IActionResult Load([FromRoute] string pluginName)
         {
-            var startChapter = 1;
-            var lastChapter = 2;
-
-            // Get the novel
-            Novel? novel = await sourcePluginsManager.GetNovelDetail("TruyenFullVn", "tao-tac");
-
-            // initiate novel.Chapters as an empty list
-            var list = new List<Chapter>();
-
-            // Get the chapters' content
-            for (int i = startChapter; i <= lastChapter; i++)
+            _pluginsManager.LoadPlugin(pluginName);
+            return Ok(new
             {
-                var chapter = await sourcePluginsManager.GetChapterContent("TruyenFullVn", "tao-tac", $"chuong-{i}");
-                if (chapter != null)
-                {
-                    list.Add(chapter);
-                }
-            }
+                data = _pluginsManager.Installed.ToArray(),
+                meta = new { loaded = pluginName }
+            });
+        }
 
-            // Assign the list of chapters to novel.Chapters, now we have a complete novel
-            novel.Chapters = list.ToArray();
-            novel.Source = "TruyenFullVn";
-
-            string? format = null;
-
-            // Export the novel
-            using (var stream = new FileStream("D:/SimpleEPub.epub", FileMode.Create))
+        /// <summary>
+        /// Unload an exporter plugin by name.
+        /// </summary>
+        /// <param name="pluginName"> The name of the exporter plugin to unload. </param>
+        /// <returns> The list of loaded exporter plugins and the just unloaded plugin. </returns>
+        [HttpGet("unload/{pluginName}")]
+        [EndpointSummary("Unload an exporter plugin by name")]
+        public IActionResult Unload([FromRoute] string pluginName)
+        {
+            _pluginsManager.UnloadPlugin(pluginName);
+            return Ok(new
             {
-                format = await _exporterPluginManager.Export("SimpleEPub", novel, stream);
+                data = _pluginsManager.Installed.ToArray(),
+                meta = new { unloaded = pluginName }
+            });
+        }
+
+        /// <summary>
+        /// Add a new exporter plugin from a file.
+        /// </summary>
+        /// <param name="downloadUrl"> The download URL of the exporter plugin. </param>
+        /// <returns> The list of loaded exporter plugins and the just added plugin. </returns>
+        [HttpPost("add")]
+        [EndpointSummary("Add a new exporter plugin")]
+        public async Task<IActionResult> Post(IFormFile file)
+        {
+            var added = await _pluginsManager.AddPluginFromFile(file);
+
+            return Ok(new
+            {
+                data = _pluginsManager.Installed.ToArray(),
+                meta = new { added }
+            });
+        }
+
+        /// <summary>
+        /// Remove an exporter plugin out of the disk/database by name.
+        /// </summary>
+        /// <param name="pluginName"> The name of the exporter plugin to remove. </param>
+        /// <returns> The list of loaded exporter plugins and the just removed plugin. </returns>
+        [HttpDelete("delete/{pluginName}")]
+        [EndpointSummary("Remove an exporter plugin out of the disk by name")]
+        public IActionResult Delete([FromRoute] string pluginName)
+        {
+            _pluginsManager.RemovePlugin(pluginName);
+            return Ok(new
+            {
+                data = _pluginsManager.Installed.ToArray(),
+                meta = new { removed = pluginName }
+            });
+        }
+
+        /// <summary>
+        /// Call the GC.Collect and to see if the plugin contexts are unloaded.
+        /// </summary>
+        /// <returns> The list of plugin contexts that are unloaded in the past and the current status of them (Alive/Dead). </returns>
+        [HttpGet("unload/history")]
+        [EndpointSummary("Call the GC.Collect and to see if the plugin contexts are unloaded successfully or not")]
+        public IActionResult DebugUnloading()
+        {
+            for (int i = 0; i < 2; i++)
+            {
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
             }
 
             return Ok(new
             {
-                data = new
-                {
-                    format,
-                    path = "D:/SimpleEPub.epub",
-                }
+                data = _pluginsManager.unloadedHistory.Select(wr => wr.IsAlive ? "Alive" : "Dead").ToArray(),
             });
-
         }
-
-        [HttpGet("test2")]
-        [EndpointSummary("Test an exporter plugin (pdf)")]
-        public async Task<IActionResult> Test2Exporter([FromServices] SourcePluginsManager sourcePluginsManager)
-        {
-            var startChapter = 1;
-            var lastChapter = 2;
-
-            // Get the novel
-            Novel? novel = await sourcePluginsManager.GetNovelDetail("TruyenFullVn", "tao-tac");
-
-            // initiate novel.Chapters as an empty list
-            var list = new List<Chapter>();
-
-            // Get the chapters' content
-            for (int i = startChapter; i <= lastChapter; i++)
-            {
-                var chapter = await sourcePluginsManager.GetChapterContent("TruyenFullVn", "tao-tac", $"chuong-{i}");
-                if (chapter != null)
-                {
-                    list.Add(chapter);
-                }
-            }
-
-            // Assign the list of chapters to novel.Chapters, now we have a complete novel
-            novel.Chapters = list.ToArray();
-            novel.Source = "TruyenFullVn";
-
-            string? format = null;
-
-            // Export the novel
-            using (var stream = new FileStream("D:/SimplePDF.pdf", FileMode.Create))
-            {
-                format = await _exporterPluginManager.Export("SimplePDF", novel, stream);
-            }
-
-            return Ok(new
-            {
-                data = new
-                {
-                    format,
-                    path = "D:/SimplePDF.pdf",
-                }
-            });
-
-        }
-
-        [HttpGet("test3")]
-        [EndpointSummary("Test an exporter plugin (mobi)")]
-        public async Task<IActionResult> Test3Exporter([FromServices] SourcePluginsManager sourcePluginsManager)
-        {
-            var startChapter = 1;
-            var lastChapter = 2;
-
-            // Get the novel
-            Novel? novel = await sourcePluginsManager.GetNovelDetail("TruyenFullVn", "tao-tac");
-
-            // initiate novel.Chapters as an empty list
-            var list = new List<Chapter>();
-
-            // Get the chapters' content
-            for (int i = startChapter; i <= lastChapter; i++)
-            {
-                var chapter = await sourcePluginsManager.GetChapterContent("TruyenFullVn", "tao-tac", $"chuong-{i}");
-                if (chapter != null)
-                {
-                    list.Add(chapter);
-                }
-            }
-
-            // Assign the list of chapters to novel.Chapters, now we have a complete novel
-            novel.Chapters = list.ToArray();
-            novel.Source = "TruyenFullVn";
-
-            string? format = null;
-
-            // Export the novel
-            using (var stream = new FileStream("D:/SimpleMobi.mobi", FileMode.Create))
-            {
-                format = await _exporterPluginManager.Export("SimpleMobi", novel, stream);
-            }
-
-            return Ok(new
-            {
-                data = new
-                {
-                    format,
-                    path = "D:/SimpleMobi.mobi",
-                }
-            });
-
-        }
-
 
     }
 }

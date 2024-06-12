@@ -10,77 +10,77 @@ namespace NovelsCollector.Core.Controllers.Plugins
     {
         #region Injected Services
         private readonly ILogger<SourceController> _logger;
-        private readonly SourcePluginsManager _sourcesPlugins;
+        private readonly SourcePluginsManager _pluginsManager;
 
         public SourceController(ILogger<SourceController> logger, SourcePluginsManager sourcePluginManager)
         {
             _logger = logger;
-            _sourcesPlugins = sourcePluginManager;
+            _pluginsManager = sourcePluginManager;
         }
         #endregion
 
         /// <summary>
-        /// Get a list of all source plugins being loaded in the system
+        /// Get a list of all source plugins.
         /// </summary>
-        /// <returns> The list of source plugins being loaded in the system. </returns>
+        /// <returns> A list of all source plugins. </returns>
         [HttpGet]
         [EndpointSummary("Get a list of all source plugins")]
-        public IActionResult Get()
+        public IActionResult Getsources()
         {
             return Ok(new
             {
-                data = _sourcesPlugins.Installed.ToArray()
+                data = _pluginsManager.Installed.ToArray()
             });
         }
 
         /// <summary>
-        /// Load a source plugin by name
+        /// Load a source plugin by name.
         /// </summary>
         /// <param name="pluginName"> The name of the source plugin to load. </param>
-        /// <returns> List of loaded source plugins. </returns>
+        /// <returns> List of loaded source plugins and the just loaded plugin. </returns>
         [HttpGet("load/{pluginName}")]
         [EndpointSummary("Load a source plugin by name")]
         public IActionResult Load([FromRoute] string pluginName)
         {
-            _sourcesPlugins.LoadPlugin(pluginName);
+            _pluginsManager.LoadPlugin(pluginName);
             return Ok(new
             {
-                data = _sourcesPlugins.Installed.ToArray(),
+                data = _pluginsManager.Installed.ToArray(),
                 meta = new { loaded = pluginName }
             });
         }
 
         /// <summary>
-        /// Unload a source plugin by name
+        /// Unload a source plugin by name.
         /// </summary>
         /// <param name="pluginName"> The name of the source plugin to unload. </param>
-        /// <returns> The list of loaded source plugins. </returns>
+        /// <returns> The list of loaded source plugins and the just unloaded plugin. </returns>
         [HttpGet("unload/{pluginName}")]
         [EndpointSummary("Unload a source plugin by name")]
         public IActionResult Unload([FromRoute] string pluginName)
         {
-            _sourcesPlugins.UnloadPlugin(pluginName);
+            _pluginsManager.UnloadPlugin(pluginName);
             return Ok(new
             {
-                data = _sourcesPlugins.Installed.ToArray(),
+                data = _pluginsManager.Installed.ToArray(),
                 meta = new { unloaded = pluginName }
             });
         }
 
         /// <summary>
-        /// Add a new source plugin
+        /// Add a new source plugin from a file.
         /// </summary>
-        /// <param name="downloadUrl"> The download URL of the source plugin to add (.zip file). </param>
-        /// <returns> An IActionResult containing the information of just added source plugin or an error message. </returns>
+        /// <param name="downloadUrl"> The download URL of the source plugin. </param>
+        /// <returns> The list of loaded source plugins and the just added plugin. </returns>
         [HttpPost("add")]
         [EndpointSummary("Add a new source plugin")]
         public async Task<IActionResult> Post(IFormFile file)
         {
-            var added = await _sourcesPlugins.AddPluginFromFile(file);
+            var added = await _pluginsManager.AddPluginFromFile(file);
 
             return Ok(new
             {
-                data = _sourcesPlugins.Installed.ToArray(),
+                data = _pluginsManager.Installed.ToArray(),
                 meta = new { added }
             });
         }
@@ -89,33 +89,36 @@ namespace NovelsCollector.Core.Controllers.Plugins
         /// Remove a source plugin out of the disk/database by name.
         /// </summary>
         /// <param name="pluginName"> The name of the source plugin to remove. </param>
-        /// <returns> An IActionResult containing the list of loaded source plugins or an error message. </returns>
+        /// <returns> The list of loaded source plugins and the just removed plugin. </returns>
         [HttpDelete("delete/{pluginName}")]
         [EndpointSummary("Remove a source plugin out of the disk by name")]
         public IActionResult Delete([FromRoute] string pluginName)
         {
-            _sourcesPlugins.RemovePlugin(pluginName);
+            _pluginsManager.RemovePlugin(pluginName);
             return Ok(new
             {
-                data = _sourcesPlugins.Installed.ToArray(),
+                data = _pluginsManager.Installed.ToArray(),
                 meta = new { removed = pluginName }
             });
         }
 
         /// <summary>
-        /// Call the GC.Collect and to see if the plugin contexts are unloaded
+        /// Call the GC.Collect and to see if the plugin contexts are unloaded.
         /// </summary>
-        /// <returns> An IActionResult containing the status of the history of unloaded plugin contexts (Dead or Alive). </returns>
+        /// <returns> The list of plugin contexts that are unloaded in the past and the current status of them (Alive/Dead). </returns>
         [HttpGet("unload/history")]
         [EndpointSummary("Call the GC.Collect and to see if the plugin contexts are unloaded successfully or not")]
         public IActionResult DebugUnloading()
         {
-            GC.Collect();
-            GC.WaitForPendingFinalizers();
+            for (int i = 0; i < 2; i++)
+            {
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+            }
 
             return Ok(new
             {
-                data = _sourcesPlugins.unloadedHistory.Select(wr => wr.IsAlive ? "Alive" : "Dead").ToArray(),
+                data = _pluginsManager.unloadedHistory.Select(wr => wr.IsAlive ? "Alive" : "Dead").ToArray(),
             });
         }
 

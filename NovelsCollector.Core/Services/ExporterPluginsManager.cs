@@ -1,10 +1,8 @@
-﻿using MongoDB.Driver;
-using NovelsCollector.Core.Exceptions;
+﻿using NovelsCollector.Core.Exceptions;
 using NovelsCollector.Core.Models;
 using NovelsCollector.Core.Utils;
 using NovelsCollector.SDK.Models;
 using NovelsCollector.SDK.Plugins.ExporterPlugins;
-using System.Runtime.CompilerServices;
 
 namespace NovelsCollector.Core.Services
 {
