@@ -1,6 +1,7 @@
 ﻿using NovelsCollector.Core.Exceptions;
 using NovelsCollector.Core.Models;
 using NovelsCollector.Core.Services.Abstracts;
+using NovelsCollector.Core.Utils;
 using NovelsCollector.SDK.Models;
 using NovelsCollector.SDK.Plugins.SourcePlugins;
 
@@ -40,17 +41,22 @@ namespace NovelsCollector.Core.Services
             {
                 (novels, totalPage) = await executablePlugin.CrawlSearch(query, page);
 
+                // standardize the query
+                var sQuery = Helpers.RemoveVietnameseSigns(query.ToLower());
+
+                // if search by keyword, do nothing
+                if (query == keyword) { }
+
                 // filter if search by title
-                if (query == title)
+                else if (query == title)
                 {
-                    novels = novels?.Where(novel => novel.Title.ToLower().Contains(title.ToLower())).ToArray();
+                    novels = novels?.Where(novel => novel.Title.ToLower().Contains(sQuery)).ToArray();
                 }
                 // filter if search by author
-                else if (query == author)
+                else
                 {
-                    novels = novels?.Where(novel => novel.Authors[0]?.Name.ToLower().Contains(author.ToLower()) ?? false).ToArray();
+                    novels = novels?.Where(novel => novel.Authors[0]?.Name.ToLower().Contains(sQuery) ?? false).ToArray();
                 }
-                // else if search by keyword, do nothing
             }
 
             if (novels == null) throw new NotFoundException("No result found");

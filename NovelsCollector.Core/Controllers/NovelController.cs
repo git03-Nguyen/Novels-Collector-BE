@@ -33,6 +33,7 @@ namespace NovelsCollector.Core.Controllers
         /// <param name="source">The source of the novel (e.g., DTruyenCom, SSTruyenVn).</param>
         /// <param name="novelSlug">The slug identifier for the novel (e.g., tao-tac).</param>
         /// <returns> Brief information of the novel. </returns>
+        /// <exception cref="NotFoundException"> If the novel is not found. </exception>
         [HttpGet("{source}/{novelSlug}")]
         [EndpointSummary("View brief information of a novel")]
         public async Task<IActionResult> GetNovel([FromRoute] string source, [FromRoute] string novelSlug)
@@ -42,17 +43,45 @@ namespace NovelsCollector.Core.Controllers
             // Check if the novel is not found
             if (novel == null) throw new NotFoundException("Không tìm thấy truyện này.");
 
-            // Find novel in other sources
-            var otherSources = await _sourcesPlugins.GetNovelFromOtherSources(source, novel);
-
             // Return the novel
             return Ok(new
             {
                 data = novel,
                 meta = new
                 {
+                    source
+                }
+            });
+        }
+
+        /// <summary>
+        /// Find the same novel in other sources
+        /// </summary>
+        /// <param name="source"> The source of the novel (e.g., DTruyenCom, SSTruyenVn). </param>
+        /// <param name="novelSlug"> The slug identifier for the novel (e.g., tao-tac). </param>
+        /// <param name="novel"> The novel object to find in other sources. </param>
+        /// <returns> The same novel addresses in other sources. </returns>
+        /// <exception cref="BadHttpRequestException"> If the novel is not provided. </exception>
+        [HttpPost("{source}/{novelSlug}/others")]
+        [EndpointSummary("Find the same novel in other sources")]
+        public async Task<IActionResult> GetNovelFromOtherSources([FromRoute] string source, [FromRoute] string novelSlug, [FromBody] Novel? novel)
+        {
+            // Check if the novel is not provided
+            if (novel == null) throw new BadHttpRequestException("Truyện không hợp lệ.");
+
+            // Find novel in other sources
+            var otherSources = await _sourcesPlugins.GetNovelFromOtherSources(source, novel);
+
+            // Return the novel
+            return Ok(new
+            {
+                data = otherSources,
+                meta = new
+                {
                     source,
-                    otherSources,
+                    novelSlug,
+                    title = novel.Title,
+                    author = novel.Authors?[0].Name,
                 }
             });
         }
@@ -64,6 +93,7 @@ namespace NovelsCollector.Core.Controllers
         /// <param name="novelSlug">The slug identifier for the novel (e.g., tao-tac).</param>
         /// <param name="page">The page number of the chapters list (default is the last page = -1).</param>
         /// <returns> A list of chapters of a novel by page. </returns>
+        /// <exception cref="BadHttpRequestException"> If the page is invalid. </exception>
         [HttpGet("{source}/{novelSlug}/chapters")]
         [EndpointSummary("View chapters of a novel by page, -1 is last page")]
         public async Task<IActionResult> GetChapters([FromRoute] string source, [FromRoute] string novelSlug, [FromQuery] int page = -1)
@@ -96,26 +126,28 @@ namespace NovelsCollector.Core.Controllers
         /// </summary>
         /// <param name="source"> The source of the novel (e.g., DTruyenCom, SSTruyenVn). </param>
         /// <param name="novelSlug"> The slug identifier for the novel (e.g., tao-tac). </param>
-        /// <param name="request"> The request object contains the plugin name and the list of chapters to export. </param>
+        /// <param name="pluginName"> The name of the exporter plugin to use. </param>
+        /// <param name="exportSlugs"> The list of chapter slugs to export. </param>
         /// <returns> The path to the exported file. </returns>
         /// <exception cref="BadHttpRequestException"> If the list of chapters is invalid. </exception>
         /// <exception cref="NotFoundException"> If the plugin is not found. </exception>
-        [HttpPost("{source}/{novelSlug}/export")]
-        [EndpointSummary("Export some chapters of a novel to a file")]
-        public async Task<IActionResult> ExportChapters([FromRoute] string source, [FromRoute] string novelSlug, [FromBody] ExportRequest request)
+        [HttpPost("{source}/{novelSlug}/export/{pluginName}")]
+        [EndpointSummary("Export a list of chapters of a novel to a file")]
+        public async Task<IActionResult> ExportChapters([FromRoute] string source, [FromRoute] string novelSlug, [FromRoute] string pluginName,
+            [FromBody] List<string> exportSlugs)
         {
-            // Check if no chapters are provided
-            if (request.ChapterSlugs.Count == 0)
-                throw new BadHttpRequestException("Danh sách chương không hợp lệ.");
-
-            // Check if no plugin is found
-            if (!_exporterPlugins.Installed.Any(x => x.Name == request.Plugin.Name))
-                throw new NotFoundException($"Không tìm thấy plugin {request.Plugin.Name}.");
-
             // DEBUG mode: number of chapters to export is <= 10
             const int maxChapters = 10;
-            if (request.ChapterSlugs.Count > maxChapters)
+
+            // Check if the list of chapters is invalid
+            if (exportSlugs.Count == 0)
+                throw new BadHttpRequestException("Danh sách chương yêu cầu không hợp lệ.");
+            if (exportSlugs.Count > maxChapters)
                 throw new BadHttpRequestException($"Số lượng chương xuất không được vượt quá {maxChapters} chương.");
+
+            // Check if no plugin is found
+            if (!_exporterPlugins.Installed.Any(x => x.Name == pluginName))
+                throw new NotFoundException($"Không tìm thấy plugin {pluginName}.");
 
             // Get the novel
             Novel? novel = await _sourcesPlugins.GetNovelDetail(source, novelSlug);
@@ -124,7 +156,7 @@ namespace NovelsCollector.Core.Controllers
 
             // Get the chapters' content
             var listChapters = new List<Chapter>();
-            foreach (var slug in request.ChapterSlugs)
+            foreach (var slug in exportSlugs)
             {
                 var chapter = await _sourcesPlugins.GetChapterContent(source, novelSlug, slug);
                 if (chapter != null)
@@ -140,17 +172,19 @@ namespace NovelsCollector.Core.Controllers
 
             // Export the novel
             // TODO: save the file to the cloud storage
-            using (var stream = new FileStream($"D:/{timestamp}.{request.Plugin.Extension}", FileMode.Create))
+            var plugin = _exporterPlugins.Installed.First(x => x.Name == pluginName);
+            using (var stream = new FileStream($"D:/{timestamp}.{plugin.Extension}", FileMode.Create))
             {
-                await _exporterPlugins.Export(request.Plugin.Name, novel, stream);
+                await _exporterPlugins.Export(pluginName, novel, stream);
             }
 
             return Ok(new
             {
                 data = new
                 {
-                    extension = request.Plugin.Extension,
-                    path = $"D:/{timestamp}.{request.Plugin.Extension}",
+                    plugin = pluginName,
+                    extension = plugin.Extension,
+                    path = $"D:/{timestamp}.{plugin.Extension}",
                 }
             });
 
@@ -158,9 +192,4 @@ namespace NovelsCollector.Core.Controllers
 
     }
 
-    public class ExportRequest
-    {
-        public ExporterPlugin Plugin { get; set; }
-        public List<string> ChapterSlugs { get; set; }
-    }
 }

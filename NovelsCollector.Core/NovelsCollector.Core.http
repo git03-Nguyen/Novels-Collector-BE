@@ -30,6 +30,8 @@ GET {{https}}/api/v1/novel/{{source1}}/{{novelSlug1}}/chapters?page={{pageC1}}
 @chapSlug1 = chuong-1
 GET {{https}}/api/v1/chapter/{{source1}}/{{novelSlug1}}/{{chapSlug1}}
 
+### Latest novels
+GET {{https}}/api/v1/category/{{source1}}/latest
 
 
 ### ------------------------------------------
