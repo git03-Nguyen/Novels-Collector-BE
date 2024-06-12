@@ -50,12 +50,12 @@ namespace NovelsCollector.Core.Services
                 // filter if search by title
                 else if (query == title)
                 {
-                    novels = novels?.Where(novel => novel.Title.ToLower().Contains(sQuery)).ToArray();
+                    novels = novels?.Where(novel => Helpers.RemoveVietnameseSigns(novel.Title).ToLower().Contains(sQuery)).ToArray();
                 }
                 // filter if search by author
                 else
                 {
-                    novels = novels?.Where(novel => novel.Authors[0]?.Name.ToLower().Contains(sQuery) ?? false).ToArray();
+                    novels = novels?.Where(novel => Helpers.RemoveVietnameseSigns(novel.Authors[0]?.Name).ToLower().Contains(sQuery)).ToArray();
                 }
             }
 
