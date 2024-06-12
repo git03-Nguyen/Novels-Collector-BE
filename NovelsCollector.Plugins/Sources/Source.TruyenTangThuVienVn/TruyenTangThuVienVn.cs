@@ -335,13 +335,21 @@ namespace Source.TruyenTangThuVienVn
 
         public async Task<Chapter?> GetChapterAddrByNumber(string novelSlug, int chapterNumber)
         {
-            const int PER_PAGE = 75;
+            if (chapterNumber < 0) return null;
 
-            // TODO
             var chapter = new Chapter();
             chapter.NovelSlug = novelSlug;
             chapter.Number = chapterNumber;
-            chapter.Slug = "chuong-" + chapterNumber;
+            chapter.Slug = $"chuong-{chapterNumber}";
+
+            var url = $"https://truyen.tangthuvien.vn/doc-truyen/{novelSlug}/chuong-{chapterNumber}";
+
+            // If http code is not 200 or there are any redirections, return null
+            var httpClient = new HttpClient();
+            var response = await httpClient.GetAsync(url);
+            if (!response.IsSuccessStatusCode || response.RequestMessage?.RequestUri?.ToString() != url)
+                return null;
+
             return chapter;
         }
 

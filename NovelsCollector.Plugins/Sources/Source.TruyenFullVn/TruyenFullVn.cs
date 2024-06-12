@@ -351,13 +351,20 @@ namespace Source.TruyenFullVn
 
         public async Task<Chapter?> GetChapterAddrByNumber(string novelSlug, int chapterNumber)
         {
-            const int PER_PAGE = 50;
+            if (chapterNumber < 0) return null;
 
-            // TODO
             var chapter = new Chapter();
             chapter.NovelSlug = novelSlug;
             chapter.Number = chapterNumber;
-            chapter.Slug = "chuong-" + chapterNumber;
+            chapter.Slug = $"chuong-{chapterNumber}";
+
+            var url = $"{mainUrl}{novelSlug}/chuong-{chapterNumber}/";
+
+            // If no #chapter-c , it means that the chapter is not available
+            var document = await LoadFromWebAsync(url);
+            var contentElement = document.DocumentNode.QuerySelector("#chapter-c");
+            if (contentElement == null) return null;
+
             return chapter;
         }
 

@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using NovelsCollector.Core.Exceptions;
-using NovelsCollector.Core.Models;
 using NovelsCollector.Core.Services;
 using NovelsCollector.SDK.Models;
 

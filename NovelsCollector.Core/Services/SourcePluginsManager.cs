@@ -157,14 +157,18 @@ namespace NovelsCollector.Core.Services
             string thisSource = currentChapter.Source;
             int thisChapterNumber = currentChapter.Number.Value;
 
-            foreach (var (otherSource, otherNovel) in novelInOtherSources)
+            // Using threads parallel to search for the chapter in other sources, each thread for each plugin
+            var tasks = novelInOtherSources.Select(kvp => Task.Run(async () =>
             {
+                var otherSource = kvp.Key;
+                var otherNovel = kvp.Value;
+
                 // Skip if the source is the same or the novel slug is null
-                if (otherSource == thisSource || otherNovel.Slug == null) continue;
+                if (otherSource == thisSource || otherNovel.Slug == null) return;
 
                 // Get the plugin in the Installed list
                 var otherPlugin = Installed.Find(p => p.Name == otherSource);
-                if (otherPlugin == null) continue;
+                if (otherPlugin == null) return;
 
                 // Execute the plugin
                 if (otherPlugin.PluginInstance is ISourcePlugin executablePlugin)
@@ -174,12 +178,29 @@ namespace NovelsCollector.Core.Services
                     if (otherChapter != null)
                     {
                         otherChapter.Source = otherSource;
-                        chapters.Add(otherSource, otherChapter);
+                        lock (chapters)
+                        {
+                            chapters.Add(otherSource, otherChapter);
+                        }
                     }
+                }
+            }));
+
+            // Wait for all tasks to finish
+            await Task.WhenAll(tasks);
+
+            // Ensure to stop every tasks
+            foreach (var task in tasks)
+            {
+                if (task.IsFaulted)
+                {
+                    _logger.LogError(task.Exception?.InnerException, "Error when searching for chapters in other sources");
                 }
             }
 
+            // If no chapter is found, return null
             if (chapters.Count == 0) return null;
+
             return chapters.ToDictionary(chapter => chapter.Key, chapter => chapter.Value);
         }
 

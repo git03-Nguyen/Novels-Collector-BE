@@ -293,25 +293,34 @@ namespace DTruyenCom
             const int PER_PAGE = 30;
             int page = (chapterNumber - 1) / PER_PAGE + 1;
 
-            Chapter[]? listChapters = null;
-            int totalPage = 1;
+            bool flag = false;
+            var (listChapters, totalPage) = await CrawlListChapters(novelSlug, page);
+            if (listChapters == null) return null;
 
             // If it's greater than the last chapter in the page, maybe it's in the next page
-            do
-            {
-
-                (listChapters, totalPage) = await CrawlListChapters(novelSlug, page);
-                if (listChapters == null) return null;
-
-            } while (chapterNumber > listChapters.Last().Number && page < totalPage);
-
-            // If it's smaller than the first chapter in the page, maybe it's in the previous page
-            do
+            while (chapterNumber > listChapters.Last().Number && page < totalPage)
             {
                 (listChapters, totalPage) = await CrawlListChapters(novelSlug, page);
                 if (listChapters == null) return null;
+                page++;
 
-            } while (chapterNumber < listChapters.First().Number && page > 1);
+                if (chapterNumber <= listChapters.Last().Number)
+                {
+                    flag = true;
+                    break;
+                }
+            }
+
+            if (!flag)
+            {
+                // If it's smaller than the first chapter in the page, maybe it's in the previous page
+                while (chapterNumber < listChapters.First().Number && page > 1)
+                {
+                    (listChapters, totalPage) = await CrawlListChapters(novelSlug, page);
+                    if (listChapters == null) return null;
+                    page--;
+                }
+            }
 
             // Find the chapter in current page
             foreach (var c in listChapters)
@@ -325,7 +334,6 @@ namespace DTruyenCom
             if (chapter.Slug == null) return null;
 
             return chapter;
-
         }
 
         #region helper method
