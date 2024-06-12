@@ -489,7 +489,7 @@ namespace Source.TruyenFullVn
                 var element = doc.DocumentNode.QuerySelector("div.books div.book img");
                 if (element != null)
                 {
-                    Console.WriteLine($"Done cover: {novel.Title}");
+                    //Console.WriteLine($"Done cover: {novel.Title}");
                     if (element.Attributes.Contains("data-cfsrc"))
                     {
                         novel.Cover = element.Attributes["data-cfsrc"].Value;

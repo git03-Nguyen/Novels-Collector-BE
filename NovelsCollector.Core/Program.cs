@@ -12,6 +12,9 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.Configure<DatabaseSettings>(builder.Configuration.GetSection(nameof(DatabaseSettings)));
 builder.Services.AddSingleton<MyMongoRepository>();
 
+// In-memory cache
+builder.Services.AddMemoryCache();
+
 // Max upload size: 500MB
 builder.WebHost.ConfigureKestrel(options =>
 {

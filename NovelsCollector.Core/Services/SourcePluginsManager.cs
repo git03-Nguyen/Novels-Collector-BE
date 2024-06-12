@@ -1,4 +1,5 @@
-﻿using NovelsCollector.Core.Exceptions;
+﻿using Microsoft.Extensions.Caching.Memory;
+using NovelsCollector.Core.Exceptions;
 using NovelsCollector.Core.Models;
 using NovelsCollector.Core.Services.Abstracts;
 using NovelsCollector.Core.Utils;
@@ -11,8 +12,14 @@ namespace NovelsCollector.Core.Services
     {
         private const string pluginsFolderName = "source-plugins";
 
-        public SourcePluginsManager(ILogger<SourcePluginsManager> logger, MyMongoRepository myMongoRepository)
-            : base(logger, myMongoRepository, pluginsFolderName) { }
+        private IMemoryCache _cacheService;
+
+
+        public SourcePluginsManager(ILogger<SourcePluginsManager> logger, MyMongoRepository myMongoRepository, IMemoryCache cacheServide)
+            : base(logger, myMongoRepository, pluginsFolderName) 
+        {
+            _cacheService = cacheServide;
+        }
 
 
         // -------------- MANAGE FOR SOURCE FEATURES --------------
@@ -258,6 +265,14 @@ namespace NovelsCollector.Core.Services
 
         public async Task<Category[]> GetCategories(string source)
         {
+            // Caching the categories
+            var cacheKey = $"categories-{source}";
+            if (_cacheService.TryGetValue(cacheKey, out Category[] categories))
+            {
+                _logger.LogInformation($"Cache hit for categories of {source}");
+                return categories;
+            }
+
             // Get the plugin in the Installed list
             var plugin = Installed.Find(p => p.Name == source);
 
@@ -268,7 +283,7 @@ namespace NovelsCollector.Core.Services
                 throw new Exception("Plugin not loaded");
 
             // If the plugin is loaded, get the list of categories
-            Category[]? categories = null;
+            //Category[]? categories = null;
             if (plugin.PluginInstance is ISourcePlugin executablePlugin)
             {
                 categories = await executablePlugin.CrawlCategories();
@@ -279,11 +294,34 @@ namespace NovelsCollector.Core.Services
                 categories = Array.Empty<Category>();
             }
 
+            // Cache the categories
+            _cacheService.Set(cacheKey, categories, new MemoryCacheEntryOptions
+            {
+                AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1),
+                SlidingExpiration = TimeSpan.FromMinutes(30)
+            });
+
             return categories;
         }
 
         public async Task<Tuple<Novel[], int>> GetNovelsByCategory(string source, string categorySlug, int page = 1)
         {
+            Novel[]? novels = null;
+            int totalPage = -1;
+
+            // Caching the novels for page 1
+            if (page == 1)
+            {
+                var cacheKey = $"novels-{source}-{categorySlug}-page1";
+                var cacheKeyTotalPage = $"novels-{source}-{categorySlug}-totalPage";
+
+                if (_cacheService.TryGetValue(cacheKey, out novels) && _cacheService.TryGetValue(cacheKeyTotalPage, out totalPage))
+                {
+                    _logger.LogInformation($"Cache hit for novels of {source} in category {categorySlug} at page 1");
+                    return new Tuple<Novel[], int>(novels, totalPage);
+                }
+            }
+
             // Get the plugin in the Installed list
             var plugin = Installed.Find(p => p.Name == source);
 
@@ -294,8 +332,6 @@ namespace NovelsCollector.Core.Services
                 throw new Exception("Plugin not loaded");
 
             // If the plugin is loaded, get the novels by category
-            Novel[]? novels = null;
-            int totalPage = -1;
             if (plugin.PluginInstance is ISourcePlugin executablePlugin)
             {
                 (novels, totalPage) = await executablePlugin.CrawlByCategory(categorySlug, page);
@@ -304,6 +340,24 @@ namespace NovelsCollector.Core.Services
             if (novels == null)
             {
                 novels = Array.Empty<Novel>();
+            }
+
+            // Cache the novels for page 1
+            if (page == 1)
+            {
+                var cacheKey = $"novels-{source}-{categorySlug}-page1";
+                var cacheKeyTotalPage = $"novels-{source}-{categorySlug}-totalPage";
+
+                _cacheService.Set(cacheKey, novels, new MemoryCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1),
+                    SlidingExpiration = TimeSpan.FromMinutes(30)
+                });
+                _cacheService.Set(cacheKeyTotalPage, totalPage, new MemoryCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1),
+                    SlidingExpiration = TimeSpan.FromMinutes(30)
+                });
             }
 
             return new Tuple<Novel[], int>(novels, totalPage);
@@ -338,6 +392,22 @@ namespace NovelsCollector.Core.Services
 
         public async Task<Tuple<Novel[], int>> GetHotNovels(string source, int page = 1)
         {
+            Novel[]? novels = null;
+            int totalPage = -1;
+
+            // Cache the hot novels for page 1
+            if (page == 1)
+            {
+                var cacheKey = $"hot-novels-{source}-page1";
+                var cacheKeyTotalPage = $"hot-novels-{source}-totalPage";
+
+                if (_cacheService.TryGetValue(cacheKey, out novels) && _cacheService.TryGetValue(cacheKeyTotalPage, out totalPage))
+                {
+                    _logger.LogInformation($"Cache hit for hot novels of {source} at page 1");
+                    return new Tuple<Novel[], int>(novels, totalPage);
+                }
+            }
+
             // Get the plugin in the Installed list
             var plugin = Installed.Find(p => p.Name == source);
 
@@ -348,8 +418,6 @@ namespace NovelsCollector.Core.Services
                 throw new Exception("Plugin not loaded");
 
             // If the plugin is loaded, get the hot novels
-            Novel[]? novels = null;
-            int totalPage = -1;
             if (plugin.PluginInstance is ISourcePlugin executablePlugin)
             {
                 (novels, totalPage) = await executablePlugin.CrawlHot(page);
@@ -360,11 +428,45 @@ namespace NovelsCollector.Core.Services
                 novels = Array.Empty<Novel>();
             }
 
+            // Cache the hot novels for page 1
+            if (page == 1)
+            {
+                var cacheKey = $"hot-novels-{source}-page1";
+                var cacheKeyTotalPage = $"hot-novels-{source}-totalPage";
+
+                _cacheService.Set(cacheKey, novels, new MemoryCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1),
+                    SlidingExpiration = TimeSpan.FromMinutes(30)
+                });
+                _cacheService.Set(cacheKeyTotalPage, totalPage, new MemoryCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1),
+                    SlidingExpiration = TimeSpan.FromMinutes(30)
+                });
+            }
+
             return new Tuple<Novel[], int>(novels, totalPage);
         }
 
         public async Task<Tuple<Novel[], int>> GetLatestNovels(string source, int page = 1)
         {
+            Novel[]? novels = null;
+            int totalPage = -1;
+
+            // Cache the latest novels for page 1
+            if (page == 1)
+            {
+                var cacheKey = $"latest-novels-{source}-page1";
+                var cacheKeyTotalPage = $"latest-novels-{source}-totalPage";
+
+                if (_cacheService.TryGetValue(cacheKey, out novels) && _cacheService.TryGetValue(cacheKeyTotalPage, out totalPage))
+                {
+                    _logger.LogInformation($"Cache hit for latest novels of {source} at page 1");
+                    return new Tuple<Novel[], int>(novels, totalPage);
+                }
+            }
+
             // Get the plugin in the Installed list
             var plugin = Installed.Find(p => p.Name == source);
 
@@ -375,8 +477,6 @@ namespace NovelsCollector.Core.Services
                 throw new Exception("Plugin not loaded");
 
             // If the plugin is loaded, get the latest novels
-            Novel[]? novels = null;
-            int totalPage = -1;
             if (plugin.PluginInstance is ISourcePlugin executablePlugin)
             {
                 (novels, totalPage) = await executablePlugin.CrawlLatest(page);
@@ -387,11 +487,45 @@ namespace NovelsCollector.Core.Services
                 novels = Array.Empty<Novel>();
             }
 
+            // Cache the latest novels for page 1
+            if (page == 1)
+            {
+                var cacheKey = $"latest-novels-{source}-page1";
+                var cacheKeyTotalPage = $"latest-novels-{source}-totalPage";
+
+                _cacheService.Set(cacheKey, novels, new MemoryCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1),
+                    SlidingExpiration = TimeSpan.FromMinutes(30)
+                });
+                _cacheService.Set(cacheKeyTotalPage, totalPage, new MemoryCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1),
+                    SlidingExpiration = TimeSpan.FromMinutes(30)
+                });
+            }
+
             return new Tuple<Novel[], int>(novels, totalPage);
         }
 
         public async Task<Tuple<Novel[], int>> GetCompletedNovels(string source, int page = 1)
         {
+            Novel[]? novels = null;
+            int totalPage = -1;
+
+            // Cache the completed novels for page 1
+            if (page == 1)
+            {
+                var cacheKey = $"completed-novels-{source}-page1";
+                var cacheKeyTotalPage = $"completed-novels-{source}-totalPage";
+
+                if (_cacheService.TryGetValue(cacheKey, out novels) && _cacheService.TryGetValue(cacheKeyTotalPage, out totalPage))
+                {
+                    _logger.LogInformation($"Cache hit for completed novels of {source} at page 1");
+                    return new Tuple<Novel[], int>(novels, totalPage);
+                }
+            }
+
             // Get the plugin in the Installed list
             var plugin = Installed.Find(p => p.Name == source);
 
@@ -402,8 +536,6 @@ namespace NovelsCollector.Core.Services
                 throw new Exception("Plugin not loaded");
 
             // If the plugin is loaded, get the completed novels
-            Novel[]? novels = null;
-            int totalPage = -1;
             if (plugin.PluginInstance is ISourcePlugin executablePlugin)
             {
                 (novels, totalPage) = await executablePlugin.CrawlCompleted(page);
@@ -412,6 +544,24 @@ namespace NovelsCollector.Core.Services
             if (novels == null)
             {
                 novels = Array.Empty<Novel>();
+            }
+
+            // Cache the completed novels for page 1
+            if (page == 1)
+            {
+                var cacheKey = $"completed-novels-{source}-page1";
+                var cacheKeyTotalPage = $"completed-novels-{source}-totalPage";
+
+                _cacheService.Set(cacheKey, novels, new MemoryCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1),
+                    SlidingExpiration = TimeSpan.FromMinutes(30)
+                });
+                _cacheService.Set(cacheKeyTotalPage, totalPage, new MemoryCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1),
+                    SlidingExpiration = TimeSpan.FromMinutes(30)
+                });
             }
 
             return new Tuple<Novel[], int>(novels, totalPage);

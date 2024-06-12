@@ -88,7 +88,7 @@ namespace Source.TruyenTangThuVienVn
         public async Task<Tuple<Novel[], int>> CrawlByCategory(string categorySlug, int page = 1)
         {
             int categoryId = await CrawlIdCategory(categorySlug);
-            var result = await CrawlNovels(CategoryUrl.Replace("id", categoryId.ToString()), page);
+            var result = await CrawlNovels(CategoryUrl.Replace("<id>", categoryId.ToString()), page);
             return result;
         }
 
@@ -471,10 +471,10 @@ namespace Source.TruyenTangThuVienVn
             try
             {
                 var document = await LoadFromWebAsync($"https://truyen.tangthuvien.vn/the-loai/{categorySlug}");
-                var moreElement = document.DocumentNode.QuerySelector("a[href*='https://truyen.tangthuvien.vn/tong-hop?tp=cv&ctg=']");
+                var moreElement = document.DocumentNode.QuerySelector("p#update-tab a");
                 if (moreElement != null)
                 {
-                    id = int.Parse(moreElement.Attributes["href"].Value.Replace("https://truyen.tangthuvien.vn/tong-hop?tp=cv&ctg=", ""));
+                    id = int.Parse(moreElement.Attributes["href"].Value.Replace("https://truyen.tangthuvien.vn/tong-hop?tp=cv&amp;ctg=", ""));
                 }
             }
             catch (NullReferenceException ex)
