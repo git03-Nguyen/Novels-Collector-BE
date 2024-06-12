@@ -95,23 +95,43 @@ namespace NovelsCollector.Core.Services
 
             // Search for the novel in other sources
             Dictionary<string, Novel> novels = new Dictionary<string, Novel>();
-            foreach (var plugin in Installed)
+
+            // Using threads parallel to search for the novel in other sources, each thread for each plugin
+            var tasks = Installed.Select(plugin => Task.Run(async () =>
             {
-                if (plugin.Name == excludedSource) continue;
+                if (plugin.Name == excludedSource) return;
 
                 if (plugin.PluginInstance is ISourcePlugin executablePlugin)
                 {
                     // Step 1: Search by title
-                    var (searchResults, _) = await executablePlugin.CrawlSearch(novel?.Title, 1);
-                    if (searchResults == null) continue;
+                    var (searchResults, _) = await executablePlugin.CrawlSearch(novel.Title, 1);
+                    if (searchResults == null) return;
 
                     // Step 2: Choose the novel with the same title and author
-                    var sameNovel = searchResults.FirstOrDefault(n => (n.Title == novel?.Title && n.Authors?[0]?.Name == novel?.Authors[0]?.Name));
+                    var sameNovel = searchResults.FirstOrDefault(n => (n.Title == novel.Title && n.Authors?[0]?.Name == novel.Authors[0]?.Name));
                     if (sameNovel != null)
-                        novels.Add(plugin.Name, sameNovel);
+                    {
+                        lock (novels)
+                        {
+                            novels.Add(plugin.Name, sameNovel);
+                        }
+                    }
+                }
+            }));
+
+            // Wait for all tasks to finish
+            await Task.WhenAll(tasks);
+
+            // Ensure to stop every tasks
+            foreach (var task in tasks)
+            {
+                if (task.IsFaulted)
+                {
+                    _logger.LogError(task.Exception?.InnerException, "Error when searching for novels in other sources");
                 }
             }
 
+            // If no novel is found, return null
             if (novels.Count == 0) return null;
 
             // Only return the title, author and slug of each novel

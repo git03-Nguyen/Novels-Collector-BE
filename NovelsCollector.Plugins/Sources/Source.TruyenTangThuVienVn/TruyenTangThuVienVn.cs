@@ -421,6 +421,9 @@ namespace Source.TruyenTangThuVienVn
                 Console.WriteLine("An error occurred: " + ex.Message);
             }
 
+            if (listNovel.Count == 0 || (listNovel[0].Slug == null))
+                return new Tuple<Novel[], int>(null, 0);
+
             return new Tuple<Novel[], int>(listNovel.ToArray(), totalPage);
         }
 
