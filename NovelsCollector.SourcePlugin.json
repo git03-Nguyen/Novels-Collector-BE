@@ -1,0 +1,36 @@
+[{
+  "_id": {
+    "$oid": "6669a103742d62394efb84e6"
+  },
+  "Name": "TruyenFullVn",
+  "Description": "Plugin này crawl truyện từ website truyenfull.vn",
+  "Version": "1.0.0",
+  "Author": "Nguyễn Tuấn Đạt",
+  "Assembly": "Source.TruyenFullVn.dll",
+  "Icon": "https://play-lh.googleusercontent.com/cdpInmzWgAUfbdtbEJnYyVdm-yjVtWe6oVOsiXYdCdVulhV8cBit9sbpykwVKXZ3kZw",
+  "Url": "https://truyenfull.vn/"
+},
+{
+  "_id": {
+    "$oid": "6669a110742d62394efb84e7"
+  },
+  "Name": "TruyenTangThuVienVn",
+  "Description": "Plugin này crawl truyện từ website truyen.tangthuvien.vn",
+  "Version": "1.0.0",
+  "Author": "Nguyễn Tuấn Đạt",
+  "Assembly": "Source.TruyenTangThuVienVn.dll",
+  "Icon": "https://play-lh.googleusercontent.com/ySl8uNRjXrdZoY4xJZWZ0A875z4lTVLvJckaE3ECsL8OitY0g5UES9QMpNhO7OO1hH4",
+  "Url": "https://truyen.tangthuvien.vn/"
+},
+{
+  "_id": {
+    "$oid": "6669a119742d62394efb84e8"
+  },
+  "Name": "DTruyenCom",
+  "Description": "Plugin này crawl truyện từ website dtruyen.com",
+  "Version": "1.0.0",
+  "Author": "Nguyễn Tuấn Đạt",
+  "Assembly": "Source.DTruyenCom.dll",
+  "Icon": "https://img.dtruyen.com/logo-dtruyen.png",
+  "Url": "https://dtruyen.com"
+}]

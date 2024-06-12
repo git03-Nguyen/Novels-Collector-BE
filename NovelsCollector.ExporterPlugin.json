@@ -1,5 +1,8 @@
 [{
-  "_id": "SimpleEPub",
+  "_id": {
+    "$oid": "6669a13c742d62394efb84e9"
+  },
+  "Name": "SimpleEPub",
   "Description": "Plugin này xuất truyện ra định dạng EPUB.",
   "Version": "1.0.0",
   "Author": "Nguyễn Đình Ánh",
@@ -8,20 +11,26 @@
   "Extension": "epub"
 },
 {
-  "_id": "SimplePDF",
-  "Description": "Plugin này xuất truyện ra định dạng PDF.",
-  "Version": "1.0.0",
-  "Author": "Nguyễn Đình Ánh",
-  "Assembly": "Exporter.SimplePDF.dll",
-  "Icon": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTGAA4Wd4bco5Xv33GasXrnDdQT5OFXwa3HUQ&s",
-  "Extension": "pdf"
-},
-{
-  "_id": "SimpleMobi",
+  "_id": {
+    "$oid": "6669a152742d62394efb84ea"
+  },
+  "Name": "SimpleMobi",
   "Description": "Plugin này xuất truyện ra định dạng MOBI.",
   "Version": "1.0.0",
   "Author": "Nguyễn Đình Ánh",
   "Assembly": "Exporter.SimpleMobi.dll",
   "Icon": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTSZJ13K1tb2_0ggt0M42C4xcKFmDCL2lYVbQ&s",
   "Extension": "mobi"
+},
+{
+  "_id": {
+    "$oid": "6669a15c742d62394efb84eb"
+  },
+  "Name": "SimplePDF",
+  "Description": "Plugin này xuất truyện ra định dạng PDF.",
+  "Version": "1.0.0",
+  "Author": "Nguyễn Đình Ánh",
+  "Assembly": "Exporter.SimplePDF.dll",
+  "Icon": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTGAA4Wd4bco5Xv33GasXrnDdQT5OFXwa3HUQ&s",
+  "Extension": "pdf"
 }]
