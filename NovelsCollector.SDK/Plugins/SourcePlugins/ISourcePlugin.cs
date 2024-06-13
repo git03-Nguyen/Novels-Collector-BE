@@ -6,6 +6,7 @@ namespace NovelsCollector.SDK.Plugins.SourcePlugins
     {
         // Search for novels by query: keyword, author, ...
         public Task<Tuple<Novel[]?, int>> CrawlSearch(string? query, int page = 1);
+        public Task<Tuple<Novel[]?, int>> CrawlQuickSearch(string? query, int page = 1);
 
         // Get novel information
         public Task<Novel?> CrawlDetail(string novelSlug);

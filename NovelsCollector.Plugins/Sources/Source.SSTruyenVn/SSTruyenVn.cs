@@ -4,7 +4,10 @@ using NovelsCollector.SDK.Models;
 using NovelsCollector.SDK.Plugins.SourcePlugins;
 using System.Globalization;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Source.TruyenSSVn
 {
@@ -33,6 +36,38 @@ namespace Source.TruyenSSVn
             query = query.Replace(" ", "%20");
             var result = await CrawlNovels(SearchUrl.Replace("<keyword>", query), page);
             return result;
+        }
+
+        /// <summary>
+        /// Crawl quick search
+        /// </summary>
+        /// <param name="query"></param>
+        /// <param name="page"></param>
+        /// <returns></returns>
+        public async Task<Tuple<Novel[]?, int>> CrawlQuickSearch(string? query, int page = 1)
+        {
+            if (page != 1) return new Tuple<Novel[]?, int>(null, 0);
+
+            var url = $"https://sstruyen.vn/ajax.php?search={query}";
+
+            HttpClient httpClient = new HttpClient();
+            var response = await httpClient.GetAsync(url);
+            if (!response.IsSuccessStatusCode) return new Tuple<Novel[]?, int>(null, 0);
+
+            var jsonStr = await response.Content.ReadAsStringAsync();
+            var items = JsonSerializer.Deserialize<List<ResponseItem>>(jsonStr);
+            if (items == null || items.Count() == 0) return new Tuple<Novel[]?, int>(null, 0);
+
+            List<Novel> listNovel = new List<Novel>();
+            foreach (var item in items)
+            {
+                Novel novel = new Novel();
+                novel.Title = item.Name;
+                novel.Slug = item.Url.Replace("/", "");
+                listNovel.Add(novel);
+            }
+
+            return new Tuple<Novel[]?, int>(listNovel.ToArray(), 1);
         }
 
         /// <summary>
@@ -282,19 +317,76 @@ namespace Source.TruyenSSVn
         {
             if (chapterNumber <= 0) return null;
 
-            const int PER_PAGE = 32;
-            int page = (chapterNumber - 1) / PER_PAGE + 1;
-
-            var (listChapters, totalPage) = await CrawlListChapters(novelSlug, page);
-            if (listChapters == null) return null;
-            if (listChapters.Count(x => x.Number == chapterNumber) == 0) return null;
-
             var chapter = new Chapter();
             chapter.NovelSlug = novelSlug;
             chapter.Number = chapterNumber;
             chapter.Slug = $"chuong-{chapterNumber}";
 
+            var url = ChapterUrl.Replace("<novel-slug>", novelSlug).Replace("<chapter-slug>", chapter.Slug);
+            var document = await LoadFromWebAsync(url);
+
+            // Get content of chapter in html format
+            var contentElement = document.DocumentNode.QuerySelector("div.content.container1");
+            if (contentElement == null) return null;
+
+            // Get number
+            int number = 0;
+            var titleElement = document.DocumentNode.QuerySelector("div.rv-chapt-title a").InnerText;
+            var titleStrings = titleElement.Split(": ");
+            var match = Regex.Match(titleStrings[0], @"\d+");
+            if (match.Success) number = int.Parse(match.Value);
+
+            if (number == chapterNumber) return chapter;
+
+            // ------------
+            // Other ways :((
+            chapter.Slug = null;
+            const int PER_PAGE = 32;
+            int page = (chapterNumber - 1) / PER_PAGE + 1;
+
+            bool flag = false;
+            var (listChapters, totalPage) = await CrawlListChapters(novelSlug, page);
+            if (listChapters == null) return null;
+
+            // If it's greater than the last chapter in the page, maybe it's in the next page
+            while (chapterNumber > listChapters.Last().Number && page < totalPage)
+            {
+                (listChapters, totalPage) = await CrawlListChapters(novelSlug, page);
+                if (listChapters == null) return null;
+                page++;
+
+                if (chapterNumber <= listChapters.Last().Number)
+                {
+                    flag = true;
+                    break;
+                }
+            }
+
+            if (!flag)
+            {
+                // If it's smaller than the first chapter in the page, maybe it's in the previous page
+                while (chapterNumber < listChapters.First().Number && page > 1)
+                {
+                    (listChapters, totalPage) = await CrawlListChapters(novelSlug, page);
+                    if (listChapters == null) return null;
+                    page--;
+                }
+            }
+
+            // Find the chapter in current page
+            foreach (var c in listChapters)
+            {
+                if (c.Number == chapterNumber)
+                {
+                    chapter.Slug = c.Slug;
+                    break;
+                }
+            }
+            if (chapter.Slug == null) return null;
+
             return chapter;
+
+
         }
 
         #region helper method
@@ -342,7 +434,7 @@ namespace Source.TruyenSSVn
                     foreach (var element in authorElements)
                     {
                         var author = new Author();
-                        author.Name = element.InnerText;
+                        author.Name = element.InnerText.Trim();
                         listAuthor.Add(author);
                     }
                     novel.Authors = listAuthor.ToArray();
@@ -399,7 +491,7 @@ namespace Source.TruyenSSVn
         {
             Regex regex = new Regex("\\p{IsCombiningDiacriticalMarks}+");
             string temp = s.Normalize(NormalizationForm.FormD);
-            return regex.Replace(temp, String.Empty).Replace('\u0111', 'd').Replace('\u0110', 'D');
+            return regex.Replace(temp, System.String.Empty).Replace('\u0111', 'd').Replace('\u0110', 'D');
         }
         private string ConvertToSlug(string input)
         {
@@ -437,6 +529,21 @@ namespace Source.TruyenSSVn
 
             return slug;
         }
+
+        private class ResponseItem
+        {
+            [JsonPropertyName("id")]
+            public int Id { get; set; }
+            [JsonPropertyName("name")]
+            public string Name { get; set; }
+            [JsonPropertyName("url")]
+            public string Url { get; set; }
+            [JsonPropertyName("seo")]
+            public string Seo { get; set; }
+            [JsonPropertyName("image_z")]
+            public string Image { get; set; }
+        }
+
         #endregion
     }
 }

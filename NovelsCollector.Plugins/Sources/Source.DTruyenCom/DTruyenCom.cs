@@ -4,6 +4,7 @@ using NovelsCollector.SDK.Models;
 using NovelsCollector.SDK.Plugins.SourcePlugins;
 using System.Globalization;
 using System.Text;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 
 namespace DTruyenCom
@@ -33,6 +34,61 @@ namespace DTruyenCom
             var slugKeyword = ConvertToSlug(query);
             var result = await CrawlNovels(SearchUrl.Replace("<keyword>", slugKeyword), page);
             return result;
+        }
+
+        /// <summary>
+        /// Crawl novels by quick search
+        /// </summary>
+        /// <param name="query"></param>
+        /// <param name="page"></param>
+        /// <returns></returns>
+        public async Task<Tuple<Novel[]?, int>> CrawlQuickSearch(string? query, int page = 1)
+        {
+            if (page != 1) return new Tuple<Novel[]?, int>(null, 1);
+
+            var url = $"https://dtruyen.com/ajax/search/";
+            var httpClient = new HttpClient();
+
+            /*
+                fetch("https://dtruyen.com/ajax/search/", {
+                    method: "POST",
+                    headers: {'content-type': 'multipart/form-data; boundary=----WebKitFormBoundarytyRBCFricHg9hgBq'},
+                    body: `------WebKitFormBoundarytyRBCFricHg9hgBq
+                        Content-Disposition: form-data; name="key"
+                        
+                        tao tac
+                        ------WebKitFormBoundarytyRBCFricHg9hgBq--`
+                    });  
+             */
+
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, url);
+            request.Content = new StringContent($"------WebKitFormBoundarytyRBCFricHg9hgBq\nContent-Disposition: form-data; name=\"key\"\n\n{query}\n------WebKitFormBoundarytyRBCFricHg9hgBq--", Encoding.UTF8);
+            request.Content.Headers.Remove("Content-Type");
+            var x = request.Content.Headers.TryAddWithoutValidation("Content-Type", "multipart/form-data; boundary=----WebKitFormBoundarytyRBCFricHg9hgBq");
+            var response = await httpClient.SendAsync(request);
+
+            // deserialize json as Dictionary<string, List<Dictionary<string, string>>>
+            var jsonString = await response.Content.ReadAsStringAsync();
+            var json = JsonSerializer.Deserialize<Dictionary<string, List<Dictionary<string, object>>>>(jsonString);
+
+            List<Novel> listNovel = new List<Novel>();
+            foreach (var story in json["stories"])
+            {
+                Novel novel = new Novel()
+                {
+                    Id = int.Parse(story["ID"].ToString()),
+                    Title = story["Name"].ToString(),
+                    Slug = story["Key"].ToString(),
+                    Authors = [new Author() { Name = story["AuthorName"].ToString() }]
+                };
+
+                listNovel.Add(novel);
+            }
+
+            if (listNovel.Count == 0) return new Tuple<Novel[]?, int>(null, 1);
+
+            return new Tuple<Novel[]?, int>(listNovel.ToArray(), 1);
+
         }
 
         /// <summary>
@@ -495,6 +551,8 @@ namespace DTruyenCom
 
             return slug;
         }
+
+
         #endregion
     }
 }

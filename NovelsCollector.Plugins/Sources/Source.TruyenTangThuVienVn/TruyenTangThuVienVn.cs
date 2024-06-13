@@ -3,6 +3,7 @@ using HtmlAgilityPack.CssSelectors.NetCore;
 using NovelsCollector.SDK.Models;
 using NovelsCollector.SDK.Plugins.SourcePlugins;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 
 namespace Source.TruyenTangThuVienVn
@@ -31,6 +32,42 @@ namespace Source.TruyenTangThuVienVn
         {
             var result = await CrawlNovels(SearchUrl.Replace("<keyword>", query), page);
             return result;
+        }
+
+        /// <summary>
+        /// Crawl quick search
+        /// </summary>
+        /// <param name="query"></param>
+        /// <param name="page"></param>
+        /// <returns></returns>
+        public async Task<Tuple<Novel[]?, int>> CrawlQuickSearch(string? query, int page = 1)
+        {
+            if (page != 1) return new Tuple<Novel[]?, int>(null, 0);
+            
+            var sQuery = query.Replace(" ", "+");
+            var url = $"https://truyen.tangthuvien.vn/tim-kiem?term={sQuery}";
+
+            HttpClient httpClient = new HttpClient();
+            var response = await httpClient.GetAsync(url);
+            if (!response.IsSuccessStatusCode) return new Tuple<Novel[]?, int>(null, 0);
+
+            var jsonStr = await response.Content.ReadAsStringAsync();
+            var items = JsonSerializer.Deserialize<List<ResponseItem>>(jsonStr);
+            if (items == null || items.Count() == 0) return new Tuple<Novel[]?, int>(null, 0);
+
+            List<Novel> listNovel = new List<Novel>();
+            foreach (var item in items)
+            {
+                if (item.Type == "story")
+                {
+                    Novel novel = new Novel();
+                    novel.Title = item.Name;
+                    novel.Slug = item.Url;
+                    listNovel.Add(novel);
+                }
+            }
+
+            return new Tuple<Novel[]?, int>(listNovel.ToArray(), 1);
         }
 
         /// <summary>
@@ -526,10 +563,15 @@ namespace Source.TruyenTangThuVienVn
         }
         private class ResponseItem
         {
+            [JsonPropertyName("id")]
             public int Id { get; set; }
+            [JsonPropertyName("name")]
             public string Name { get; set; }
+            [JsonPropertyName("url")]
             public string Url { get; set; }
+            [JsonPropertyName("type")]
             public string Type { get; set; }
+            [JsonPropertyName("story_type")]
             public int StoryType { get; set; }
         }
 

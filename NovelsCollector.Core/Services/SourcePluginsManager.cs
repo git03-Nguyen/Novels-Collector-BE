@@ -1,10 +1,13 @@
 ﻿using Microsoft.Extensions.Caching.Memory;
+using MongoDB.Bson.Serialization.Serializers;
 using NovelsCollector.Core.Exceptions;
 using NovelsCollector.Core.Models;
 using NovelsCollector.Core.Services.Abstracts;
 using NovelsCollector.Core.Utils;
 using NovelsCollector.SDK.Models;
+using NovelsCollector.SDK.Plugins;
 using NovelsCollector.SDK.Plugins.SourcePlugins;
+using System.Collections.Concurrent;
 
 namespace NovelsCollector.Core.Services
 {
@@ -46,10 +49,9 @@ namespace NovelsCollector.Core.Services
             // Execute the plugin
             if (plugin.PluginInstance is ISourcePlugin executablePlugin)
             {
-                (novels, totalPage) = await executablePlugin.CrawlSearch(query, page);
-
                 // standardize the query
                 var sQuery = Helpers.RemoveVietnameseSigns(query.ToLower());
+                (novels, totalPage) = await executablePlugin.CrawlSearch(sQuery, page);
 
                 // if search by keyword, do nothing
                 if (query == keyword) { }
@@ -103,38 +105,19 @@ namespace NovelsCollector.Core.Services
 
             // Caching the same novels in all sources
             var cacheKey = $"novels-{novel.Title}-{novel.Authors[0]?.Name}";
-            if (_cacheService.TryGetValue(cacheKey, out Dictionary<string, Novel> novels))
+            if (_cacheService.TryGetValue(cacheKey, out Dictionary<string, Novel> cachedNovels))
             {
                 _logger.LogInformation($"Cache hit for novels of {novel.Title} by {novel.Authors[0]?.Name}");
-                return novels;
+                // copy the cachedNovels to a new dictionary, without the excluded source
+                var cachedResult = cachedNovels.Where(kvp => kvp.Key != excludedSource).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+                return cachedResult.Count == 0 ? null : cachedResult;
             }
 
             // Search for the novel in other sources
-            novels = new Dictionary<string, Novel>();
+            var novels = new ConcurrentDictionary<string, Novel>();
 
             // Using threads parallel to search for the novel in other sources, each thread for each plugin
-            novels.Add(excludedSource, novel);
-            var tasks = Installed.Select(plugin => Task.Run(async () =>
-            {
-                if (plugin.Name == excludedSource) return;
-
-                if (plugin.PluginInstance is ISourcePlugin executablePlugin)
-                {
-                    // Step 1: Search by title
-                    var (searchResults, _) = await executablePlugin.CrawlSearch(novel.Title, 1);
-                    if (searchResults == null) return;
-
-                    // Step 2: Choose the novel with the same title and author
-                    var sameNovel = searchResults.FirstOrDefault(n => (n.Title == novel.Title && n.Authors?[0]?.Name == novel.Authors[0]?.Name));
-                    if (sameNovel != null)
-                    {
-                        lock (novels)
-                        {
-                            novels.Add(plugin.Name, sameNovel);
-                        }
-                    }
-                }
-            }));
+            var tasks = Installed.Select(plugin => Task.Run(() => SearchForNovelInPlugin(plugin, excludedSource, novel, novels))).ToArray();
 
             // Wait for all tasks to finish
             await Task.WhenAll(tasks);
@@ -148,27 +131,57 @@ namespace NovelsCollector.Core.Services
                 }
             }
 
+            while (!novels.TryAdd(excludedSource, novel));
+
             // If no novel is found, return null
             if (novels.Count == 0) return null;
 
+            // Set null the no-needed properties
+            var result = novels.ToDictionary(kvp => kvp.Key, kvp => new Novel
+            {
+                Title = kvp.Value.Title,
+                Slug = kvp.Value.Slug,
+                Authors = [new Author { Name = kvp.Value.Authors?[0]?.Name }]
+            });
+
             // Cache the same novels in all sources
-            _cacheService.Set(cacheKey, novels, new MemoryCacheEntryOptions
+            _cacheService.Set(cacheKey, result, new MemoryCacheEntryOptions
             {
                 AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1),
                 SlidingExpiration = TimeSpan.FromMinutes(30),
                 Size = 1
             });
 
-            // Remove the novels[excludedSource] if it exists
-            novels.Remove(excludedSource);
+            // Return new dictionary without the excluded source
+            return result.Where(kvp => kvp.Key != excludedSource).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+        }
 
-            // Only return the title, author and slug of each novel
-            return novels.ToDictionary(kvp => kvp.Key, kvp => new Novel
+        // Method to handle the search logic for a single plugin
+        private async Task SearchForNovelInPlugin(SourcePlugin plugin, string excludedSource, Novel novel, ConcurrentDictionary<string, Novel> novels)
+        {
+            if (plugin.Name == excludedSource) return;
+
+            if (plugin.PluginInstance is ISourcePlugin executablePlugin)
             {
-                Title = kvp.Value.Title,
-                Slug = kvp.Value.Slug,
-                Authors = [new Author { Name = kvp.Value.Authors?[0]?.Name }]
-            });
+                try
+                {
+                    // Step 1: Search by title
+                    var (searchResults, _) = await executablePlugin.CrawlQuickSearch(novel.Title, 1);
+                    if (searchResults == null) return;
+
+                    // Step 2: Choose the novel with the same title and author
+                    var sameNovel = searchResults.FirstOrDefault(n => (n.Title == novel.Title));
+                    if (sameNovel != null)
+                    {
+                        while (!novels.TryAdd(plugin.Name, sameNovel));
+                        return;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, $"Error when searching for novels in {plugin.Name}");
+                }
+            }
         }
 
         public async Task<Dictionary<string, Chapter>?> GetChapterFromOtherSources(Dictionary<string, Novel> novelInOtherSources, Chapter currentChapter)
@@ -201,18 +214,26 @@ namespace NovelsCollector.Core.Services
                 // Execute the plugin
                 if (otherPlugin.PluginInstance is ISourcePlugin executablePlugin)
                 {
-                    // Search for the chapter with the same number
-                    var otherChapter = await executablePlugin.GetChapterAddrByNumber(otherNovel.Slug, thisChapterNumber);
-                    if (otherChapter != null)
+                    try
                     {
-                        otherChapter.Source = otherSource;
-                        lock (chapters)
+                        // Search for the chapter with the same number
+                        var otherChapter = await executablePlugin.GetChapterAddrByNumber(otherNovel.Slug, thisChapterNumber);
+                        if (otherChapter != null)
                         {
-                            chapters.Add(otherSource, otherChapter);
+                            otherChapter.Source = otherSource;
+                            lock (chapters)
+                            {
+                                chapters.Add(otherSource, otherChapter);
+                            }
+                            return;
                         }
                     }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, $"Error when searching for chapters in {otherSource}");
+                    }
                 }
-            }));
+            })).ToArray();
 
             // Wait for all tasks to finish
             await Task.WhenAll(tasks);

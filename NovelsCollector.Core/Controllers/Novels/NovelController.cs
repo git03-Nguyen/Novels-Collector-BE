@@ -69,6 +69,7 @@ namespace NovelsCollector.Core.Controllers.Novels
             if (novel == null) throw new BadHttpRequestException("Truyện không hợp lệ.");
 
             // Find novel in other sources
+            novel.Slug = novelSlug;
             var otherSources = await _sourcesPlugins.GetNovelFromOtherSources(source, novel);
 
             // Return the novel

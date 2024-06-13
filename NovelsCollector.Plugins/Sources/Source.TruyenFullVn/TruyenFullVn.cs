@@ -3,6 +3,7 @@ using HtmlAgilityPack.CssSelectors.NetCore;
 using NovelsCollector.SDK.Models;
 using NovelsCollector.SDK.Plugins.SourcePlugins;
 using System.Net;
+using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 
@@ -57,6 +58,69 @@ namespace Source.TruyenFullVn
             if (page > 1) reqStr += $"&page={page}";
             var result = await CrawlNovels(reqStr, page);
             return result;
+        }
+
+        /// <summary>
+        /// Crawl quick search
+        /// </summary>
+        /// <param name="query"></param>
+        /// <param name="page"></param>
+        /// <returns></returns>
+        public async Task<Tuple<Novel[]?, int>> CrawlQuickSearch(string? query, int page = 1)
+        {
+            if (page != 1) return new Tuple<Novel[]?, int>(null, 1);
+
+            var sQuery = query?.Replace(" ", "+");
+            var url = $"https://truyenfull.vn/ajax.php?type=quick_search&str={sQuery}";
+
+            HttpClient httpClient = new HttpClient();
+
+            httpClient.DefaultRequestHeaders.Add("Sec-Fetch-Dest", "empty");
+            httpClient.DefaultRequestHeaders.Add("X-Requested-With", "XMLHttpRequest");
+            httpClient.DefaultRequestHeaders.Add("Sec-Fetch-Site", "same-origin");
+            httpClient.DefaultRequestHeaders.Add("Sec-Fetch-Mode", "cors");
+            httpClient.DefaultRequestHeaders.Add("Referer", "https://truyenfull.vn/");
+            httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("*/*"));
+            httpClient.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36");
+            httpClient.DefaultRequestHeaders.Add("Priority", "u = 1, i");
+
+            var response = await httpClient.GetAsync(url);
+            var htmlStr = await response.Content.ReadAsStringAsync();
+
+            if (string.IsNullOrEmpty(htmlStr))
+            {
+                return await CrawlNovels(SearchUrl.Replace("<keyword>", query), page, true);
+            }
+
+            // Find every sub-string like https://truyenfull.vn/<slug>/ and get the slug
+            var matches = Regex.Matches(htmlStr, @"https://truyenfull.vn/[^/]+/");
+            List<string> slugs = new List<string>();
+            foreach (Match match in matches)
+            {
+                slugs.Add(match.Value.Replace("https://truyenfull.vn/", "").Replace("/", ""));
+            }
+            if (slugs.Count == 0) return new Tuple<Novel[]?, int>(null, 1);
+
+            // Find every sub-string like title="..." and get the title
+            matches = Regex.Matches(htmlStr, @"title=""[^""]+""");
+            List<string> titles = new List<string>();
+            foreach (Match match in matches)
+            {
+                titles.Add(match.Value.Replace("title=\"", "").Replace("\"", ""));
+            }
+
+            // Add n-1 novel
+            List<Novel> novels = new List<Novel>();
+            for (int i = 0; i < slugs.Count - 1; i++)
+            {
+                novels.Add(new Novel
+                {
+                    Slug = slugs[i],
+                    Title = titles[i]
+                });
+            }
+
+            return new Tuple<Novel[]?, int>(novels.ToArray(), 1);
         }
 
         /// <summary>
@@ -374,7 +438,7 @@ namespace Source.TruyenFullVn
         /// </summary>
         /// <param name="url"> Ex: int page will be replace by <page> url:https://truyenfull.vn/danh-sach/truyen-hot/trang-<page>/ </param>
         /// <returns>Tuple - First: Array of novel, Second: totalPage</returns>
-        private async Task<Tuple<Novel[], int>> CrawlNovels(string url, int page = 1)
+        private async Task<Tuple<Novel[], int>> CrawlNovels(string url, int page = 1, bool isQuickSearch = false)
         {
             var listNovel = new List<Novel>();
             int totalPage = 1;
@@ -446,25 +510,28 @@ namespace Source.TruyenFullVn
                 }
 
                 // Process for cropped image
-                using (var client = new HttpClient())
+                if (!isQuickSearch)
                 {
-                    client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36");
-                    client.DefaultRequestHeaders.Add("Accept", "text/html");
-                    client.DefaultRequestHeaders.Add("Accept-Language", "en-US,en;q=0.9");
+                    using (var client = new HttpClient())
+                    {
+                        client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36");
+                        client.DefaultRequestHeaders.Add("Accept", "text/html");
+                        client.DefaultRequestHeaders.Add("Accept-Language", "en-US,en;q=0.9");
 
-                    // Limit the number of concurrent requests to a reasonable number
-                    int maxConcurrency = Math.Min(listNovel.Count, 20); // e.g., limit to 20 concurrent requests
-                    ServicePointManager.DefaultConnectionLimit = maxConcurrency;
+                        // Limit the number of concurrent requests to a reasonable number
+                        int maxConcurrency = Math.Min(listNovel.Count, 20); // e.g., limit to 20 concurrent requests
+                        ServicePointManager.DefaultConnectionLimit = maxConcurrency;
 
-                    var tasks = listNovel.Select(novel => crawlFullCovers(client, novel)).ToArray();
+                        var tasks = listNovel.Select(novel => crawlFullCovers(client, novel)).ToArray();
 
-                    // Await the completion of all tasks
-                    await Task.WhenAll(tasks);
+                        // Await the completion of all tasks
+                        await Task.WhenAll(tasks);
 
-                    Console.WriteLine("Done all full cover");
+                        Console.WriteLine("Done all full cover");
 
-                    // Reset the default connection limit
-                    ServicePointManager.DefaultConnectionLimit = 10;
+                        // Reset the default connection limit
+                        ServicePointManager.DefaultConnectionLimit = 10;
+                    }
                 }
             }
             catch (Exception ex)

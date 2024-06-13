@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Memory;
 using NovelsCollector.Core.Services;
 
 namespace NovelsCollector.Core.Controllers.Plugins
@@ -13,11 +14,13 @@ namespace NovelsCollector.Core.Controllers.Plugins
         #region Injected Services
         private readonly ILogger<SourceController> _logger;
         private readonly SourcePluginsManager _pluginsManager;
+        private readonly IMemoryCache _cacheService;
 
-        public SourceController(ILogger<SourceController> logger, SourcePluginsManager sourcePluginManager)
+        public SourceController(ILogger<SourceController> logger, SourcePluginsManager sourcePluginManager, IMemoryCache cacheService)
         {
             _logger = logger;
             _pluginsManager = sourcePluginManager;
+            _cacheService = cacheService;
         }
         #endregion
 
@@ -46,6 +49,8 @@ namespace NovelsCollector.Core.Controllers.Plugins
         public IActionResult Load([FromRoute] string pluginName)
         {
             _pluginsManager.LoadPlugin(pluginName);
+            if (_cacheService is MemoryCache cache) cache.Clear();
+
             return Ok(new
             {
                 data = _pluginsManager.Installed.ToArray(),
@@ -63,6 +68,8 @@ namespace NovelsCollector.Core.Controllers.Plugins
         public IActionResult Unload([FromRoute] string pluginName)
         {
             _pluginsManager.UnloadPlugin(pluginName);
+            if (_cacheService is MemoryCache cache) cache.Clear();
+
             return Ok(new
             {
                 data = _pluginsManager.Installed.ToArray(),
@@ -80,6 +87,7 @@ namespace NovelsCollector.Core.Controllers.Plugins
         public async Task<IActionResult> Post(IFormFile file)
         {
             var added = await _pluginsManager.AddPluginFromFile(file);
+            if (_cacheService is MemoryCache cache) cache.Clear();
 
             return Ok(new
             {
@@ -98,6 +106,8 @@ namespace NovelsCollector.Core.Controllers.Plugins
         public IActionResult Delete([FromRoute] string pluginName)
         {
             _pluginsManager.RemovePlugin(pluginName);
+            if (_cacheService is MemoryCache cache) cache.Clear();
+
             return Ok(new
             {
                 data = _pluginsManager.Installed.ToArray(),
