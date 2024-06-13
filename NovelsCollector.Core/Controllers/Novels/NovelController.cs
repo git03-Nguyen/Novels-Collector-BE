@@ -172,10 +172,26 @@ namespace NovelsCollector.Core.Controllers.Novels
             // Export the novel
             // TODO: save the file to the cloud storage
             var plugin = _exporterPlugins.Installed.First(x => x.Name == pluginName);
-            using (var stream = new FileStream($"D:/{timestamp}.{plugin.Extension}", FileMode.Create))
+            //using (var stream = new FileStream($"D:/{timestamp}.{plugin.Extension}", FileMode.Create))
+            //{
+            //    await _exporterPlugins.Export(pluginName, novel, stream);
+            //}
+
+            // Save the file to the wwwroot folder
+            var day = DateTime.Now.ToString("yyyyMMdd");
+            var folder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "exports", $"{day}-{plugin.Extension}");
+            // Create multiple folders if not exists
+            if (!Directory.Exists(folder)) Directory.CreateDirectory(folder);
+
+            var path = Path.Combine(folder, $"{timestamp}.{plugin.Extension}");
+            using (var stream = new FileStream(path, FileMode.Create))
             {
                 await _exporterPlugins.Export(pluginName, novel, stream);
             }
+
+            // get the host url
+            var request = HttpContext.Request;
+            var host = $"{request.Scheme}://{request.Host}";
 
             return Ok(new
             {
@@ -183,7 +199,7 @@ namespace NovelsCollector.Core.Controllers.Novels
                 {
                     plugin = pluginName,
                     extension = plugin.Extension,
-                    path = $"D:/{timestamp}.{plugin.Extension}",
+                    path = $"{host}/exports/{day}-{plugin.Extension}/{timestamp}.{plugin.Extension}"
                 }
             });
 

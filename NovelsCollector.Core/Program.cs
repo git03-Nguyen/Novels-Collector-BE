@@ -181,12 +181,12 @@ app.UseCors(corsName);
 
 app.UseHttpsRedirection();
 
+app.UseStaticFiles();
+
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
 
-app.UseStatusCodePages(context =>
-    throw new NotFoundException("Not found!"));
-
 app.Run();
+

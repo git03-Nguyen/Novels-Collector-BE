@@ -2,6 +2,9 @@
 [Bb]in/
 [Oo]bj/
 
+# Exported PDFs, EPUBs, MOBIs
+wwwroot/
+
 # Logs
 Logs/
 

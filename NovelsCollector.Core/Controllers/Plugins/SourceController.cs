@@ -1,8 +1,10 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using NovelsCollector.Core.Services;
 
 namespace NovelsCollector.Core.Controllers.Plugins
 {
+    [Authorize(Roles = "Quản trị viên")]
     [ApiController]
     [Tags("07. Sources")]
     [Route("api/v1/source")]
@@ -23,6 +25,7 @@ namespace NovelsCollector.Core.Controllers.Plugins
         /// Get a list of all source plugins.
         /// </summary>
         /// <returns> A list of all source plugins. </returns>
+        [AllowAnonymous]
         [HttpGet]
         [EndpointSummary("Get a list of all source plugins")]
         public IActionResult Getsources()

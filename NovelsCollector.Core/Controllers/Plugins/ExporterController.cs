@@ -1,8 +1,10 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using NovelsCollector.Core.Services;
 
 namespace NovelsCollector.Core.Controllers.Plugins
 {
+    [Authorize(Roles = "Quản trị viên")]
     [ApiController]
     [Tags("08. Exporters")]
     [Route("api/v1/exporter")]
@@ -23,6 +25,7 @@ namespace NovelsCollector.Core.Controllers.Plugins
         /// Get a list of all exporter plugins.
         /// </summary>
         /// <returns> A list of all exporter plugins. </returns>
+        [AllowAnonymous]
         [HttpGet]
         [EndpointSummary("Get a list of all exporter plugins")]
         public IActionResult GetExporters()
@@ -74,7 +77,7 @@ namespace NovelsCollector.Core.Controllers.Plugins
         /// <returns> The list of loaded exporter plugins and the just added plugin. </returns>
         [HttpPost("add")]
         [EndpointSummary("Add a new exporter plugin")]
-        public async Task<IActionResult> Post(IFormFile file)
+        public async Task<IActionResult> Add(IFormFile file)
         {
             var added = await _pluginsManager.AddPluginFromFile(file);
 
