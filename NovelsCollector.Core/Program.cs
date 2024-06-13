@@ -80,7 +80,10 @@ builder.Services.AddAuthentication(x =>
 });
 
 // In-memory cache
-builder.Services.AddMemoryCache();
+builder.Services.AddMemoryCache(options =>
+{
+    options.SizeLimit = 1024;
+});
 
 // Max upload size: 500MB
 builder.WebHost.ConfigureKestrel(options =>

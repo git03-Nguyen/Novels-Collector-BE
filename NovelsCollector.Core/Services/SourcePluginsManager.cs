@@ -100,10 +100,20 @@ namespace NovelsCollector.Core.Services
             if (novel == null || novel.Title == null || novel.Authors == null || novel.Authors[0]?.Name == null)
                 return null;
 
+
+            // Caching the same novels in all sources
+            var cacheKey = $"novels-{novel.Title}-{novel.Authors[0]?.Name}";
+            if (_cacheService.TryGetValue(cacheKey, out Dictionary<string, Novel> novels))
+            {
+                _logger.LogInformation($"Cache hit for novels of {novel.Title} by {novel.Authors[0]?.Name}");
+                return novels;
+            }
+
             // Search for the novel in other sources
-            Dictionary<string, Novel> novels = new Dictionary<string, Novel>();
+            novels = new Dictionary<string, Novel>();
 
             // Using threads parallel to search for the novel in other sources, each thread for each plugin
+            novels.Add(excludedSource, novel);
             var tasks = Installed.Select(plugin => Task.Run(async () =>
             {
                 if (plugin.Name == excludedSource) return;
@@ -140,6 +150,17 @@ namespace NovelsCollector.Core.Services
 
             // If no novel is found, return null
             if (novels.Count == 0) return null;
+
+            // Cache the same novels in all sources
+            _cacheService.Set(cacheKey, novels, new MemoryCacheEntryOptions
+            {
+                AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1),
+                SlidingExpiration = TimeSpan.FromMinutes(30),
+                Size = 1
+            });
+
+            // Remove the novels[excludedSource] if it exists
+            novels.Remove(excludedSource);
 
             // Only return the title, author and slug of each novel
             return novels.ToDictionary(kvp => kvp.Key, kvp => new Novel
@@ -298,7 +319,8 @@ namespace NovelsCollector.Core.Services
             _cacheService.Set(cacheKey, categories, new MemoryCacheEntryOptions
             {
                 AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1),
-                SlidingExpiration = TimeSpan.FromMinutes(30)
+                SlidingExpiration = TimeSpan.FromMinutes(30),
+                Size = 1
             });
 
             return categories;
@@ -351,12 +373,14 @@ namespace NovelsCollector.Core.Services
                 _cacheService.Set(cacheKey, novels, new MemoryCacheEntryOptions
                 {
                     AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1),
-                    SlidingExpiration = TimeSpan.FromMinutes(30)
+                    SlidingExpiration = TimeSpan.FromMinutes(30),
+                    Size = 1
                 });
                 _cacheService.Set(cacheKeyTotalPage, totalPage, new MemoryCacheEntryOptions
                 {
                     AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1),
-                    SlidingExpiration = TimeSpan.FromMinutes(30)
+                    SlidingExpiration = TimeSpan.FromMinutes(30),
+                    Size = 1
                 });
             }
 
@@ -437,12 +461,14 @@ namespace NovelsCollector.Core.Services
                 _cacheService.Set(cacheKey, novels, new MemoryCacheEntryOptions
                 {
                     AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1),
-                    SlidingExpiration = TimeSpan.FromMinutes(30)
+                    SlidingExpiration = TimeSpan.FromMinutes(30),
+                    Size = 1
                 });
                 _cacheService.Set(cacheKeyTotalPage, totalPage, new MemoryCacheEntryOptions
                 {
                     AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1),
-                    SlidingExpiration = TimeSpan.FromMinutes(30)
+                    SlidingExpiration = TimeSpan.FromMinutes(30),
+                    Size = 1
                 });
             }
 
@@ -496,12 +522,14 @@ namespace NovelsCollector.Core.Services
                 _cacheService.Set(cacheKey, novels, new MemoryCacheEntryOptions
                 {
                     AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1),
-                    SlidingExpiration = TimeSpan.FromMinutes(30)
+                    SlidingExpiration = TimeSpan.FromMinutes(30),
+                    Size = 1
                 });
                 _cacheService.Set(cacheKeyTotalPage, totalPage, new MemoryCacheEntryOptions
                 {
                     AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1),
-                    SlidingExpiration = TimeSpan.FromMinutes(30)
+                    SlidingExpiration = TimeSpan.FromMinutes(30),
+                    Size = 1
                 });
             }
 
@@ -555,12 +583,14 @@ namespace NovelsCollector.Core.Services
                 _cacheService.Set(cacheKey, novels, new MemoryCacheEntryOptions
                 {
                     AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1),
-                    SlidingExpiration = TimeSpan.FromMinutes(30)
+                    SlidingExpiration = TimeSpan.FromMinutes(30),
+                    Size = 1
                 });
                 _cacheService.Set(cacheKeyTotalPage, totalPage, new MemoryCacheEntryOptions
                 {
                     AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1),
-                    SlidingExpiration = TimeSpan.FromMinutes(30)
+                    SlidingExpiration = TimeSpan.FromMinutes(30),
+                    Size = 1
                 });
             }
 
