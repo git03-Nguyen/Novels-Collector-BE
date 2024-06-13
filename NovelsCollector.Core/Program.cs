@@ -112,14 +112,13 @@ builder.Services.AddProblemDetails();
 builder.Services.AddPlugins();
 
 // Add CORS for frontend: http://localhost:3000         TODO: move to config
-var corsName = "Frontend";
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy(corsName, builder =>
+    options.AddPolicy("corsPolicy", builder =>
     {
-        builder.WithOrigins("http://localhost:3000")
-            .AllowAnyHeader()
-            .AllowAnyMethod();
+        builder.AllowAnyOrigin()
+            .AllowAnyMethod()
+            .AllowAnyHeader();
     });
 });
 
@@ -177,7 +176,7 @@ if (app.Environment.IsDevelopment())
 
 app.UsePlugins();
 
-app.UseCors(corsName);
+app.UseCors("corsPolicy");
 
 app.UseHttpsRedirection();
 
