@@ -26,7 +26,8 @@ namespace NovelsCollector.Core.Services.Abstracts
 
         protected async Task<T> GetOneByFieldAsync(string field, string value)
         {
-            return await _collection.Find(x => x.GetType().GetProperty(field).GetValue(x).ToString() == value).FirstOrDefaultAsync();
+            var filter = Builders<T>.Filter.Eq(field, value);
+            return await _collection.Find(filter).FirstOrDefaultAsync();
         }
 
         protected async Task InsertOneAsync(T document)
@@ -41,7 +42,8 @@ namespace NovelsCollector.Core.Services.Abstracts
 
         protected async Task UpdateOneByFieldAsync(string field, string value, T document)
         {
-            await _collection.ReplaceOneAsync(x => x.GetType().GetProperty(field).GetValue(x).ToString() == value, document);
+            var filter = Builders<T>.Filter.Eq(field, value);
+            await _collection.ReplaceOneAsync(filter, document);
         }
 
         protected async Task DeleteOneAsync(string id)
@@ -51,7 +53,8 @@ namespace NovelsCollector.Core.Services.Abstracts
 
         protected async Task DeleteOneByFieldAsync(string field, string value)
         {
-            await _collection.DeleteOneAsync(x => x.GetType().GetProperty(field).GetValue(x).ToString() == value);
+            var filter = Builders<T>.Filter.Eq(field, value);
+            await _collection.DeleteOneAsync(filter);
         }
     }
 }

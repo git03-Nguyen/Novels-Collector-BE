@@ -3,7 +3,7 @@ using NovelsCollector.Core.Exceptions;
 using NovelsCollector.Core.Services;
 using NovelsCollector.SDK.Models;
 
-namespace NovelsCollector.Core.Controllers
+namespace NovelsCollector.Core.Controllers.Novels
 {
     [ApiController]
     [Tags("05. Novel")]
@@ -114,7 +114,7 @@ namespace NovelsCollector.Core.Controllers
                 {
                     source,
                     novelSlug,
-                    page = (page != -1) ? page : totalPage,
+                    page = page != -1 ? page : totalPage,
                     totalPage,
                 }
             });

@@ -100,3 +100,16 @@ Accept: application/json
 ### Chapter content
 @chapSlug4 = kiep-sau-dung-lam-anh-hung_87564.html
 GET {{https}}/api/v1/chapter/{{source4}}/{{novelSlug4}}/{{chapSlug4}}
+
+### Users
+GET https://localhost:7085/api/v1/user
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6Im5ndXllbmRpbmhhbmh2bHF0QGdtYWlsLmNvbSIsIm5iZiI6MTcxODI3NzUwMSwiZXhwIjoxNzE4Mjg4MzAxLCJpYXQiOjE3MTgyNzc1MDF9.xPL5tX9Yeer3MmHHdXrVWV8DDBlaC3-tag9nz2b7wcE
+
+### Login
+POST https://localhost:7085/api/v1/user/login
+Content-Type: application/json
+
+{
+    "email": "nguyendinhanhvlqt@gmail.com",
+    "password": "10009876"
+}

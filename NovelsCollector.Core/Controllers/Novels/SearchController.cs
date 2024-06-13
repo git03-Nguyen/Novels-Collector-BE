@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using NovelsCollector.Core.Services;
 
-namespace NovelsCollector.Core.Controllers
+namespace NovelsCollector.Core.Controllers.Novels
 {
     [ApiController]
     [Tags("02. Search")]

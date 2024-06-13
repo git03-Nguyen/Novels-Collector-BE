@@ -3,7 +3,7 @@ using NovelsCollector.Core.Exceptions;
 using NovelsCollector.Core.Services;
 using NovelsCollector.SDK.Models;
 
-namespace NovelsCollector.Core.Controllers
+namespace NovelsCollector.Core.Controllers.Novels
 {
     [ApiController]
     [Tags("06. Chapter")]

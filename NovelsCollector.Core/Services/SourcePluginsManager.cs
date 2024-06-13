@@ -16,7 +16,7 @@ namespace NovelsCollector.Core.Services
 
 
         public SourcePluginsManager(ILogger<SourcePluginsManager> logger, MyMongoRepository myMongoRepository, IMemoryCache cacheServide)
-            : base(logger, myMongoRepository, pluginsFolderName) 
+            : base(logger, myMongoRepository, pluginsFolderName)
         {
             _cacheService = cacheServide;
         }
