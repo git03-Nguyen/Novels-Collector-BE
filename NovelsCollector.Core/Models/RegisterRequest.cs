@@ -10,9 +10,6 @@ namespace NovelsCollector.Core.Models
         [Required, DataType(DataType.Password)]
         public string Password { get; set; } = string.Empty;
 
-        [Required, DataType(DataType.Password), Compare(nameof(Password), ErrorMessage = "Passwords do not match")]
-        public string ConfirmPassword { get; set; } = string.Empty;
-
         [Required]
         public string Role { get; set; } = string.Empty;
     }
