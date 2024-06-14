@@ -33,4 +33,16 @@
   "Assembly": "Source.DTruyenCom.dll",
   "Icon": "https://img.dtruyen.com/logo-dtruyen.png",
   "Url": "https://dtruyen.com"
+},
+{
+  "_id": {
+    "$oid": "666b5198214d7ccc429902b0"
+  },
+  "Name": "SSTruyenVn",
+  "Description": "Plugin này crawl truyện từ website sstruyen.vn",
+  "Version": "1.0.0",
+  "Author": "Nguyễn Tuấn Đạt",
+  "Assembly": "Source.SSTruyenVn.dll",
+  "Icon": "https://sstruyen.vn/assets/img/sstruyen_logo.png",
+  "Url": "https://sstruyen.vn"
 }]

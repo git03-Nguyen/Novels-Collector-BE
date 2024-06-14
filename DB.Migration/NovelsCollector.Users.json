@@ -1,0 +1,25 @@
+[{
+  "_id": "1e044239-45c4-4939-b50c-d3c3ab433994",
+  "UserName": "user@example.com",
+  "NormalizedUserName": "USER@EXAMPLE.COM",
+  "Email": "user@example.com",
+  "NormalizedEmail": "USER@EXAMPLE.COM",
+  "EmailConfirmed": false,
+  "PasswordHash": "AQAAAAIAAYagAAAAEBc4xFhZvH8pieAHOP1fLcDv6/2cjDyzse5KreoeMcdbIcddIkjZY5q2RRJMvmCboQ==",
+  "SecurityStamp": "KZHRGJFENBIYIN5EPTAF6B7KKQJVLBAW",
+  "ConcurrencyStamp": "45470bfe-b244-4282-af90-aa1c81860c3e",
+  "PhoneNumber": null,
+  "PhoneNumberConfirmed": false,
+  "TwoFactorEnabled": false,
+  "LockoutEnd": null,
+  "LockoutEnabled": true,
+  "AccessFailedCount": 0,
+  "Version": 1,
+  "CreatedOn": "2024-06-14T00:49:28.9513278Z",
+  "Claims": [],
+  "Roles": [
+    "443e7c0b-21f4-4a89-943b-d8a71b0992ad"
+  ],
+  "Logins": [],
+  "Tokens": []
+}]

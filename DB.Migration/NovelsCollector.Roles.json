@@ -1,0 +1,16 @@
+[{
+  "_id": "443e7c0b-21f4-4a89-943b-d8a71b0992ad",
+  "Name": "Quản trị viên",
+  "NormalizedName": "QUẢN TRỊ VIÊN",
+  "ConcurrencyStamp": null,
+  "Version": 1,
+  "Claims": []
+},
+{
+  "_id": "0fe8ed4a-bb6d-4884-bfdf-54194183096d",
+  "Name": "Người dùng",
+  "NormalizedName": "NGƯỜI DÙNG",
+  "ConcurrencyStamp": null,
+  "Version": 1,
+  "Claims": []
+}]
