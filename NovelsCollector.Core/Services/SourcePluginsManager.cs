@@ -168,7 +168,8 @@ namespace NovelsCollector.Core.Services
                     if (searchResults == null) return;
 
                     // Step 2: Choose the novel with the same title and author
-                    var sameNovel = searchResults.FirstOrDefault(n => (n.Title == novel.Title));
+                    var trimmedTitle = novel.Title.Trim();
+                    var sameNovel = searchResults.FirstOrDefault(n => (n.Title.Trim() == trimmedTitle));
                     if (sameNovel != null)
                     {
                         while (!novels.TryAdd(plugin.Name, sameNovel)) ;

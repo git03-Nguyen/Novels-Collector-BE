@@ -89,7 +89,7 @@ namespace NovelsCollector.Core.Controllers.Admin
             // Create token
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("FBE2968244C56E34E98dsa_ahahah_dasdasdasd3B5C54E319123"));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-            var expires = DateTime.Now.AddHours(3);
+            var expires = DateTime.Now.AddDays(1);
 
             var token = new JwtSecurityToken(
                     claims: claims,

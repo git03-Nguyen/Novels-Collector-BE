@@ -207,7 +207,7 @@ namespace Source.TruyenSSVn
                 else novel.Status = EnumStatus.ComingSoon; // Defualt value
 
                 // get cover
-                var coverElement = document.DocumentNode.QuerySelector("div.story-detail img.sstbcover");
+                var coverElement = document.DocumentNode.QuerySelector("div.book-list.story-details img.sstbcover");
                 if (coverElement != null)
                 {
                     foreach (var attribute in coverElement.Attributes)
@@ -245,24 +245,43 @@ namespace Source.TruyenSSVn
                 else if (page <= 0) page = 1;
 
                 // Get chapters
-                document = await LoadFromWebAsync($"https://sstruyen.vn/{novelSlug}/trang-{page}");
+                if (page > 1)
+                    document = await LoadFromWebAsync($"https://sstruyen.vn/{novelSlug}/trang-{page}");
 
-                // Remove latest chapters
-                document.DocumentNode.QuerySelector("div.row.list-chap div[class*='col']").Remove(); // Remove title "Chương Mới Nhất"
-                document.DocumentNode.QuerySelector("div.row.list-chap div[class*='col']").Remove(); // Remove title latest chapters
+                // Check if having title "Chương Mới Nhất" and "Chương Mới Nhất"
+                var sectionTitleRows = document.DocumentNode.QuerySelectorAll("div.row.list-chap div.col-xs-12");
+                // only take the sectionTitleRows having h3's innerText is "Danh sách chương"
+                var sectionChapterList = sectionTitleRows.FirstOrDefault(x => x.QuerySelector("h3")?.InnerText == "Danh sách chương");
+                if (sectionChapterList == null) return new Tuple<Chapter[]?, int>(null, 0);
 
-                var chapterElements = document.DocumentNode.QuerySelectorAll("div.row.list-chap ul li a");
-                if (chapterElements.Count == 0) return new Tuple<Chapter[]?, int>(null, 0);
-                foreach (var element in chapterElements)
+                // take 2 "col-sm-6" is the neighbor of sectionChapterList standing after it
+                List<HtmlNode> colChapters = new List<HtmlNode>();
+                if (sectionChapterList.NextSibling != null && sectionChapterList.NextSibling.HasClass("col-sm-6"))
                 {
-                    Chapter chapter = new Chapter();
-                    var titleStrings = element.InnerText.Split(": ");
-                    Match match = Regex.Match(titleStrings[0], @"\d+");
-                    if (match.Success) chapter.Number = int.Parse(match.Value);
-                    chapter.Title = titleStrings.Length > 1 ? titleStrings[1] : titleStrings[0];
-                    chapter.Slug = element.Attributes["href"].Value.Replace($"/{novelSlug}/", "").Replace("/", "");
-                    listChapter.Add(chapter);
+                    colChapters.Add(sectionChapterList.NextSibling);
+                    if (sectionChapterList.NextSibling.NextSibling != null && sectionChapterList.NextSibling.NextSibling.HasClass("col-sm-6"))
+                    {
+                        colChapters.Add(sectionChapterList.NextSibling.NextSibling);
+                    }
                 }
+
+                // Crawl the chapters
+                foreach (var colChapter in colChapters)
+                {
+                    var chapterElements = colChapter.QuerySelectorAll("ul li a");
+                    foreach (var element in chapterElements)
+                    {
+                        Chapter chapter = new Chapter();
+                        var titleStrings = element.InnerText.Split(": ");
+                        Match match = Regex.Match(titleStrings[0], @"\d+");
+                        if (match.Success) chapter.Number = int.Parse(match.Value);
+                        if (titleStrings.Length == 1) chapter.Title = titleStrings[0];
+                        else chapter.Title = string.Join(": ", titleStrings.Skip(1));
+                        chapter.Slug = element.Attributes["href"].Value.Replace($"/{novelSlug}/", "").Replace("/", "");
+                        listChapter.Add(chapter);
+                    }
+                }
+
             }
             catch (Exception ex)
             {
@@ -294,7 +313,7 @@ namespace Source.TruyenSSVn
                 // Get title
                 var titleElement = document.DocumentNode.QuerySelector("div.rv-chapt-title a").InnerText;
                 var titleStrings = titleElement.Split(": ");
-                title = titleStrings[1].Trim();
+                title = titleStrings.Length == 1 ? titleStrings[0] : string.Join(": ", titleStrings.Skip(1));
 
                 // Get number
                 var match = Regex.Match(titleStrings[0], @"\d+");

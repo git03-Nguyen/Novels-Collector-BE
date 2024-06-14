@@ -299,7 +299,7 @@ namespace Source.TruyenTangThuVienVn
                     var titleStrings = HtmlEntity.DeEntitize(element.QuerySelector("a").Attributes["title"].Value).Split(":");
                     Match match = Regex.Match(titleStrings[0], @"\d+");
                     if (match.Success) chapter.Number = int.Parse(match.Value);
-                    chapter.Title = titleStrings.Length > 1 ? titleStrings[1].Trim() : titleStrings[0].Trim();
+                    chapter.Title = titleStrings.Length == 1 ? titleStrings[0] : string.Join(": ", titleStrings.Skip(1));
                     chapter.Slug = element.QuerySelector("a").Attributes["href"].Value.Replace($"https://truyen.tangthuvien.vn/doc-truyen/{novel.Slug}/", "").Replace("/", "");
                     listChapter.Add(chapter);
                 }

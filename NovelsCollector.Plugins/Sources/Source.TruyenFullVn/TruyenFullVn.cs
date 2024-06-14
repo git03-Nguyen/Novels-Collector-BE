@@ -307,7 +307,7 @@ namespace Source.TruyenFullVn
                         var titleStrings = node.Attributes["title"].Value.Split(" - ")[1].Split(": ");
                         Match match = Regex.Match(titleStrings[0], @"\d+");
                         if (match.Success) chapter.Number = int.Parse(match.Value);
-                        chapter.Title = titleStrings.Length > 1 ? titleStrings[1] : titleStrings[0];
+                        chapter.Title = titleStrings.Length == 1 ? titleStrings[0] : string.Join(": ", titleStrings.Skip(1));
                         chapter.Slug = node.Attributes["href"].Value.Replace($"{mainUrl}{novelSlug}/", "").Replace("/", "");
                         listChapter.Add(chapter);
                     }
@@ -377,10 +377,7 @@ namespace Source.TruyenFullVn
                     // Get title of chatper
                     var titleElement = containerElement.QuerySelector(".chapter-title").InnerText;
                     var titleStrings = titleElement.Split(":");
-                    if (titleStrings.Length > 1)
-                    {
-                        title = titleStrings[1].Trim();
-                    }
+                    title = titleStrings.Length == 1 ? titleStrings[0] : string.Join(": ", titleStrings.Skip(1));
 
                     // Get number of chapter
                     var match = Regex.Match(titleStrings[0], @"\d+");
@@ -527,7 +524,7 @@ namespace Source.TruyenFullVn
                         // Await the completion of all tasks
                         await Task.WhenAll(tasks);
 
-                        Console.WriteLine("Done all full cover");
+                        Console.WriteLine($"Done all {listNovel.Count} covers");
 
                         // Reset the default connection limit
                         ServicePointManager.DefaultConnectionLimit = 10;
@@ -549,7 +546,6 @@ namespace Source.TruyenFullVn
 
             try
             {
-                Console.WriteLine($"Crawl: {novel.Title}");
                 var html = await client.GetStringAsync($"https://truyenfull.vn/{novel.Slug}/");
                 var doc = new HtmlDocument();
                 doc.LoadHtml(html);
@@ -568,8 +564,7 @@ namespace Source.TruyenFullVn
                 }
                 else
                 {
-                    Console.WriteLine($"Not found cover: {novel.Title} - {novel.Slug}");
-                    Console.WriteLine(html);
+                    Console.WriteLine($"Not found full cover: {novel.Title} - {novel.Slug}");
                 }
             }
             catch (Exception ex)

@@ -293,7 +293,8 @@ namespace DTruyenCom
                     var titleStrings = element.QuerySelector("a").Attributes["title"].Value.Split(": ");
                     Match match = Regex.Match(titleStrings[0], @"\d+");
                     if (match.Success) chapter.Number = int.Parse(match.Value);
-                    chapter.Title = titleStrings.Length > 1 ? titleStrings[1] : titleStrings[0];
+                    if (titleStrings.Length == 1) chapter.Title = titleStrings[0];
+                    else chapter.Title = string.Join(": ", titleStrings.Skip(1));
                     chapter.Slug = element.QuerySelector("a").Attributes["href"].Value.Replace($"https://dtruyen.com/{novel.Slug}/", "").Replace("/", "");
                     listChapter.Add(chapter);
                 }
@@ -322,9 +323,10 @@ namespace DTruyenCom
             {
                 content = document.DocumentNode.QuerySelector("#chapter-content")?.InnerHtml;
                 var titleStrings = (document.DocumentNode.QuerySelector("#chapter h2.chapter-title")?.InnerText).Split(": ");
-                title = titleStrings[1].Trim();
                 var match = Regex.Match(titleStrings[0], @"\d+");
                 if (match.Success) number = int.Parse(match.Value);
+                if (titleStrings.Length == 1) title = titleStrings[0];
+                else title = string.Join(": ", titleStrings.Skip(1));
             }
             catch (Exception ex)
             {
