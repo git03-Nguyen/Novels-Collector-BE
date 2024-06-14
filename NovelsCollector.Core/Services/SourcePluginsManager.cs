@@ -1,11 +1,9 @@
 ﻿using Microsoft.Extensions.Caching.Memory;
-using MongoDB.Bson.Serialization.Serializers;
 using NovelsCollector.Core.Exceptions;
 using NovelsCollector.Core.Models;
 using NovelsCollector.Core.Services.Abstracts;
 using NovelsCollector.Core.Utils;
 using NovelsCollector.SDK.Models;
-using NovelsCollector.SDK.Plugins;
 using NovelsCollector.SDK.Plugins.SourcePlugins;
 using System.Collections.Concurrent;
 
@@ -131,7 +129,7 @@ namespace NovelsCollector.Core.Services
                 }
             }
 
-            while (!novels.TryAdd(excludedSource, novel));
+            while (!novels.TryAdd(excludedSource, novel)) ;
 
             // If no novel is found, return null
             if (novels.Count == 0) return null;
@@ -173,7 +171,7 @@ namespace NovelsCollector.Core.Services
                     var sameNovel = searchResults.FirstOrDefault(n => (n.Title == novel.Title));
                     if (sameNovel != null)
                     {
-                        while (!novels.TryAdd(plugin.Name, sameNovel));
+                        while (!novels.TryAdd(plugin.Name, sameNovel)) ;
                         return;
                     }
                 }

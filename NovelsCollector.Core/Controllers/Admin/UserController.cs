@@ -34,7 +34,7 @@ namespace NovelsCollector.Core.Controllers.Admin
 
         [HttpDelete("delete/{id}")]
         [EndpointSummary("Delete a user")]
-        public async Task<IActionResult> Delete([FromRoute] string id)  
+        public async Task<IActionResult> Delete([FromRoute] string id)
         {
             var user = await _userManager.FindByIdAsync(id);
             if (user is null) throw new Exception("Người dùng không tồn tại");

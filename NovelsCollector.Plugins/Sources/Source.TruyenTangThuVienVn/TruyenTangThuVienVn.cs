@@ -43,7 +43,7 @@ namespace Source.TruyenTangThuVienVn
         public async Task<Tuple<Novel[]?, int>> CrawlQuickSearch(string? query, int page = 1)
         {
             if (page != 1) return new Tuple<Novel[]?, int>(null, 0);
-            
+
             var sQuery = query.Replace(" ", "+");
             var url = $"https://truyen.tangthuvien.vn/tim-kiem?term={sQuery}";
 
