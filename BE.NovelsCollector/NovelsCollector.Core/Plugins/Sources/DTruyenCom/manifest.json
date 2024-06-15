@@ -1,9 +1,0 @@
-{
-  "name": "DTruyenCom",
-  "description": "Plugin này crawl truyện từ website dtruyen.com",
-  "version": "1.0.0",
-  "author": "Nguyễn Tuấn Đạt",
-  "assembly": "Source.DTruyenCom.dll",
-  "url": "https://dtruyen.com",
-  "icon": "https://img.dtruyen.com/logo-dtruyen.png"
-}
