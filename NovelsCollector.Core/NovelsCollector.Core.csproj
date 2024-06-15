@@ -21,8 +21,4 @@
     <ProjectReference Include="..\NovelsCollector.SDK\NovelsCollector.SDK.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="wwwroot\" />
-  </ItemGroup>
-
 </Project>

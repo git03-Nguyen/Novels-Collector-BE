@@ -3,7 +3,8 @@
 [Oo]bj/
 
 # Exported PDFs, EPUBs, MOBIs
-wwwroot/
+exports/
+static/
 
 # Logs
 Logs/

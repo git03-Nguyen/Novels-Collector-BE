@@ -119,10 +119,14 @@ namespace NovelsCollector.Core.Controllers.Plugins
         /// Call the GC.Collect and to see if the plugin contexts are unloaded.
         /// </summary>
         /// <returns> The list of plugin contexts that are unloaded in the past and the current status of them (Alive/Dead). </returns>
+        [AllowAnonymous]
         [HttpGet("unload/history")]
         [EndpointSummary("Call the GC.Collect and to see if the plugin contexts are unloaded successfully or not")]
         public IActionResult DebugUnloading()
         {
+            // Disconnect the HTTP connection
+            Response.Body.Close();
+
             for (int i = 0; i < 2; i++)
             {
                 GC.Collect();
