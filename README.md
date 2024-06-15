@@ -34,11 +34,11 @@ To get the project up and running for the first time, follow these steps:
 2. **Run the script to copy plugins into the core app:**\
 	With local run, we have to install the plugins by hand:
 	```bash
-	bash ./scripts/copy_source_plugins.sh
-	bash ./scripts/copy_exporter_plugins.sh
+	bash ./plugin-scripts/copy_source_plugins.sh
+	bash ./plugin-scripts/copy_exporter_plugins.sh
 	```
 3. **Data migration**\
-	Import *.json* files in `mongoDb/` folder to initialize the database. 
+	Import *.json* files in `mongodb-migrations/` folder to initialize the database. 
 4. **Run the project:**\
 	Start the project by using:
 	```bash
