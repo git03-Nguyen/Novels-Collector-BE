@@ -22,10 +22,10 @@
 - **Vietnamese name:** Website Tổng hợp và đọc tiểu thuyết trực tuyến
 - **Front-end:** React
 - **Back-end:** ASP.NET Core
-- **Database:** MongoDB?
+- **Database:** MongoDB
 
 ### 4. Installation guide:
-To get the project up and running, follow these steps:
+To get the project up and running for the first time, follow these steps:
 1. **Build the solution:**\
 	Navigate to the root directory of the project and run the following command to build the solution:
 	```bash
@@ -34,10 +34,12 @@ To get the project up and running, follow these steps:
 2. **Run the script to copy plugins into the core app:**\
 	With local run, we have to install the plugins by hand:
 	```bash
-	bash copy_source_plugins.sh
-	bash copy_exporter_plugins.sh
+	bash ./scripts/copy_source_plugins.sh
+	bash ./scripts/copy_exporter_plugins.sh
 	```
-3. **Run the project:**\
+3. **Data migration**\
+	Import *.json* files in `mongoDb/` folder to initialize the database. 
+4. **Run the project:**\
 	Start the project by using:
 	```bash
 	dotnet run --project ./NovelsCollector.Core/NovelsCollector.Core.csproj
