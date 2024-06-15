@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using NovelsCollector.Core.Services;
-using System.IO;
 
 namespace NovelsCollector.WebAPI.UseCases.V1.PluginsManager
 {
