@@ -1,14 +1,13 @@
-﻿namespace NovelsCollector.Domain.Entities.Plugins.Exporters
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace NovelsCollector.Domain.Entities.Plugins.Exporters
 {
-    using NovelsCollector.Domain.Resources.Novels;
-    using System.IO;
-    using System.Threading.Tasks;
-
-    public interface IExporterPlugin : IPlugin
+    public interface IExporterPlugin
     {
-        // export the novel to the file
-        public Task Export(Novel novel, Stream stream);
-
-        // ... More
+        public string? Extension { get; set; }
     }
 }

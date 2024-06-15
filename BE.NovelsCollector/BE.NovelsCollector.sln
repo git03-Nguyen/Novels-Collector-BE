@@ -31,6 +31,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NovelsCollector.Domain", "N
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NovelsCollector.Aplication", "NovelsCollector.Aplication\NovelsCollector.Aplication.csproj", "{96310328-3216-49BF-B958-81BB123EECD0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NovelsCollector.Infrastructure", "NovelsCollector.Infrastructure\NovelsCollector.Infrastructure.csproj", "{9BB0424A-C724-4AB8-AF65-39B2ABBA0326}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -81,6 +83,10 @@ Global
 		{96310328-3216-49BF-B958-81BB123EECD0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{96310328-3216-49BF-B958-81BB123EECD0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{96310328-3216-49BF-B958-81BB123EECD0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9BB0424A-C724-4AB8-AF65-39B2ABBA0326}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9BB0424A-C724-4AB8-AF65-39B2ABBA0326}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9BB0424A-C724-4AB8-AF65-39B2ABBA0326}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9BB0424A-C724-4AB8-AF65-39B2ABBA0326}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,9 +1,17 @@
-﻿using NovelsCollector.Domain.Helpers;
+﻿using NovelsCollector.Domain.Entities.Plugins;
+using NovelsCollector.Domain.Entities.Plugins.Sources;
+using NovelsCollector.Domain.Helpers;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace NovelsCollector.Domain.Entities.Plugins
+namespace NovelsCollector.Infrastructure.Persistence.Entities
 {
-    public interface IPlugin : IEntity
+    public class SourcePlugin : ISourcePlugin
     {
+        public string? Url { get; set; }
         public string? Id { get; set; }
         public string? Name { get; set; }
         public string? Description { get; set; }
@@ -14,6 +22,6 @@ namespace NovelsCollector.Domain.Entities.Plugins
         public bool? IsLoaded { get; set; }
         public IPluginFeature? PluginInstance { get; set; }
         public PluginLoadContext? LoadContext { get; set; }
-
+        // Other specific properties for source plugins
     }
 }

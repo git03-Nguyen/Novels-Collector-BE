@@ -7,12 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Boundaries\" />
-    <Folder Include="UseCases\" />
-    <Folder Include="Services\" />
+    <PackageReference Include="AspNetCore.Identity.MongoDbCore" Version="3.1.2" />
+    <PackageReference Include="MongoDB.Driver" Version="2.26.0" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\NovelsCollector.Aplication\NovelsCollector.Aplication.csproj" />
     <ProjectReference Include="..\NovelsCollector.Domain\NovelsCollector.Domain.csproj" />
   </ItemGroup>
 
