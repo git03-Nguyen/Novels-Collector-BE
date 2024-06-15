@@ -1,11 +1,6 @@
 ﻿using NovelsCollector.Domain;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace NovelsCollector.Aplication.Exceptions
+namespace NovelsCollector.Application.Exceptions
 {
     public class BadRequestException : DomainException
     {

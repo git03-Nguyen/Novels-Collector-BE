@@ -5,15 +5,15 @@
 build_mode="Debug"
 
 # Define the base paths for source and destination directories
-src_base="../NovelsCollector.Plugins/Sources"
-dest_base="../NovelsCollector.Core/bin/$build_mode/net8.0"
+src_base="../BE.NovelsCollector/NovelsCollector.Plugins/Sources"
+dest_base="../BE.NovelsCollector/NovelsCollector.WebAPI/bin/$build_mode/net8.0/Plugins/Sources"
 
 # Define the source and destination directories
 declare -A dirs=(
-    ["$src_base/Source.DTruyenCom/bin/$build_mode/net8.0/"]="$dest_base/source-plugins/DTruyenCom"
-    ["$src_base/Source.SSTruyenVn/bin/$build_mode/net8.0/"]="$dest_base/source-plugins/SSTruyenVn"
-    ["$src_base/Source.TruyenFullVn/bin/$build_mode/net8.0/"]="$dest_base/source-plugins/TruyenFullVn"
-    ["$src_base/Source.TruyenTangThuVienVn/bin/$build_mode/net8.0/"]="$dest_base/source-plugins/TruyenTangThuVienVn"
+    ["$src_base/Source.DTruyenCom/bin/$build_mode/net8.0/"]="$dest_base/DTruyenCom"
+    ["$src_base/Source.SSTruyenVn/bin/$build_mode/net8.0/"]="$dest_base/SSTruyenVn"
+    ["$src_base/Source.TruyenFullVn/bin/$build_mode/net8.0/"]="$dest_base/TruyenFullVn"
+    ["$src_base/Source.TruyenTangThuVienVn/bin/$build_mode/net8.0/"]="$dest_base/TruyenTangThuVienVn"
 )
 
 # Loop through each source and destination pair

@@ -26,11 +26,11 @@
     <PackageReference Include="GroupDocs.Editor" Version="24.5.0" />
   </ItemGroup>
 
-	<ItemGroup>
-		<ProjectReference Include="..\..\..\NovelsCollector.SDK\NovelsCollector.SDK.csproj">
-			<Private>false</Private>
-			<ExcludeAssets>runtime</ExcludeAssets>
-		</ProjectReference>
-	</ItemGroup>
+  <ItemGroup>
+	  <ProjectReference Include="..\..\..\NovelsCollector.Domain\NovelsCollector.Domain.csproj">
+		  <Private>false</Private>
+		  <ExcludeAssets>runtime</ExcludeAssets>
+	  </ProjectReference>
+  </ItemGroup>
 
 </Project>

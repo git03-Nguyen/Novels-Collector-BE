@@ -1,10 +1,10 @@
-﻿using NovelsCollector.SDK.Models;
-using NovelsCollector.SDK.Plugins.ExporterPlugins;
+﻿using NovelsCollector.Domain.Entities.Plugins.Exporters;
+using NovelsCollector.Domain.Resources.Novels;
 using System.Reflection;
 
 namespace Exporter.SimplePDF
 {
-    public class SimplePDF : IExporterPlugin
+    public class SimplePDF : IExporterFeature
     {
         public SimplePDF() { }
 

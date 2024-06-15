@@ -1,0 +1,9 @@
+{
+  "name": "TemplatePlugin",
+  "description": "Plugin này crawl truyện từ website ***",
+  "version": "1.0.0",
+  "author": "Nguyễn Tuấn Đạt",
+  "assembly": "Source.TemplatePlugin.dll",
+  "url": "***",
+  "icon": "https://img.dtruyen.com/logo-dtruyen.png"
+}

@@ -1,7 +1,10 @@
 ﻿using HtmlAgilityPack;
 using HtmlAgilityPack.CssSelectors.NetCore;
-using NovelsCollector.SDK.Models;
-using NovelsCollector.SDK.Plugins.SourcePlugins;
+using NovelsCollector.Domain.Entities.Plugins.Sources;
+using NovelsCollector.Domain.Resources.Authors;
+using NovelsCollector.Domain.Resources.Categories;
+using NovelsCollector.Domain.Resources.Chapters;
+using NovelsCollector.Domain.Resources.Novels;
 using System.Globalization;
 using System.Text;
 using System.Text.Json;
@@ -10,7 +13,7 @@ using System.Text.RegularExpressions;
 
 namespace Source.TruyenSSVn
 {
-    public class SSTruyenVn : ISourcePlugin
+    public class SSTruyenVn : ISourceFeature
     {
         private const string mainUrl = "https://sstruyen.vn/";
         public string SearchUrl => "https://sstruyen.vn/tim-truyen/<keyword>/";

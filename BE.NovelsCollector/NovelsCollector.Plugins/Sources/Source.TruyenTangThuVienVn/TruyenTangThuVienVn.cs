@@ -1,14 +1,17 @@
 ﻿using HtmlAgilityPack;
 using HtmlAgilityPack.CssSelectors.NetCore;
-using NovelsCollector.SDK.Models;
-using NovelsCollector.SDK.Plugins.SourcePlugins;
+using NovelsCollector.Domain.Entities.Plugins.Sources;
+using NovelsCollector.Domain.Resources.Authors;
+using NovelsCollector.Domain.Resources.Categories;
+using NovelsCollector.Domain.Resources.Chapters;
+using NovelsCollector.Domain.Resources.Novels;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 
 namespace Source.TruyenTangThuVienVn
 {
-    public class TruyenTangThuVienVn : ISourcePlugin
+    public class TruyenTangThuVienVn : ISourceFeature
     {
         private const string mainUrl = "https://truyen.tangthuvien.vn/";
         public string SearchUrl => "https://truyen.tangthuvien.vn/ket-qua-tim-kiem?term=<keyword>&page=<page>";

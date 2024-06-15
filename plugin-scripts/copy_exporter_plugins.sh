@@ -5,14 +5,14 @@
 build_mode="Debug"
 
 # Define the base paths for source and destination directories
-src_base="../NovelsCollector.Plugins/Exporters"
-dest_base="../NovelsCollector.Core/bin/$build_mode/net8.0"
+src_base="../BE.NovelsCollector/NovelsCollector.Plugins/Exporters"
+dest_base="../BE.NovelsCollector/NovelsCollector.WebAPI/bin/$build_mode/net8.0/Plugins/Exporters"
 
 # Define the source and destination directories
 declare -A dirs=(
-    ["$src_base/Exporter.SimpleEPub/bin/$build_mode/net8.0/"]="$dest_base/exporter-plugins/SimpleEPub"
-    ["$src_base/Exporter.SimplePDF/bin/$build_mode/net8.0/"]="$dest_base/exporter-plugins/SimplePDF"
-    ["$src_base/Exporter.SimpleMobi/bin/$build_mode/net8.0/"]="$dest_base/exporter-plugins/SimpleMobi"
+    ["$src_base/Exporter.SimpleEPub/bin/$build_mode/net8.0/"]="$dest_base/SimpleEPub"
+    ["$src_base/Exporter.SimplePDF/bin/$build_mode/net8.0/"]="$dest_base/SimplePDF"
+    ["$src_base/Exporter.SimpleMobi/bin/$build_mode/net8.0/"]="$dest_base/SimpleMobi"
 )
 
 # Loop through each source and destination pair

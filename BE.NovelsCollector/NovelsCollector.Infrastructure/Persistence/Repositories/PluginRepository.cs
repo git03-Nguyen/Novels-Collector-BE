@@ -1,11 +1,10 @@
 ﻿using MongoDB.Driver;
-using NovelsCollector.Aplication.Repositories;
+using NovelsCollector.Application.Repositories;
 using NovelsCollector.Domain.Entities.Plugins;
 
 namespace NovelsCollector.Infrastructure.Persistence.Repositories
 {
-    public class PluginRepository<T> : IPluginRepository<T>
-        where T : IPlugin, new()
+    public class PluginRepository<T> : IPluginRepository<T> where T : IPlugin, new()
     {
         private readonly MongoContext _context;
         private readonly IMongoCollection<T> _collection;

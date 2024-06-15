@@ -1,11 +1,11 @@
-﻿using NovelsCollector.SDK.Models;
-using NovelsCollector.SDK.Plugins.ExporterPlugins;
+﻿using NovelsCollector.Domain.Entities.Plugins.Exporters;
+using NovelsCollector.Domain.Resources.Novels;
 using QuickEPUB;
 using System.Reflection;
 
 namespace Exporter.SimpleEPub
 {
-    public class SimpleEPub : IExporterPlugin
+    public class SimpleEPub : IExporterFeature
     {
         public SimpleEPub() { }
 

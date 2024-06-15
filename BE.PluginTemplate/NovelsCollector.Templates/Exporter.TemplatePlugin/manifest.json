@@ -1,0 +1,9 @@
+{
+  "name": "TemplatePlugin",
+  "description": "Plugin này xuất truyện ra định dạng ***.",
+  "version": "1.0.0",
+  "author": "Nguyễn Đình Ánh",
+  "extension": "***",
+  "assembly": "Exporter.TemplatePlugin.dll",
+  "icon": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f2/Epub_logo_color.svg/1200px-Epub_logo_color.svg.png"
+}

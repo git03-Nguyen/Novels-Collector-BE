@@ -1,13 +1,13 @@
 ﻿using GroupDocs.Editor;
 using GroupDocs.Editor.Options;
-using NovelsCollector.SDK.Models;
-using NovelsCollector.SDK.Plugins.ExporterPlugins;
+using NovelsCollector.Domain.Entities.Plugins.Exporters;
+using NovelsCollector.Domain.Resources.Novels;
 using System.Reflection;
 using System.Text;
 
 namespace Exporter.SimpleMobi
 {
-    public class SimpleMobi : IExporterPlugin
+    public class SimpleMobi : IExporterFeature
     {
         public SimpleMobi() { }
 

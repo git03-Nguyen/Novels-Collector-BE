@@ -1,7 +1,10 @@
 ﻿using HtmlAgilityPack;
 using HtmlAgilityPack.CssSelectors.NetCore;
-using NovelsCollector.SDK.Models;
-using NovelsCollector.SDK.Plugins.SourcePlugins;
+using NovelsCollector.Domain.Entities.Plugins.Sources;
+using NovelsCollector.Domain.Resources.Authors;
+using NovelsCollector.Domain.Resources.Categories;
+using NovelsCollector.Domain.Resources.Chapters;
+using NovelsCollector.Domain.Resources.Novels;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Text.Json;
@@ -9,7 +12,7 @@ using System.Text.RegularExpressions;
 
 namespace Source.TruyenFullVn
 {
-    public class TruyenFullVn : ISourcePlugin
+    public class TruyenFullVn : ISourceFeature
     {
         private const string mainUrl = "https://truyenfull.vn/";
         public string SearchUrl => "https://truyenfull.vn/tim-kiem/?tukhoa=<keyword>&page=<page>";

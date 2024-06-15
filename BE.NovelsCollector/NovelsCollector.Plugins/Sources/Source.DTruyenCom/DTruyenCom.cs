@@ -1,7 +1,10 @@
 ﻿using HtmlAgilityPack;
 using HtmlAgilityPack.CssSelectors.NetCore;
-using NovelsCollector.SDK.Models;
-using NovelsCollector.SDK.Plugins.SourcePlugins;
+using NovelsCollector.Domain.Entities.Plugins.Sources;
+using NovelsCollector.Domain.Resources.Authors;
+using NovelsCollector.Domain.Resources.Categories;
+using NovelsCollector.Domain.Resources.Chapters;
+using NovelsCollector.Domain.Resources.Novels;
 using System.Globalization;
 using System.Text;
 using System.Text.Json;
@@ -9,7 +12,7 @@ using System.Text.RegularExpressions;
 
 namespace DTruyenCom
 {
-    public class DTruyenCom : ISourcePlugin
+    public class DTruyenCom : ISourceFeature
     {
         private const string mainUrl = "https://dtruyen.com/";
         public string SearchUrl => "https://dtruyen.com/searching/<keyword>/lastupdate/all/all/<page>/"; // keyword: using slug format

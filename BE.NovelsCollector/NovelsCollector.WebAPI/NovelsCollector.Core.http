@@ -1,0 +1,115 @@
+@https = https://localhost:7085
+
+### Test connection
+GET {{https}}/api/v1/
+Accept-Encoding: br, gzip
+
+### Get all sources
+GET {{https}}/api/v1/source
+### Reload sources
+GET {{https}}/api/v1/source/reload
+
+### ------------------------------------------
+### SOURCE 1:
+@source1 = TruyenFullVn
+
+### Search
+@keyword1 = anh%20dao
+@pageS1 = 1
+GET {{https}}/api/v1/search?source={{source1}}&keyword={{keyword1}}&page={{pageS1}}
+
+### Novel detail
+@novelSlug1 = tao-tac
+GET {{https}}/api/v1/novel/{{source1}}/{{novelSlug1}}
+
+### Chapters list
+@pageC1 = -1
+GET {{https}}/api/v1/novel/{{source1}}/{{novelSlug1}}/chapters?page={{pageC1}}
+
+### Chapter content
+@chapSlug1 = chuong-1
+GET {{https}}/api/v1/chapter/{{source1}}/{{novelSlug1}}/{{chapSlug1}}
+
+### Latest novels
+GET {{https}}/api/v1/category/{{source1}}/latest
+
+
+### ------------------------------------------
+### SOURCE 2:
+@source2 = TruyenTangThuVienVn
+
+### Search
+@keyword2 = anh%20dao
+@pageS2 = 1
+GET {{https}}/api/v1/search?source={{source2}}&keyword={{keyword2}}&page={{pageS2}}
+
+### Novel detail
+@novelSlug2 = dai-thien-thanh-dao
+GET {{https}}/api/v1/novel/{{source2}}/{{novelSlug2}}
+
+### Chapters list
+@pageC2 = -1
+GET {{https}}/api/v1/novel/{{source2}}/{{novelSlug2}}/chapters?page={{pageC2}}
+Accept: application/json
+
+### Chapter content
+@chapSlug2 = chuong-1
+GET {{https}}/api/v1/chapter/{{source2}}/{{novelSlug2}}/{{chapSlug2}}
+
+### ------------------------------------------
+### SOURCE 3:
+@source3 = SSTruyenVn
+
+### Search
+@keyword3 = anh%20dao
+@pageS3 = 1
+GET {{https}}/api/v1/search?source={{source3}}&keyword={{keyword3}}&page={{pageS3}}
+
+### Novel detail
+@novelSlug3 = tao-tac
+GET {{https}}/api/v1/novel/{{source3}}/{{novelSlug3}}
+
+### Chapters list
+@pageC3 = -1
+GET {{https}}/api/v1/novel/{{source3}}/{{novelSlug3}}/chapters?page={{pageC3}}
+Accept: application/json
+
+### Chapter content
+@chapSlug3=chuong-720
+GET {{https}}/api/v1/chapter/{{source3}}/{{novelSlug3}}/{{chapSlug3}}
+
+
+### ------------------------------------------
+### SOURCE 4:
+@source4 = DTruyenCom
+
+### Search
+@keyword4 = anh%20dao
+@pageS4 = 1
+GET {{https}}/api/v1/search?source={{source4}}&keyword={{keyword4}}&page={{pageS4}}
+
+### Novel detail
+@novelSlug4 = tao-tac
+GET {{https}}/api/v1/novel/{{source3}}/{{novelSlug4}}
+
+### Chapters list
+@pageC4 = 1
+GET {{https}}/api/v1/novel/{{source4}}/{{novelSlug4}}/chapters?page={{pageC4}}
+Accept: application/json
+
+### Chapter content
+@chapSlug4 = kiep-sau-dung-lam-anh-hung_87564.html
+GET {{https}}/api/v1/chapter/{{source4}}/{{novelSlug4}}/{{chapSlug4}}
+
+### Users
+GET https://localhost:7085/api/v1/user
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6Im5ndXllbmRpbmhhbmh2bHF0QGdtYWlsLmNvbSIsIm5iZiI6MTcxODI3NzUwMSwiZXhwIjoxNzE4Mjg4MzAxLCJpYXQiOjE3MTgyNzc1MDF9.xPL5tX9Yeer3MmHHdXrVWV8DDBlaC3-tag9nz2b7wcE
+
+### Login
+POST https://localhost:7085/api/v1/user/login
+Content-Type: application/json
+
+{
+    "email": "nguyendinhanhvlqt@gmail.com",
+    "password": "10009876"
+}
