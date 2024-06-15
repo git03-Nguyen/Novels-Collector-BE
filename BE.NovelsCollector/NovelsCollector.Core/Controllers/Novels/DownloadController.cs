@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 
 namespace NovelsCollector.Core.Services
 {
@@ -11,7 +10,7 @@ namespace NovelsCollector.Core.Services
         [HttpGet("{dayFolder}/{formatFolder}/{fileName}")]
         public async Task<IActionResult> GetExportFile([FromRoute] string dayFolder, [FromRoute] string formatFolder, [FromRoute] string fileName)
         {
-            var filePath = Path.Combine(Directory.GetCurrentDirectory(), "static", dayFolder, formatFolder, fileName);
+            var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", dayFolder, formatFolder, fileName);
             if (!System.IO.File.Exists(filePath))
             {
                 throw new FileNotFoundException("File not found", filePath);

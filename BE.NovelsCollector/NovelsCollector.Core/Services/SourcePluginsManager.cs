@@ -11,7 +11,7 @@ namespace NovelsCollector.Core.Services
 {
     public class SourcePluginsManager : BasePluginsManager<SourcePlugin, ISourcePlugin>
     {
-        private const string pluginsFolderName = "source-plugins";
+        private const string pluginsFolderName = "Sources";
 
         private IMemoryCache _cacheService;
 

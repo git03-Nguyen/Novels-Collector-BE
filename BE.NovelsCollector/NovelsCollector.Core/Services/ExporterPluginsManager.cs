@@ -9,7 +9,7 @@ namespace NovelsCollector.Core.Services
     public class ExporterPluginsManager : BasePluginsManager<ExporterPlugin, IExporterPlugin>
     {
 
-        private const string _pluginsFolderName = "exporter-plugins";
+        private const string _pluginsFolderName = "Exporters";
 
         public ExporterPluginsManager(ILogger<ExporterPluginsManager> logger, MyMongoRepository myMongoRepository)
             : base(logger, myMongoRepository, _pluginsFolderName) { }

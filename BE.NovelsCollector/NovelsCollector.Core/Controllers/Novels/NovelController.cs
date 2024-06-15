@@ -180,7 +180,7 @@ namespace NovelsCollector.Core.Controllers.Novels
 
             // Save the file to the wwwroot folder
             var day = DateTime.Now.ToString("yyyyMMdd");
-            var folder = Path.Combine(Directory.GetCurrentDirectory(), "static", day, plugin.Extension);
+            var folder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", day, plugin.Extension);
             // Create multiple folders if not exists
             if (!Directory.Exists(folder)) Directory.CreateDirectory(folder);
 

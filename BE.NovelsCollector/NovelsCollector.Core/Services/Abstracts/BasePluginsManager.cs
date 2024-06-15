@@ -26,6 +26,7 @@ namespace NovelsCollector.Core.Services.Abstracts
 
         // The path to the /___-plugins and /temp folders
         protected string _tempPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "temp");
+
         protected string _pluginsPath;
 
         // FOR DEBUGGING: The list of weak references to the unloaded contexts in the past
@@ -43,7 +44,8 @@ namespace NovelsCollector.Core.Services.Abstracts
         {
             _logger = logger;
             _pluginService = new PluginService<Abstract>(myMongoRepository);
-            _pluginsPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, pluginsFolderName);
+            _pluginsPath = Path.Combine(Directory.GetCurrentDirectory(), "Plugins", pluginsFolderName);
+
 
             // Get installed plugins from the database
             Installed = _pluginService.GetAllPluginsAsync().Result.ToList();

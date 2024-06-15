@@ -5,8 +5,8 @@
 build_mode="Debug"
 
 # Define the base paths for source and destination directories
-src_base="./NovelsCollector.Plugins/Exporters"
-dest_base="./NovelsCollector.Core/bin/$build_mode/net8.0"
+src_base="../NovelsCollector.Plugins/Exporters"
+dest_base="../NovelsCollector.Core/bin/$build_mode/net8.0"
 
 # Define the source and destination directories
 declare -A dirs=(
