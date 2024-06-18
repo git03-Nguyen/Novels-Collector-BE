@@ -295,6 +295,8 @@ namespace Source.TruyenFullVn
                 using (HttpClient httpClient = new HttpClient(new HttpClientHandler { AutomaticDecompression = DecompressionMethods.Brotli | DecompressionMethods.GZip | DecompressionMethods.Deflate }))
                 {
                     httpClient.DefaultRequestHeaders.Add("Accept-Encoding", "gzip, deflate, br");
+                    httpClient.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36");
+                    httpClient.DefaultRequestHeaders.Add("Accept", "*/*");
 
                     // If the novelId is not provided, crawl the novelId
                     if (novelSlug == novelId || novelId == null)
