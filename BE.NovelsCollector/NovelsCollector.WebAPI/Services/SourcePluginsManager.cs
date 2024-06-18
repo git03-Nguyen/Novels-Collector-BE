@@ -144,9 +144,9 @@ namespace NovelsCollector.Core.Services
             // Set null the no-needed properties
             var result = novels.ToDictionary(kvp => kvp.Key, kvp => new Novel
             {
+                Id = kvp.Value.Id,
                 Title = kvp.Value.Title,
                 Slug = kvp.Value.Slug,
-                Authors = [new Author { Name = kvp.Value.Authors?[0]?.Name }]
             });
 
             // Cache the same novels in all sources
@@ -223,7 +223,7 @@ namespace NovelsCollector.Core.Services
                     try
                     {
                         // Search for the chapter with the same number
-                        var otherChapter = await executablePlugin.GetChapterAddrByNumber(otherNovel.Slug, thisChapterNumber);
+                        var otherChapter = await executablePlugin.GetChapterAddrByNumber(otherNovel.Slug, otherNovel.Id, thisChapterNumber);
                         if (otherChapter != null)
                         {
                             otherChapter.Source = otherSource;

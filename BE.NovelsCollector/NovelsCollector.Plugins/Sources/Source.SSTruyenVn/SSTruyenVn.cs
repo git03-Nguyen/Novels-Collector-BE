@@ -308,9 +308,18 @@ namespace Source.TruyenSSVn
             return chapter;
         }
 
-        public async Task<Chapter?> GetChapterAddrByNumber(string novelSlug, int chapterNumber)
+        public async Task<Chapter?> GetChapterAddrByNumber(string novelSlug, int? novelId, int chapterNumber)
         {
-            throw new NotImplementedException();
+            Chapter[]? chapters = await CrawlListChapters(novelSlug, novelId != null ? novelId.ToString() : null);
+            if (chapters == null) return null;
+
+
+            var chapter = chapters.FirstOrDefault(x => x.Number == chapterNumber);
+            if (chapter == null) return null;
+
+            chapter.Source = "SSTruyenVn";
+            chapter.NovelSlug = novelSlug;
+            return chapter;
         }
 
         #region helper method
