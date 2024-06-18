@@ -14,7 +14,7 @@ namespace NovelsCollector.Domain.Entities.Plugins.Sources
         public Task<Novel?> CrawlDetail(string novelSlug);
 
         // Get list of chapters
-        public Task<Tuple<Chapter[]?, int>> CrawlListChapters(string novelSlug, int page = -1);
+        public Task<Chapter[]?> CrawlListChapters(string novelSlug, string novelId);
 
         // Get chapter content
         public Task<Chapter?> CrawlChapter(string novelSlug, string chapterSlug);

@@ -88,22 +88,20 @@ namespace NovelsCollector.WebAPI.UseCases.V1.GetNovels
         }
 
         /// <summary>
-        /// View a list of chapters of a novel by page
+        /// View a list of chapters of a novel
         /// </summary>
         /// <param name="source">The source of the novel (e.g., DTruyenCom, SSTruyenVn).</param>
         /// <param name="novelSlug">The slug identifier for the novel (e.g., tao-tac).</param>
-        /// <param name="page">The page number of the chapters list (default is the last page = -1).</param>
+        /// <param name="novelId">The identifier for the novel.</param>
         /// <returns> A list of chapters of a novel by page. </returns>
         /// <exception cref="BadHttpRequestException"> If the page is invalid. </exception>
-        [HttpGet("{source}/{novelSlug}/chapters")]
-        [EndpointSummary("View chapters of a novel by page, -1 is last page")]
-        public async Task<IActionResult> GetChapters([FromRoute] string source, [FromRoute] string novelSlug, [FromQuery] int page = -1)
+        [HttpGet("{source}/{novelSlug}/{novelId}/chapters")]
+        [EndpointSummary("View chapters of a novel")]
+        public async Task<IActionResult> GetChapters([FromRoute] string source, [FromRoute] string novelSlug, [FromRoute] string novelId)
         {
-            // Check if the page is invalid
-            if (page == 0) throw new BadHttpRequestException("Trang không hợp lệ.");
 
             // Get the chapters
-            var (chapters, totalPage) = await _sourcesPlugins.GetChaptersList(source, novelSlug, page);
+            var chapters = await _sourcesPlugins.GetChaptersList(source, novelSlug, novelId);
 
             // Check if the novel is not found
             if (chapters == null) throw new NotFoundException("Không tìm thấy chương cho truyện này.");
@@ -116,8 +114,7 @@ namespace NovelsCollector.WebAPI.UseCases.V1.GetNovels
                 {
                     source,
                     novelSlug,
-                    page = page != -1 ? page : totalPage,
-                    totalPage,
+                    id = novelId
                 }
             });
         }

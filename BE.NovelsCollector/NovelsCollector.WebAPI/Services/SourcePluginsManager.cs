@@ -259,7 +259,7 @@ namespace NovelsCollector.Core.Services
             return chapters.ToDictionary(chapter => chapter.Key, chapter => chapter.Value);
         }
 
-        public async Task<Tuple<Chapter[]?, int>> GetChaptersList(string source, string novelSlug, int page = -1)
+        public async Task<Chapter[]?> GetChaptersList(string source, string novelSlug, string novelId)
         {
             // Get the plugin in the Installed list
             var plugin = Installed.Find(p => p.Name == source);
@@ -272,12 +272,11 @@ namespace NovelsCollector.Core.Services
 
             // If the plugin is loaded, get the list of chapters
             Chapter[]? chapters = null;
-            int totalPage = -1;
 
             // Execute the plugin
             if (plugin.PluginInstance is ISourceFeature executablePlugin)
             {
-                (chapters, totalPage) = await executablePlugin.CrawlListChapters(novelSlug, page);
+                chapters = await executablePlugin.CrawlListChapters(novelSlug, novelId);
             }
 
             if (chapters == null)
@@ -285,7 +284,7 @@ namespace NovelsCollector.Core.Services
                 throw new NotFoundException("No result found");
             }
 
-            return new Tuple<Chapter[]?, int>((Chapter[]?)chapters, totalPage);
+            return chapters;
         }
 
         public async Task<Chapter?> GetChapterContent(string source, string novelSlug, string chapterSlug)

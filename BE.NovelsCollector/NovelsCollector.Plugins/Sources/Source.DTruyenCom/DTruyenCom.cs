@@ -6,6 +6,7 @@ using NovelsCollector.Domain.Resources.Categories;
 using NovelsCollector.Domain.Resources.Chapters;
 using NovelsCollector.Domain.Resources.Novels;
 using System.Globalization;
+using System.Net;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -191,6 +192,7 @@ namespace DTruyenCom
             {
                 var document = await LoadFromWebAsync(NovelUrl.Replace("<novel-slug>", novel.Slug));
 
+                novel.Id = int.Parse(document.DocumentNode.QuerySelector("input#storyID").Attributes["value"].Value);
                 novel.Title = document.DocumentNode.QuerySelector("div#story-detail h1.title").InnerText;
 
                 novel.MaxRating = 10;
@@ -255,59 +257,40 @@ namespace DTruyenCom
             return novel;
         }
 
-        public async Task<Tuple<Chapter[]?, int>> CrawlListChapters(string novelSlug, int page = 1)
+        public async Task<Chapter[]?> CrawlListChapters(string novelSlug, string novelId)
         {
-            var novel = new Novel();
-            List<Chapter> listChapter = new List<Chapter>();
-            var totalPage = 1;
-            novel.Slug = novelSlug;
+            List<Chapter> listChapters = new List<Chapter>();
 
             try
             {
-                var document = await LoadFromWebAsync(NovelUrl.Replace("<novel-slug>", novel.Slug));
+                var httpClient  = new HttpClient(new HttpClientHandler() { AutomaticDecompression = DecompressionMethods.Brotli | DecompressionMethods.GZip | DecompressionMethods.Deflate });
+                httpClient.DefaultRequestHeaders.Add("Accept-Encoding", "br, gzip, deflate");
+                //  GET https://dtruyen.com/ajax/chapters?storyID={novel.Id ?? novel.Slug}
+                var response = await httpClient.GetAsync($"https://dtruyen.com/ajax/chapters?storyID={novelId}");
+                var jsonString = await response.Content.ReadAsStringAsync();
+                // {"status":1,"chapters":[{"url":"bien-co_3621762.html","no":"Ch\u01b0\u01a1ng 1"},{"url":"bay-gio-lay-vi-tien-chay-ngay_3621763.html","no":"Ch\u01b0\u01a1ng 2"}, ... ]}
 
-                // Get number of chapters: <p> tag having content: "Số chương"
-                var paginationElement = document.DocumentNode.QuerySelector("ul.Pagination");
-                if (paginationElement != null)
+                var json = JsonSerializer.Deserialize<Dictionary<string, object>>(jsonString);
+                var list = (JsonElement)json["chapters"];
+
+                for (int i = 0; i < list.GetArrayLength(); i++)
                 {
-                    var aElements = paginationElement.QuerySelectorAll("li a");
-
-                    foreach (var element in aElements)
-                    {
-                        var match = Regex.Match(element.InnerText, @"\d+");
-                        if (match.Success && totalPage < int.Parse(match.Value))
-                        {
-                            totalPage = int.Parse(match.Value);
-                        }
-                    }
+                    var chapter = list[i];
+                    Chapter c = new Chapter();
+                    c.Title = chapter.GetProperty("no").GetString();
+                    c.Slug = chapter.GetProperty("url").GetString();
+                    var match = Regex.Match(c.Title, @"\d+");
+                    if (match.Success) c.Number = int.Parse(match.Value);
+                    listChapters.Add(c);
                 }
 
-                // check page
-                if (page == -1 || page > totalPage) page = totalPage;
-                else if (page <= 0) page = 1;
-
-                // list chapter
-                var url = $"https://dtruyen.com/{novel.Slug}/{page}/";
-                document = await LoadFromWebAsync(url);
-                var chapterElements = document.DocumentNode.QuerySelectorAll($"#chapters ul.chapters li a");
-                foreach (var element in chapterElements)
-                {
-                    var chapter = new Chapter();
-                    var titleStrings = element.QuerySelector("a").Attributes["title"].Value.Split(": ");
-                    Match match = Regex.Match(titleStrings[0], @"\d+");
-                    if (match.Success) chapter.Number = int.Parse(match.Value);
-                    if (titleStrings.Length == 1) chapter.Title = titleStrings[0];
-                    else chapter.Title = string.Join(": ", titleStrings.Skip(1));
-                    chapter.Slug = element.QuerySelector("a").Attributes["href"].Value.Replace($"https://dtruyen.com/{novel.Slug}/", "").Replace("/", "");
-                    listChapter.Add(chapter);
-                }
             }
             catch (Exception ex)
             {
                 Console.WriteLine("An error occurred: " + ex.Message);
             }
 
-            return new Tuple<Chapter[]?, int>(listChapter.ToArray(), totalPage);
+            return listChapters.ToArray();
         }
 
         /// <summary>
@@ -345,56 +328,7 @@ namespace DTruyenCom
 
         public async Task<Chapter?> GetChapterAddrByNumber(string novelSlug, int chapterNumber)
         {
-            if (chapterNumber <= 0) return null;
-
-            var chapter = new Chapter();
-            chapter.NovelSlug = novelSlug;
-            chapter.Number = chapterNumber;
-
-            const int PER_PAGE = 30;
-            int page = (chapterNumber - 1) / PER_PAGE + 1;
-
-            bool flag = false;
-            var (listChapters, totalPage) = await CrawlListChapters(novelSlug, page);
-            if (listChapters == null) return null;
-
-            // If it's greater than the last chapter in the page, maybe it's in the next page
-            while (chapterNumber > listChapters.Last().Number && page < totalPage)
-            {
-                (listChapters, totalPage) = await CrawlListChapters(novelSlug, page);
-                if (listChapters == null) return null;
-                page++;
-
-                if (chapterNumber <= listChapters.Last().Number)
-                {
-                    flag = true;
-                    break;
-                }
-            }
-
-            if (!flag)
-            {
-                // If it's smaller than the first chapter in the page, maybe it's in the previous page
-                while (chapterNumber < listChapters.First().Number && page > 1)
-                {
-                    (listChapters, totalPage) = await CrawlListChapters(novelSlug, page);
-                    if (listChapters == null) return null;
-                    page--;
-                }
-            }
-
-            // Find the chapter in current page
-            foreach (var c in listChapters)
-            {
-                if (c.Number == chapterNumber)
-                {
-                    chapter.Slug = c.Slug;
-                    break;
-                }
-            }
-            if (chapter.Slug == null) return null;
-
-            return chapter;
+            throw new NotImplementedException();
         }
 
         #region helper method
@@ -441,6 +375,7 @@ namespace DTruyenCom
                 foreach (var novelElement in novelElements)
                 {
                     Novel novel = new Novel();
+                    novel.Id = int.Parse(novelElement.Attributes["data-id"].Value);
                     novel.Title = novelElement.QuerySelector("div.info h3.title a")?.InnerText;
                     novel.Slug = novelElement.QuerySelector("div.info h3.title a")?.Attributes["href"].Value.Replace("https://dtruyen.com/", "").Replace("/", "");
 
