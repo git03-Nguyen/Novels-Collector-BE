@@ -109,7 +109,7 @@ namespace NovelsCollector.Core.Services
 
 
             // Caching the same novels in all sources
-            var cacheKey = $"novels-{novel.Title}-{novel.Authors[0]?.Name}";
+            var cacheKey = $"novels-{novel.Title.Trim()}-{novel.Authors[0]?.Name.Trim()}";
             if (_cacheService.TryGetValue(cacheKey, out Dictionary<string, Novel> cachedNovels))
             {
                 _logger.LogInformation($"Cache hit for novels of {novel.Title} by {novel.Authors[0]?.Name}");
