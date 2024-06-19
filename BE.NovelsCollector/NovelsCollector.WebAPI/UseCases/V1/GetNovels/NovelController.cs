@@ -76,7 +76,7 @@ namespace NovelsCollector.WebAPI.UseCases.V1.GetNovels
             Dictionary<string, Novel>? novels = null;
 
             // Caching the same novels in all sources
-            var cacheKey = $"novels-{novel.Title}";
+            var cacheKey = $"novels-{novel.Title.Trim()}";
             if (_cacheService.TryGetValue(cacheKey, out novels))
             {
                 _logger.LogInformation($"Cache hit for novels of {novel.Title}");
