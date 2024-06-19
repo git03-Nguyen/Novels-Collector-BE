@@ -111,9 +111,9 @@ namespace Source.TruyenFullVn
                 titles.Add(match.Value.Replace("title=\"", "").Replace("\"", ""));
             }
 
-            // Add n-1 novel
+            // Add n novels
             List<Novel> novels = new List<Novel>();
-            for (int i = 0; i < slugs.Count - 1; i++)
+            for (int i = 0; i < slugs.Count; i++)
             {
                 novels.Add(new Novel
                 {

@@ -305,8 +305,8 @@ namespace Source.TruyenTangThuVienVn
                     {
                         Chapter chapter = new Chapter();
                         // <a class="link-chap-539" href=" https://truyen.tangthuvien.vn/doc-truyen/dichtao-tac-suu-tam/chuong-560 " title="Chương 560&nbsp;:&nbsp;Trương Xương Bồ">
-                        chapter.Title = element.Attributes["title"].Value;
-                        chapter.Slug = element.Attributes["href"].Value.Replace("https://truyen.tangthuvien.vn/doc-truyen/", "").Replace(novelSlug + "/", "");
+                        chapter.Title = HtmlEntity.DeEntitize(element.Attributes["title"].Value);
+                        chapter.Slug = element.Attributes["href"].Value.Replace("https://truyen.tangthuvien.vn/doc-truyen/", "").Replace(novelSlug + "/", "").Trim();
                         chapter.Number = int.Parse(Regex.Match(chapter.Slug, @"\d+").Value);
                         listChapter.Add(chapter);
                     }
@@ -352,7 +352,7 @@ namespace Source.TruyenTangThuVienVn
                         .Replace("\r\n", "<br/>").Replace("\\\"", "\"").Replace("\\t", "  ");
                 }
 
-                var titleElement = document.DocumentNode.QuerySelector("h1.truyen-title");
+                var titleElement = document.DocumentNode.QuerySelector("div.content div.col-xs-12.chapter h2");
 
                 // Get title of chapter
                 if (contentElement != null)
@@ -361,8 +361,8 @@ namespace Source.TruyenTangThuVienVn
                         .Replace("\r\n", "<br/>").Replace("\\\"", "\"").Replace("\\t", "  ");
                 }
 
-                // Get number of chapter
-                var match = Regex.Match(chapterSlug, @"\d+");
+                // Get number of chapter: Ex: Chương 1: Trương Xương Bồ 2 -> 1
+                var match = Regex.Match(title, @"\d+");
                 if (match.Success) number = int.Parse(match.Value);
 
             }

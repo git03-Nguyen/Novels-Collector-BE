@@ -75,6 +75,12 @@ namespace NovelsCollector.WebAPI.UseCases.V1.GetNovels
 
             Dictionary<string, Novel>? novels = null;
 
+            // reassign the novel.Title if: Tào Tặc - 曹贼 in TruyenTangThuVienVn => Tào Tặc
+            if (source == "TruyenTangThuVienVn" && novel.Title.Contains(" - "))
+            {
+                novel.Title = novel.Title.Split(" - ")[0].Trim();
+            }
+
             // Caching the same novels in all sources
             var cacheKey = $"novels-{novel.Title.Trim()}";
             if (_cacheService.TryGetValue(cacheKey, out novels))
