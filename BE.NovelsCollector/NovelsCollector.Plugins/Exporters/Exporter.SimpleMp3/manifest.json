@@ -1,0 +1,9 @@
+{
+  "name": "SimpleMp3",
+  "description": "Plugin này xuất truyện ra định dạng .mp3.",
+  "version": "1.0.0",
+  "author": "Nguyễn Đình Ánh",
+  "extension": "mp3",
+  "assembly": "Exporter.SimpleMp3.dll",
+  "icon": "https://seeklogo.com/images/M/mp3-logo-35E79615F6-seeklogo.com.png"
+}

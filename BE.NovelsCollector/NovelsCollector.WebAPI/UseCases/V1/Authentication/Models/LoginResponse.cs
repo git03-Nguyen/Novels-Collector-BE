@@ -3,13 +3,13 @@
     public class LoginResponse
     {
         public string Message { get; set; }
-        public string AccessToken { get; set; }
+        public string Accesstoken { get; set; }
         public string Email { get; set; }
 
         public LoginResponse(string message, string accessToken, string email)
         {
             Message = message;
-            AccessToken = accessToken;
+            Accesstoken = accessToken;
             Email = email;
         }
     }

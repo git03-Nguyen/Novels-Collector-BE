@@ -2,7 +2,9 @@
 {
     public class Settings
     {
-        public string ConnectionString;
-        public string Database;
+        public const string SettingsName = "DatabaseSettings";
+        public string ConnectionString { get; set; } = String.Empty;
+        public string DatabaseName { get; set; } = String.Empty;
+        public string JwtKey { get; set; } = String.Empty;
     }
 }

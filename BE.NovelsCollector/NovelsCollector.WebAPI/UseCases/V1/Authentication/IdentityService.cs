@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using NovelsCollector.Infrastructure.Identity;
+using NovelsCollector.Infrastructure.Persistence.Configurations;
 using NovelsCollector.WebAPI.UseCases.V1.Authentication.Models;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -12,11 +14,13 @@ namespace NovelsCollector.Infrastructure.Services
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly RoleManager<ApplicationRole> _roleManager;
+        private readonly Settings _settings;
 
-        public IdentityService(UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager)
+        public IdentityService(UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager, IOptions<Settings> settings)
         {
             _userManager = userManager;
             _roleManager = roleManager;
+            _settings = settings.Value;
         }
 
         public async Task<RegisterResponse> CreateUserAsync(RegisterRequest request)
@@ -74,7 +78,7 @@ namespace NovelsCollector.Infrastructure.Services
             claims.AddRange(roleClaims);
 
             // Create token
-            var _SECRET = "FBE2968244C56E34E98dsa_ahahah_dasdasdasd3B5C54E319123";
+            var _SECRET = _settings.JwtKey;
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_SECRET));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
             var expires = DateTime.Now.AddDays(1);

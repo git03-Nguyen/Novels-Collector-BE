@@ -1,17 +1,21 @@
 ﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 using NovelsCollector.Domain.Entities;
+using NovelsCollector.Infrastructure.Persistence.Configurations;
 
 namespace NovelsCollector.Infrastructure.Persistence
 {
     public class MongoContext
     {
         private readonly IMongoDatabase _database;
+        private readonly Settings _settings;
 
-        public MongoContext(IConfiguration configuration)
+        public MongoContext(IOptions<Settings> options)
         {
-            var connectionString = configuration.GetSection("DatabaseSettings:ConnectionString").Value;
-            var databaseName = configuration.GetSection("DatabaseSettings:DatabaseName").Value;
+            _settings = options.Value;
+            var connectionString = _settings.ConnectionString;
+            var databaseName = _settings.DatabaseName;
 
             var mongoClient = new MongoClient(connectionString);
             _database = mongoClient.GetDatabase(databaseName);
