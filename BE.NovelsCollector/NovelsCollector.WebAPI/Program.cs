@@ -9,9 +9,11 @@ using Microsoft.OpenApi.Models;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Serializers;
 using NovelsCollector.Application.Repositories;
+using NovelsCollector.Infrastructure.Identity;
 using NovelsCollector.Infrastructure.Persistence;
-using NovelsCollector.Infrastructure.Persistence.Entities;
+using NovelsCollector.Infrastructure.Persistence.Configurations;
 using NovelsCollector.Infrastructure.Persistence.Repositories;
+using NovelsCollector.Infrastructure.Services;
 using NovelsCollector.WebAPI.Extensions;
 using NovelsCollector.WebAPI.Services;
 using System.Text;
@@ -81,6 +83,8 @@ builder.Services.AddAuthentication(x =>
         ClockSkew = TimeSpan.Zero
     };
 });
+
+builder.Services.AddScoped<IdentityService>();
 
 // In-memory cache
 builder.Services.AddMemoryCache(options =>

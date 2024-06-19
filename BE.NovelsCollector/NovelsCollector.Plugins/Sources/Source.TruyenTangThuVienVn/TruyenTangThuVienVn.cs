@@ -271,7 +271,7 @@ namespace Source.TruyenTangThuVienVn
         public async Task<Chapter[]?> CrawlListChapters(string novelSlug, string novelId)
         {
             List<Chapter> listChapter = new List<Chapter>();
-            
+
             try
             {
                 HtmlDocument? document = null;
@@ -312,7 +312,7 @@ namespace Source.TruyenTangThuVienVn
                     }
 
 
-                }              
+                }
 
 
             }

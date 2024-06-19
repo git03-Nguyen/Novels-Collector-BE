@@ -263,7 +263,7 @@ namespace DTruyenCom
 
             try
             {
-                var httpClient  = new HttpClient(new HttpClientHandler() { AutomaticDecompression = DecompressionMethods.Brotli | DecompressionMethods.GZip | DecompressionMethods.Deflate });
+                var httpClient = new HttpClient(new HttpClientHandler() { AutomaticDecompression = DecompressionMethods.Brotli | DecompressionMethods.GZip | DecompressionMethods.Deflate });
                 httpClient.DefaultRequestHeaders.Add("Accept-Encoding", "br, gzip, deflate");
                 //  GET https://dtruyen.com/ajax/chapters?storyID={novel.Id ?? novel.Slug}
                 var response = await httpClient.GetAsync($"https://dtruyen.com/ajax/chapters?storyID={novelId}");

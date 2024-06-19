@@ -7,7 +7,6 @@ using NovelsCollector.Domain.Resources.Chapters;
 using NovelsCollector.Domain.Resources.Novels;
 using System.Globalization;
 using System.Net;
-using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -237,7 +236,7 @@ namespace Source.TruyenSSVn
             var listChapter = new List<Chapter>();
 
             try
-            {                
+            {
                 var document = await LoadFromWebAsync($"https://sstruyen.vn/ajax.php?get_chapt&story_seo={novelSlug}&chapt=1");
 
                 // return is

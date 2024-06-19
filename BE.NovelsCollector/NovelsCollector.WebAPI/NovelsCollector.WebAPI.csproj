@@ -16,6 +16,14 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Remove="Services\SourcePluginsManager.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="Services\SourcePluginsManager.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="AspNetCore.Identity.MongoDbCore" Version="3.1.2" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.6" />
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="8.0.0" />
@@ -30,7 +38,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\NovelsCollector.Aplication\NovelsCollector.Aplication.csproj" />
+    <ProjectReference Include="..\NovelsCollector.Application\NovelsCollector.Application.csproj" />
     <ProjectReference Include="..\NovelsCollector.Domain\NovelsCollector.Domain.csproj" />
     <ProjectReference Include="..\NovelsCollector.Infrastructure\NovelsCollector.Infrastructure.csproj" />
   </ItemGroup>
