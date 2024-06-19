@@ -41,7 +41,7 @@ namespace NovelsCollector.WebAPI.UseCases.V1.GetCategories
             if (_cacheService.TryGetValue(cacheKey, out Category[]? categories))
             {
                 _logger.LogInformation($"Cache hit for categories of {source}");
-            } 
+            }
             else
             {
                 categories = await new GetCategoriesListUC(_sourcesPlugins).Execute(source) ?? Array.Empty<Category>();

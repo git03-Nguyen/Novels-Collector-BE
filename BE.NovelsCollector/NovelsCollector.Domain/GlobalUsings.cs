@@ -1,1 +1,1 @@
-﻿global using NovelsCollector.Domain.Constants;
+﻿

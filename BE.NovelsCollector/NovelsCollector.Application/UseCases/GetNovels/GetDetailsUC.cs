@@ -1,5 +1,4 @@
 ﻿using NovelsCollector.Application.Exceptions;
-using NovelsCollector.Domain.Entities.Plugins.Exporters;
 using NovelsCollector.Domain.Entities.Plugins.Sources;
 using NovelsCollector.Domain.Resources.Novels;
 
