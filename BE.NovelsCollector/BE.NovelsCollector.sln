@@ -25,11 +25,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Source.TruyenTangThuVienVn"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NovelsCollector.Domain", "NovelsCollector.Domain\NovelsCollector.Domain.csproj", "{67E9FCC7-39E8-477C-A776-978FFC0784BD}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NovelsCollector.Aplication", "NovelsCollector.Aplication\NovelsCollector.Aplication.csproj", "{96310328-3216-49BF-B958-81BB123EECD0}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NovelsCollector.Infrastructure", "NovelsCollector.Infrastructure\NovelsCollector.Infrastructure.csproj", "{9BB0424A-C724-4AB8-AF65-39B2ABBA0326}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NovelsCollector.WebAPI", "NovelsCollector.WebAPI\NovelsCollector.WebAPI.csproj", "{53170262-5B54-4865-AB92-50174C509D7B}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NovelsCollector.Application", "NovelsCollector.Application\NovelsCollector.Application.csproj", "{DBF3E21F-14FA-4CF7-AAF6-3CACBC723013}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Exporter.SimpleMp3", "NovelsCollector.Plugins\Exporters\Exporter.SimpleMp3\Exporter.SimpleMp3.csproj", "{46A6CB69-C641-4A7E-904A-AA4C77AAF8C2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -69,10 +71,6 @@ Global
 		{67E9FCC7-39E8-477C-A776-978FFC0784BD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{67E9FCC7-39E8-477C-A776-978FFC0784BD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{67E9FCC7-39E8-477C-A776-978FFC0784BD}.Release|Any CPU.Build.0 = Release|Any CPU
-		{96310328-3216-49BF-B958-81BB123EECD0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{96310328-3216-49BF-B958-81BB123EECD0}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{96310328-3216-49BF-B958-81BB123EECD0}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{96310328-3216-49BF-B958-81BB123EECD0}.Release|Any CPU.Build.0 = Release|Any CPU
 		{9BB0424A-C724-4AB8-AF65-39B2ABBA0326}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{9BB0424A-C724-4AB8-AF65-39B2ABBA0326}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9BB0424A-C724-4AB8-AF65-39B2ABBA0326}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -81,6 +79,14 @@ Global
 		{53170262-5B54-4865-AB92-50174C509D7B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{53170262-5B54-4865-AB92-50174C509D7B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{53170262-5B54-4865-AB92-50174C509D7B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DBF3E21F-14FA-4CF7-AAF6-3CACBC723013}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DBF3E21F-14FA-4CF7-AAF6-3CACBC723013}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DBF3E21F-14FA-4CF7-AAF6-3CACBC723013}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DBF3E21F-14FA-4CF7-AAF6-3CACBC723013}.Release|Any CPU.Build.0 = Release|Any CPU
+		{46A6CB69-C641-4A7E-904A-AA4C77AAF8C2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{46A6CB69-C641-4A7E-904A-AA4C77AAF8C2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{46A6CB69-C641-4A7E-904A-AA4C77AAF8C2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{46A6CB69-C641-4A7E-904A-AA4C77AAF8C2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -95,6 +101,7 @@ Global
 		{2FF14577-B157-47DE-B0A7-A618CADAD8CB} = {87C5B516-F63E-44E9-803F-83FC5ABA28B2}
 		{A8F19A8B-2128-46B9-B991-C79892D2E7C0} = {87C5B516-F63E-44E9-803F-83FC5ABA28B2}
 		{7C4C0F74-6149-4AB7-84B2-F6C18E7224D0} = {87C5B516-F63E-44E9-803F-83FC5ABA28B2}
+		{46A6CB69-C641-4A7E-904A-AA4C77AAF8C2} = {66E5C1DF-06CC-455B-9CBE-45433712E65A}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {C44A57C5-455B-4780-99D3-B1063694980F}

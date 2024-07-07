@@ -5,6 +5,7 @@ using NovelsCollector.Domain.Resources.Authors;
 using NovelsCollector.Domain.Resources.Categories;
 using NovelsCollector.Domain.Resources.Chapters;
 using NovelsCollector.Domain.Resources.Novels;
+using System.Net;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
@@ -64,6 +65,7 @@ namespace Source.TruyenTangThuVienVn
                 if (item.Type == "story")
                 {
                     Novel novel = new Novel();
+                    novel.Id = item.Id;
                     novel.Title = item.Name;
                     novel.Slug = item.Url;
                     listNovel.Add(novel);
@@ -266,46 +268,53 @@ namespace Source.TruyenTangThuVienVn
             return novel;
         }
 
-        public async Task<Tuple<Chapter[]?, int>> CrawlListChapters(string novelSlug, int page = -1)
+        public async Task<Chapter[]?> CrawlListChapters(string novelSlug, string novelId)
         {
             List<Chapter> listChapter = new List<Chapter>();
-            int totalPage = 1;
+
             try
             {
-                // Get the Id of novel
-                var novel = new Novel();
-                novel.Slug = novelSlug;
-                var document = await LoadFromWebAsync(NovelUrl.Replace("<novel-slug>", novel.Slug));
-                var idElement = document.DocumentNode.QuerySelector("meta[name='book_detail']");
-                if (idElement != null) novel.Id = int.Parse(idElement.Attributes["content"].Value);
-
-                // Get number of chapters: <a> tag having content: "Danh sách chương (1036 chương)"
-                var totalChapterText = document.DocumentNode.QuerySelector("a#j-bookCatalogPage.lang")?.InnerText;
-                var matches = Regex.Match(totalChapterText, @"\d+").Value;
-                var totalChapter = int.Parse(matches);
-                var perPage = 75;
-
-                // Get totalPage
-                totalPage = (int)Math.Ceiling((double)totalChapter / perPage);
-
-                // check page
-                if (page == -1 || page > totalPage) page = totalPage;
-                else if (page <= 0) page = 1;
-
-                // list chapter
-                var url = $"https://truyen.tangthuvien.vn/doc-truyen/page/{novel.Id}?page={page - 1}&limit={perPage}&web=1";
-                document = await LoadFromWebAsync(url);
-                var chapterElements = document.DocumentNode.QuerySelectorAll("a[href*='https://truyen.tangthuvien.vn/doc-truyen/']");
-                foreach (var element in chapterElements)
+                HtmlDocument? document = null;
+                using (HttpClient httpClient = new HttpClient(new HttpClientHandler { AutomaticDecompression = DecompressionMethods.Brotli | DecompressionMethods.GZip | DecompressionMethods.Deflate }))
                 {
-                    var chapter = new Chapter();
-                    var titleStrings = HtmlEntity.DeEntitize(element.QuerySelector("a").Attributes["title"].Value).Split(":");
-                    Match match = Regex.Match(titleStrings[0], @"\d+");
-                    if (match.Success) chapter.Number = int.Parse(match.Value);
-                    chapter.Title = titleStrings.Length == 1 ? titleStrings[0] : string.Join(": ", titleStrings.Skip(1));
-                    chapter.Slug = element.QuerySelector("a").Attributes["href"].Value.Replace($"https://truyen.tangthuvien.vn/doc-truyen/{novel.Slug}/", "").Replace("/", "");
-                    listChapter.Add(chapter);
+                    httpClient.DefaultRequestHeaders.Add("Accept-Encoding", "gzip, deflate, br");
+
+                    // If the novelId is not provided, crawl the novelId
+                    if (novelId == novelSlug || novelId == null)
+                    {
+                        //document = await LoadFromWebAsync($"https://truyen.tangthuvien.vn/doc-truyen/{novelSlug}");
+                        document = new HtmlDocument();
+                        var res = await httpClient.GetAsync($"https://truyen.tangthuvien.vn/doc-truyen/{novelSlug}");
+                        if (!res.IsSuccessStatusCode) return null;
+                        var resBody = await res.Content.ReadAsStringAsync();
+                        document.LoadHtml(resBody);
+                        var idElement = document.DocumentNode.QuerySelector("input#story_id_hidden");
+                        if (idElement != null) novelId = idElement.Attributes["value"].Value;
+                        else return null;
+                    }
+
+                    // Get list of chapters
+                    var response = await httpClient.GetAsync($"https://truyen.tangthuvien.vn/story/chapters?story_id={novelId}");
+                    if (!response.IsSuccessStatusCode) return null;
+                    var responseBody = await response.Content.ReadAsStringAsync();
+                    document = new HtmlDocument();
+                    document.LoadHtml(responseBody);
+
+                    var chapterElements = document.DocumentNode.QuerySelectorAll("li.col-xs-6 a");
+                    foreach (var element in chapterElements)
+                    {
+                        Chapter chapter = new Chapter();
+                        // <a class="link-chap-539" href=" https://truyen.tangthuvien.vn/doc-truyen/dichtao-tac-suu-tam/chuong-560 " title="Chương 560&nbsp;:&nbsp;Trương Xương Bồ">
+                        chapter.Title = HtmlEntity.DeEntitize(element.Attributes["title"].Value);
+                        chapter.Slug = element.Attributes["href"].Value.Replace("https://truyen.tangthuvien.vn/doc-truyen/", "").Replace(novelSlug + "/", "").Trim();
+                        chapter.Number = int.Parse(Regex.Match(chapter.Slug, @"\d+").Value);
+                        listChapter.Add(chapter);
+                    }
+
+
                 }
+
+
             }
             catch (NullReferenceException ex)
             {
@@ -316,7 +325,7 @@ namespace Source.TruyenTangThuVienVn
                 Console.WriteLine("An error occurred: " + ex.Message);
             }
 
-            return new Tuple<Chapter[]?, int>(listChapter.ToArray(), totalPage);
+            return listChapter.ToArray();
         }
 
         /// <summary>
@@ -343,7 +352,7 @@ namespace Source.TruyenTangThuVienVn
                         .Replace("\r\n", "<br/>").Replace("\\\"", "\"").Replace("\\t", "  ");
                 }
 
-                var titleElement = document.DocumentNode.QuerySelector("h1.truyen-title");
+                var titleElement = document.DocumentNode.QuerySelector("div.content div.col-xs-12.chapter h2");
 
                 // Get title of chapter
                 if (contentElement != null)
@@ -352,8 +361,8 @@ namespace Source.TruyenTangThuVienVn
                         .Replace("\r\n", "<br/>").Replace("\\\"", "\"").Replace("\\t", "  ");
                 }
 
-                // Get number of chapter
-                var match = Regex.Match(chapterSlug, @"\d+");
+                // Get number of chapter: Ex: Chương 1: Trương Xương Bồ 2 -> 1
+                var match = Regex.Match(title, @"\d+");
                 if (match.Success) number = int.Parse(match.Value);
 
             }
@@ -373,23 +382,17 @@ namespace Source.TruyenTangThuVienVn
             return chapter;
         }
 
-        public async Task<Chapter?> GetChapterAddrByNumber(string novelSlug, int chapterNumber)
+        public async Task<Chapter?> GetChapterAddrByNumber(string novelSlug, int? novelId, int chapterNumber)
         {
-            if (chapterNumber < 0) return null;
+            Chapter[]? chapters = await CrawlListChapters(novelSlug, novelId != null ? novelId.ToString() : null);
+            if (chapters == null) return null;
 
-            var chapter = new Chapter();
+
+            var chapter = chapters.FirstOrDefault(x => x.Number == chapterNumber);
+            if (chapter == null) return null;
+
+            chapter.Source = "TruyenTangThuVienVn";
             chapter.NovelSlug = novelSlug;
-            chapter.Number = chapterNumber;
-            chapter.Slug = $"chuong-{chapterNumber}";
-
-            var url = $"https://truyen.tangthuvien.vn/doc-truyen/{novelSlug}/chuong-{chapterNumber}";
-
-            // If http code is not 200 or there are any redirections, return null
-            var httpClient = new HttpClient();
-            var response = await httpClient.GetAsync(url);
-            if (!response.IsSuccessStatusCode || response.RequestMessage?.RequestUri?.ToString() != url)
-                return null;
-
             return chapter;
         }
 

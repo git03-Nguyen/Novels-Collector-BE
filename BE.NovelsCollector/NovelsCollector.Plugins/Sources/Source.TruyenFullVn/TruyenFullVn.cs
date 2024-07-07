@@ -7,7 +7,6 @@ using NovelsCollector.Domain.Resources.Chapters;
 using NovelsCollector.Domain.Resources.Novels;
 using System.Net;
 using System.Net.Http.Headers;
-using System.Text.Json;
 using System.Text.RegularExpressions;
 
 namespace Source.TruyenFullVn
@@ -112,9 +111,9 @@ namespace Source.TruyenFullVn
                 titles.Add(match.Value.Replace("title=\"", "").Replace("\"", ""));
             }
 
-            // Add n-1 novel
+            // Add n novels
             List<Novel> novels = new List<Novel>();
-            for (int i = 0; i < slugs.Count - 1; i++)
+            for (int i = 0; i < slugs.Count; i++)
             {
                 novels.Add(new Novel
                 {
@@ -224,7 +223,7 @@ namespace Source.TruyenFullVn
             try
             {
                 var document = await LoadFromWebAsync($"{mainUrl}{novelSlug}/");
-
+                novel.Id = int.Parse(document.DocumentNode.QuerySelector("input#truyen-id")?.Attributes["value"].Value);
                 novel.Slug = novelSlug;
                 novel.Title = document.DocumentNode.QuerySelector("h3.title")?.InnerText;
                 novel.MaxRating = 10;
@@ -285,75 +284,64 @@ namespace Source.TruyenFullVn
             return novel;
         }
 
-        public async Task<Tuple<Chapter[]?, int>> CrawlListChapters(string novelSlug, int page = -1)
+        public async Task<Chapter[]?> CrawlListChapters(string novelSlug, string novelId)
         {
-            var listChapter = new List<Chapter>();
-            int totalPage = 1;
+            var listChapters = new List<Chapter>();
+
             try
             {
-                var document = await LoadFromWebAsync($"{mainUrl}{novelSlug}/");
-
-                var totalPageElement = document.DocumentNode.QuerySelector("input#total-page");
-                totalPage = int.Parse(totalPageElement?.Attributes["value"].Value ?? "1");
-
-                // if the last page
-                if (page == -1) page = totalPage;
-                else if (page > totalPage || page < 1) return new Tuple<Chapter[]?, int>(null, totalPage);
-
-                if (totalPage == 1 && page == 1)
+                HtmlDocument? document = null;
+                using (HttpClient httpClient = new HttpClient(new HttpClientHandler { AutomaticDecompression = DecompressionMethods.Brotli | DecompressionMethods.GZip | DecompressionMethods.Deflate }))
                 {
-                    // get in the detail page
-                    var nodes = document.QuerySelectorAll("div#list-chapter ul.list-chapter li a");
-                    foreach (var node in nodes)
+                    httpClient.DefaultRequestHeaders.Add("Accept-Encoding", "gzip, deflate, br");
+                    httpClient.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36");
+                    httpClient.DefaultRequestHeaders.Add("Accept", "*/*");
+
+                    // If the novelId is not provided, crawl the novelId
+                    if (novelSlug == novelId || novelId == null)
+                    {
+                        document = new HtmlDocument();
+                        var html = await httpClient.GetStringAsync($"{mainUrl}{novelSlug}/");
+                        document.LoadHtml(html);
+
+                        var novelIdElement = document.DocumentNode.QuerySelector("input#truyen-id");
+                        if (novelIdElement != null) novelId = novelIdElement.Attributes["value"].Value;
+                        // If novelId is still null, return null
+                        if (string.IsNullOrEmpty(novelId)) return null;
+                    }
+
+                    // Crawl list of chapters
+                    //document = await LoadFromWebAsync($"https://truyenfull.vn/ajax.php?type=chapter_option&data={novelId}");
+                    var url = $"https://truyenfull.vn/ajax.php?type=chapter_option&data={novelId}";
+                    var response = await httpClient.GetAsync(url);
+                    var htmlStr = await response.Content.ReadAsStringAsync();
+                    document = new HtmlDocument();
+                    document.LoadHtml(htmlStr);
+
+                    // <select class="btn btn-success btn-chapter-nav form-control chapter_jump">
+                    // < option value = "chuong-1" > Chương 1 </ option >
+                    // < option value = "chuong-2" > Chương 2 </ option >
+                    // ...
+
+                    var chapterElements = document.DocumentNode.QuerySelectorAll("option");
+                    foreach (var chapterElement in chapterElements)
                     {
                         var chapter = new Chapter();
-                        var titleStrings = node.Attributes["title"].Value.Split(" - ")[1].Split(": ");
-                        Match match = Regex.Match(titleStrings[0], @"\d+");
-                        if (match.Success) chapter.Number = int.Parse(match.Value);
-                        chapter.Title = titleStrings.Length == 1 ? titleStrings[0] : string.Join(": ", titleStrings.Skip(1));
-                        chapter.Slug = node.Attributes["href"].Value.Replace($"{mainUrl}{novelSlug}/", "").Replace("/", "");
-                        listChapter.Add(chapter);
+                        chapter.Slug = chapterElement.Attributes["value"].Value;
+                        chapter.Title = chapterElement.InnerText;
+                        chapter.Number = int.Parse(Regex.Match(chapter.Title, @"\d+").Value);
+                        listChapters.Add(chapter);
                     }
-                }
-                else
-                {
-                    string? truyenId = document.DocumentNode.QuerySelector("input#truyen-id")?.Attributes["value"].Value;
-                    string? truyenAscii = document.DocumentNode.QuerySelector("input#truyen-ascii")?.Attributes["value"].Value;
-                    string? truyenName = document.DocumentNode.QuerySelector("h3.title")?.InnerText;
 
-                    var url = $"{mainUrl}ajax.php?type=list_chapter&tid={truyenId}&tascii={truyenAscii}&tname={truyenName}&page={page}&totalp={totalPage}";
-
-                    using (HttpClient client = new HttpClient())
-                    {
-                        client.DefaultRequestHeaders.Add("Accept", "*/*");
-                        client.DefaultRequestHeaders.Add("Referer", $"{mainUrl}{novelSlug}/trang-1");
-                        client.DefaultRequestHeaders.Add("X-Requested-With", "XMLHttpRequest");
-                        client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36");
-
-                        var jsonStr = await client.GetStringAsync(url);
-                        var json = JsonSerializer.Deserialize<Dictionary<string, string>>(jsonStr);
-                        if (json == null) return new Tuple<Chapter[]?, int>(null, totalPage);
-                        document.LoadHtml(json["chap_list"]);
-                        var nodes = document.QuerySelectorAll("a");
-                        foreach (var node in nodes)
-                        {
-                            var chapter = new Chapter();
-                            var titleStrings = node.Attributes["title"].Value.Split(": ");
-                            Match match = Regex.Match(titleStrings[0], @"\d+");
-                            if (match.Success) chapter.Number = int.Parse(match.Value);
-                            chapter.Title = titleStrings.Length > 1 ? titleStrings[1] : titleStrings[0];
-                            chapter.Slug = node.Attributes["href"].Value.Replace($"https://truyenfull.vn/{novelSlug}/", "").Replace("/", "");
-                            listChapter.Add(chapter);
-                        }
-                    }
                 }
             }
+
             catch (Exception ex)
             {
                 Console.WriteLine("An error occurred: " + ex.Message);
             }
 
-            return new Tuple<Chapter[]?, int>(listChapter.ToArray(), totalPage);
+            return listChapters.ToArray();
         }
 
         /// <summary>
@@ -413,22 +401,17 @@ namespace Source.TruyenFullVn
             return chapter;
         }
 
-        public async Task<Chapter?> GetChapterAddrByNumber(string novelSlug, int chapterNumber)
+        public async Task<Chapter?> GetChapterAddrByNumber(string novelSlug, int? novelId, int chapterNumber)
         {
-            if (chapterNumber < 0) return null;
+            Chapter[]? chapters = await CrawlListChapters(novelSlug, novelId != null ? novelId.ToString() : null);
+            if (chapters == null) return null;
 
-            var chapter = new Chapter();
+
+            var chapter = chapters.FirstOrDefault(x => x.Number == chapterNumber);
+            if (chapter == null) return null;
+
+            chapter.Source = "TruyenFullVn";
             chapter.NovelSlug = novelSlug;
-            chapter.Number = chapterNumber;
-            chapter.Slug = $"chuong-{chapterNumber}";
-
-            var url = $"{mainUrl}{novelSlug}/chuong-{chapterNumber}/";
-
-            // If no #chapter-c , it means that the chapter is not available
-            var document = await LoadFromWebAsync(url);
-            var contentElement = document.DocumentNode.QuerySelector("#chapter-c");
-            if (contentElement == null) return null;
-
             return chapter;
         }
 

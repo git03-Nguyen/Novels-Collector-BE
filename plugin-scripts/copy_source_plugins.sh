@@ -6,7 +6,7 @@ build_mode="Debug"
 
 # Define the base paths for source and destination directories
 src_base="../BE.NovelsCollector/NovelsCollector.Plugins/Sources"
-dest_base="../BE.NovelsCollector/NovelsCollector.WebAPI/bin/$build_mode/net8.0/Plugins/Sources"
+dest_base="../BE.NovelsCollector/NovelsCollector.WebAPI/bin/$build_mode/net8.0/Plugins/SourcePlugin"
 
 # Define the source and destination directories
 declare -A dirs=(

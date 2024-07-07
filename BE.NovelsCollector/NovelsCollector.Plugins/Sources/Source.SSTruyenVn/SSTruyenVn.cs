@@ -6,6 +6,7 @@ using NovelsCollector.Domain.Resources.Categories;
 using NovelsCollector.Domain.Resources.Chapters;
 using NovelsCollector.Domain.Resources.Novels;
 using System.Globalization;
+using System.Net;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -230,59 +231,31 @@ namespace Source.TruyenSSVn
             return novel;
         }
 
-        public async Task<Tuple<Chapter[]?, int>> CrawlListChapters(string novelSlug, int page = -1)
+        public async Task<Chapter[]?> CrawlListChapters(string novelSlug, string novelId)
         {
             var listChapter = new List<Chapter>();
-            int totalPage = 1;
 
             try
             {
-                var document = await LoadFromWebAsync($"https://sstruyen.vn/{novelSlug}/trang-1");
+                var document = await LoadFromWebAsync($"https://sstruyen.vn/ajax.php?get_chapt&story_seo={novelSlug}&chapt=1");
 
-                // Get last page
-                var lastPage = document.DocumentNode.QuerySelector("input#s_last_page")?.Attributes["value"].Value;
-                totalPage = int.Parse(lastPage);
+                // return is
+                // <select>
+                //     <option value="/tao-tac/chuong-1/#j_content" selected>Chương 1</option>
+                //     < option value = "/tao-tac/chuong-2/#j_content" > Chương 2 </ option >
+                // ...
+                // </select>
 
-                // Check page
-                if (page == -1 || page > totalPage) page = totalPage;
-                else if (page <= 0) page = 1;
-
-                // Get chapters
-                if (page > 1)
-                    document = await LoadFromWebAsync($"https://sstruyen.vn/{novelSlug}/trang-{page}");
-
-                // Check if having title "Chương Mới Nhất" and "Chương Mới Nhất"
-                var sectionTitleRows = document.DocumentNode.QuerySelectorAll("div.row.list-chap div.col-xs-12");
-                // only take the sectionTitleRows having h3's innerText is "Danh sách chương"
-                var sectionChapterList = sectionTitleRows.FirstOrDefault(x => x.QuerySelector("h3")?.InnerText == "Danh sách chương");
-                if (sectionChapterList == null) return new Tuple<Chapter[]?, int>(null, 0);
-
-                // take 2 "col-sm-6" is the neighbor of sectionChapterList standing after it
-                List<HtmlNode> colChapters = new List<HtmlNode>();
-                if (sectionChapterList.NextSibling != null && sectionChapterList.NextSibling.HasClass("col-sm-6"))
+                var optionElements = document.DocumentNode.QuerySelectorAll("option");
+                foreach (var optionElement in optionElements)
                 {
-                    colChapters.Add(sectionChapterList.NextSibling);
-                    if (sectionChapterList.NextSibling.NextSibling != null && sectionChapterList.NextSibling.NextSibling.HasClass("col-sm-6"))
-                    {
-                        colChapters.Add(sectionChapterList.NextSibling.NextSibling);
-                    }
-                }
+                    var chapter = new Chapter();
+                    chapter.NovelSlug = novelSlug;
+                    chapter.Slug = optionElement.Attributes["value"].Value.Replace($"/{novelSlug}/", "").Replace("/#j_content", "");
+                    chapter.Number = int.Parse(Regex.Match(optionElement.InnerText, @"\d+").Value);
+                    chapter.Title = optionElement.InnerText;
 
-                // Crawl the chapters
-                foreach (var colChapter in colChapters)
-                {
-                    var chapterElements = colChapter.QuerySelectorAll("ul li a");
-                    foreach (var element in chapterElements)
-                    {
-                        Chapter chapter = new Chapter();
-                        var titleStrings = element.InnerText.Split(": ");
-                        Match match = Regex.Match(titleStrings[0], @"\d+");
-                        if (match.Success) chapter.Number = int.Parse(match.Value);
-                        if (titleStrings.Length == 1) chapter.Title = titleStrings[0];
-                        else chapter.Title = string.Join(": ", titleStrings.Skip(1));
-                        chapter.Slug = element.Attributes["href"].Value.Replace($"/{novelSlug}/", "").Replace("/", "");
-                        listChapter.Add(chapter);
-                    }
+                    listChapter.Add(chapter);
                 }
 
             }
@@ -292,7 +265,7 @@ namespace Source.TruyenSSVn
 
             }
 
-            return new Tuple<Chapter[]?, int>(listChapter.ToArray(), totalPage);
+            return listChapter.ToArray();
         }
 
         /// <summary>
@@ -334,80 +307,18 @@ namespace Source.TruyenSSVn
             return chapter;
         }
 
-        public async Task<Chapter?> GetChapterAddrByNumber(string novelSlug, int chapterNumber)
+        public async Task<Chapter?> GetChapterAddrByNumber(string novelSlug, int? novelId, int chapterNumber)
         {
-            if (chapterNumber <= 0) return null;
+            Chapter[]? chapters = await CrawlListChapters(novelSlug, novelId != null ? novelId.ToString() : null);
+            if (chapters == null) return null;
 
-            var chapter = new Chapter();
+
+            var chapter = chapters.FirstOrDefault(x => x.Number == chapterNumber);
+            if (chapter == null) return null;
+
+            chapter.Source = "SSTruyenVn";
             chapter.NovelSlug = novelSlug;
-            chapter.Number = chapterNumber;
-            chapter.Slug = $"chuong-{chapterNumber}";
-
-            var url = ChapterUrl.Replace("<novel-slug>", novelSlug).Replace("<chapter-slug>", chapter.Slug);
-            var document = await LoadFromWebAsync(url);
-
-            // Get content of chapter in html format
-            var contentElement = document.DocumentNode.QuerySelector("div.content.container1");
-            if (contentElement == null) return null;
-
-            // Get number
-            int number = 0;
-            var titleElement = document.DocumentNode.QuerySelector("div.rv-chapt-title a").InnerText;
-            var titleStrings = titleElement.Split(": ");
-            var match = Regex.Match(titleStrings[0], @"\d+");
-            if (match.Success) number = int.Parse(match.Value);
-
-            if (number == chapterNumber) return chapter;
-
-            // ------------
-            // Other ways :((
-            chapter.Slug = null;
-            const int PER_PAGE = 32;
-            int page = (chapterNumber - 1) / PER_PAGE + 1;
-
-            bool flag = false;
-            var (listChapters, totalPage) = await CrawlListChapters(novelSlug, page);
-            if (listChapters == null) return null;
-
-            // If it's greater than the last chapter in the page, maybe it's in the next page
-            while (chapterNumber > listChapters.Last().Number && page < totalPage)
-            {
-                (listChapters, totalPage) = await CrawlListChapters(novelSlug, page);
-                if (listChapters == null) return null;
-                page++;
-
-                if (chapterNumber <= listChapters.Last().Number)
-                {
-                    flag = true;
-                    break;
-                }
-            }
-
-            if (!flag)
-            {
-                // If it's smaller than the first chapter in the page, maybe it's in the previous page
-                while (chapterNumber < listChapters.First().Number && page > 1)
-                {
-                    (listChapters, totalPage) = await CrawlListChapters(novelSlug, page);
-                    if (listChapters == null) return null;
-                    page--;
-                }
-            }
-
-            // Find the chapter in current page
-            foreach (var c in listChapters)
-            {
-                if (c.Number == chapterNumber)
-                {
-                    chapter.Slug = c.Slug;
-                    break;
-                }
-            }
-            if (chapter.Slug == null) return null;
-
             return chapter;
-
-
         }
 
         #region helper method
@@ -477,12 +388,13 @@ namespace Source.TruyenSSVn
         {
             var document = new HtmlDocument();
             // Create a new instance of HttpClient
-            using (HttpClient client = new HttpClient())
+            using (HttpClient client = new HttpClient(new HttpClientHandler() { AutomaticDecompression = DecompressionMethods.Brotli | DecompressionMethods.GZip | DecompressionMethods.Deflate }))
             {
                 // Set up custom headers
                 client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36");
                 client.DefaultRequestHeaders.Add("Accept", "text/html");
                 client.DefaultRequestHeaders.Add("Accept-Language", "en-US,en;q=0.9");
+                client.DefaultRequestHeaders.Add("Accept-Encoding", "br, gzip, deflate");
                 // Add more headers as needed
 
                 try

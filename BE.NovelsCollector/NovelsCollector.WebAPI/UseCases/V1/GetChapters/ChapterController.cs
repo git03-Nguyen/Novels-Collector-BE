@@ -1,8 +1,11 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using NovelsCollector.Application.Exceptions;
-using NovelsCollector.Core.Services;
+using NovelsCollector.Application.UseCases.GetChapter;
+using NovelsCollector.Application.UseCases.ManagePlugins;
+using NovelsCollector.Domain.Entities.Plugins.Sources;
 using NovelsCollector.Domain.Resources.Chapters;
 using NovelsCollector.Domain.Resources.Novels;
+using NovelsCollector.Infrastructure.Persistence.Entities;
 
 namespace NovelsCollector.WebAPI.UseCases.V1.GetChapters
 {
@@ -13,12 +16,12 @@ namespace NovelsCollector.WebAPI.UseCases.V1.GetChapters
     {
         #region Injected Services
         private readonly ILogger<ChapterController> _logger;
-        private readonly SourcePluginsManager _sourcePluginManager;
+        private readonly IEnumerable<SourcePlugin> _sourcesPlugins;
 
-        public ChapterController(ILogger<ChapterController> logger, SourcePluginsManager sourcePluginManager)
+        public ChapterController(ILogger<ChapterController> logger, BasePluginsManager<SourcePlugin, ISourceFeature> sourcePluginManager)
         {
             _logger = logger;
-            _sourcePluginManager = sourcePluginManager;
+            _sourcesPlugins = sourcePluginManager.Installed;
         }
         #endregion
 
@@ -34,7 +37,7 @@ namespace NovelsCollector.WebAPI.UseCases.V1.GetChapters
         async public Task<IActionResult> Get([FromRoute] string source, [FromRoute] string novelSlug, [FromRoute] string chapterSlug)
         {
             // Get the chapter from the source
-            var chapter = await _sourcePluginManager.GetChapterContent(source, novelSlug, chapterSlug);
+            var chapter = await new GetChapterContentUC(_sourcesPlugins).Execute(source, novelSlug, chapterSlug);
 
             // Check if the chapter is not found
             if (chapter == null) throw new NotFoundException("Không tìm thấy chương này.");
@@ -72,7 +75,7 @@ namespace NovelsCollector.WebAPI.UseCases.V1.GetChapters
                 Number = chapterNumber
             };
 
-            var chapterInOtherSources = await _sourcePluginManager.GetChapterFromOtherSources(novelInOtherSources, currentChapter);
+            var chapterInOtherSources = await new GetSameChaptersUC(_sourcesPlugins).Execute(novelInOtherSources, currentChapter);
 
             // Return the same chapter in other sources
             return Ok(new

@@ -1,10 +1,13 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using NovelsCollector.Core.Services;
+using NovelsCollector.Application.UseCases.ManagePlugins;
+using NovelsCollector.Domain.Constants;
+using NovelsCollector.Domain.Entities.Plugins.Exporters;
+using NovelsCollector.Infrastructure.Persistence.Entities;
 
 namespace NovelsCollector.WebAPI.UseCases.V1.PluginsManager
 {
-    [Authorize(Roles = "Quản trị viên")]
+    [Authorize(Roles = Roles.Administrator)]
     [ApiController]
     [Tags("08. Exporters")]
     [Route("api/v1/exporter")]
@@ -12,12 +15,12 @@ namespace NovelsCollector.WebAPI.UseCases.V1.PluginsManager
     {
         #region Injected Services
         private readonly ILogger<ExporterController> _logger;
-        private readonly ExporterPluginsManager _pluginsManager;
+        private readonly BasePluginsManager<ExporterPlugin, IExporterFeature> _pluginsManager;
 
-        public ExporterController(ILogger<ExporterController> logger, ExporterPluginsManager exporterPluginManager)
+        public ExporterController(ILogger<ExporterController> logger, BasePluginsManager<ExporterPlugin, IExporterFeature> pluginsManager)
         {
             _logger = logger;
-            _pluginsManager = exporterPluginManager;
+            _pluginsManager = pluginsManager;
         }
         #endregion
 

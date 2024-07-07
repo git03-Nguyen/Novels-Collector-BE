@@ -1,8 +1,11 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Memory;
 using NovelsCollector.Application.Exceptions;
-using NovelsCollector.Core.Services;
-using NovelsCollector.Domain.Resources.Chapters;
+using NovelsCollector.Application.UseCases.GetNovels;
+using NovelsCollector.Application.UseCases.ManagePlugins;
+using NovelsCollector.Domain.Entities.Plugins.Sources;
 using NovelsCollector.Domain.Resources.Novels;
+using NovelsCollector.Infrastructure.Persistence.Entities;
 
 namespace NovelsCollector.WebAPI.UseCases.V1.GetNovels
 {
@@ -15,14 +18,14 @@ namespace NovelsCollector.WebAPI.UseCases.V1.GetNovels
         #region Injected Services
 
         private readonly ILogger<NovelController> _logger;
-        private readonly SourcePluginsManager _sourcesPlugins;
-        private readonly ExporterPluginsManager _exporterPlugins;
+        private readonly IMemoryCache _cacheService;
+        private readonly IEnumerable<SourcePlugin> _sourcesPlugins;
 
-        public NovelController(ILogger<NovelController> logger, SourcePluginsManager sourcePluginManager, ExporterPluginsManager exporterPluginManager)
+        public NovelController(ILogger<NovelController> logger, BasePluginsManager<SourcePlugin, ISourceFeature> sourcePluginManager, IMemoryCache cacheService)
         {
             _logger = logger;
-            _sourcesPlugins = sourcePluginManager;
-            _exporterPlugins = exporterPluginManager;
+            _cacheService = cacheService;
+            _sourcesPlugins = sourcePluginManager.Installed;
         }
 
         #endregion
@@ -38,7 +41,7 @@ namespace NovelsCollector.WebAPI.UseCases.V1.GetNovels
         [EndpointSummary("View brief information of a novel")]
         public async Task<IActionResult> GetNovel([FromRoute] string source, [FromRoute] string novelSlug)
         {
-            var novel = await _sourcesPlugins.GetNovelDetail(source, novelSlug);
+            var novel = await new GetDetailsUC(_sourcesPlugins).Execute(source, novelSlug);
 
             // Check if the novel is not found
             if (novel == null) throw new NotFoundException("Không tìm thấy truyện này.");
@@ -68,15 +71,46 @@ namespace NovelsCollector.WebAPI.UseCases.V1.GetNovels
         {
             // Check if the novel is not provided
             if (novel == null) throw new BadHttpRequestException("Truyện không hợp lệ.");
-
-            // Find novel in other sources
             novel.Slug = novelSlug;
-            var otherSources = await _sourcesPlugins.GetNovelFromOtherSources(source, novel);
+
+            Dictionary<string, Novel>? novels = null;
+
+            // reassign the novel.Title if: Tào Tặc - 曹贼 in TruyenTangThuVienVn => Tào Tặc
+            if (source == "TruyenTangThuVienVn" && novel.Title.Contains(" - "))
+            {
+                novel.Title = novel.Title.Split(" - ")[0].Trim();
+            }
+
+            // Caching the same novels in all sources
+            var cacheKey = $"novels-{novel.Title.Trim()}";
+            if (_cacheService.TryGetValue(cacheKey, out novels))
+            {
+                _logger.LogInformation($"Cache hit for novels of {novel.Title}");
+                // copy the cachedNovels to a new dictionary, without the excluded source
+            }
+            else
+            {
+                // Find novel in all sources
+                novels = await new GetSameNovelsUC(_sourcesPlugins).Execute(source, novel);
+
+                // Cache the same novels in all sources
+                _logger.LogInformation($"Cache miss for novels of {novel.Title}. Caching...");
+                _cacheService.Set(cacheKey, novels, new MemoryCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1),
+                    SlidingExpiration = TimeSpan.FromMinutes(30),
+                    Size = 1
+                });
+
+            }
+
+            // Return the novels
+            var result = novels?.Where(kvp => kvp.Key != source).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
 
             // Return the novel
             return Ok(new
             {
-                data = otherSources,
+                data = result,
                 meta = new
                 {
                     source,
@@ -88,22 +122,20 @@ namespace NovelsCollector.WebAPI.UseCases.V1.GetNovels
         }
 
         /// <summary>
-        /// View a list of chapters of a novel by page
+        /// View a list of chapters of a novel
         /// </summary>
         /// <param name="source">The source of the novel (e.g., DTruyenCom, SSTruyenVn).</param>
         /// <param name="novelSlug">The slug identifier for the novel (e.g., tao-tac).</param>
-        /// <param name="page">The page number of the chapters list (default is the last page = -1).</param>
+        /// <param name="novelId">The identifier for the novel.</param>
         /// <returns> A list of chapters of a novel by page. </returns>
         /// <exception cref="BadHttpRequestException"> If the page is invalid. </exception>
-        [HttpGet("{source}/{novelSlug}/chapters")]
-        [EndpointSummary("View chapters of a novel by page, -1 is last page")]
-        public async Task<IActionResult> GetChapters([FromRoute] string source, [FromRoute] string novelSlug, [FromQuery] int page = -1)
+        [HttpGet("{source}/{novelSlug}/{novelId}/chapters")]
+        [EndpointSummary("View chapters of a novel")]
+        public async Task<IActionResult> GetChapters([FromRoute] string source, [FromRoute] string novelSlug, [FromRoute] string novelId)
         {
-            // Check if the page is invalid
-            if (page == 0) throw new BadHttpRequestException("Trang không hợp lệ.");
 
             // Get the chapters
-            var (chapters, totalPage) = await _sourcesPlugins.GetChaptersList(source, novelSlug, page);
+            var chapters = await new GetChaptersListUC(_sourcesPlugins).Execute(source, novelSlug, novelId);
 
             // Check if the novel is not found
             if (chapters == null) throw new NotFoundException("Không tìm thấy chương cho truyện này.");
@@ -116,96 +148,12 @@ namespace NovelsCollector.WebAPI.UseCases.V1.GetNovels
                 {
                     source,
                     novelSlug,
-                    page = page != -1 ? page : totalPage,
-                    totalPage,
+                    id = novelId
                 }
             });
         }
 
-        /// <summary>
-        /// Export some chapters of a novel to a file (e.g., epub, pdf).
-        /// </summary>
-        /// <param name="source"> The source of the novel (e.g., DTruyenCom, SSTruyenVn). </param>
-        /// <param name="novelSlug"> The slug identifier for the novel (e.g., tao-tac). </param>
-        /// <param name="pluginName"> The name of the exporter plugin to use. </param>
-        /// <param name="exportSlugs"> The list of chapter slugs to export. </param>
-        /// <returns> The path to the exported file. </returns>
-        /// <exception cref="BadHttpRequestException"> If the list of chapters is invalid. </exception>
-        /// <exception cref="NotFoundException"> If the plugin is not found. </exception>
-        [HttpPost("{source}/{novelSlug}/export/{pluginName}")]
-        [EndpointSummary("Export a list of chapters of a novel to a file")]
-        public async Task<IActionResult> ExportChapters([FromRoute] string source, [FromRoute] string novelSlug, [FromRoute] string pluginName,
-            [FromBody] List<string> exportSlugs)
-        {
-            // DEBUG mode: number of chapters to export is <= 10
-            const int maxChapters = 10;
 
-            // Check if the list of chapters is invalid
-            if (exportSlugs.Count == 0)
-                throw new BadHttpRequestException("Danh sách chương yêu cầu không hợp lệ.");
-            if (exportSlugs.Count > maxChapters)
-                throw new BadHttpRequestException($"Số lượng chương xuất không được vượt quá {maxChapters} chương.");
-
-            // Check if no plugin is found
-            if (!_exporterPlugins.Installed.Any(x => x.Name == pluginName))
-                throw new NotFoundException($"Không tìm thấy plugin {pluginName}.");
-
-            // Get the novel
-            Novel? novel = await _sourcesPlugins.GetNovelDetail(source, novelSlug);
-            if (novel == null)
-                throw new NotFoundException("Không tìm thấy truyện này.");
-
-            // Get the chapters' content
-            var listChapters = new List<Chapter>();
-            foreach (var slug in exportSlugs)
-            {
-                var chapter = await _sourcesPlugins.GetChapterContent(source, novelSlug, slug);
-                if (chapter != null)
-                    listChapters.Add(chapter);
-            }
-
-            // Assign the list of chapters to novel.Chapters, now we have a complete novel
-            novel.Chapters = listChapters.ToArray();
-            novel.Source = source;
-
-            // Get the timestamp for the random file name
-            string timestamp = DateTime.Now.ToString("yyyyMMddHHmmss");
-
-            // Export the novel
-            // TODO: save the file to the cloud storage
-            var plugin = _exporterPlugins.Installed.First(x => x.Name == pluginName);
-            //using (var stream = new FileStream($"D:/{timestamp}.{plugin.Extension}", FileMode.Create))
-            //{
-            //    await _exporterPlugins.Export(pluginName, novel, stream);
-            //}
-
-            // Save the file to the wwwroot folder
-            var day = DateTime.Now.ToString("yyyyMMdd");
-            var folder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "wwwroot", day, plugin.Extension);
-            // Create multiple folders if not exists
-            if (!Directory.Exists(folder)) Directory.CreateDirectory(folder);
-
-            var path = Path.Combine(folder, $"{timestamp}.{plugin.Extension}");
-            using (var stream = new FileStream(path, FileMode.Create))
-            {
-                await _exporterPlugins.Export(pluginName, novel, stream);
-            }
-
-            // get the host url
-            var request = HttpContext.Request;
-            var host = $"{request.Scheme}://{request.Host}";
-
-            return Ok(new
-            {
-                data = new
-                {
-                    plugin = pluginName,
-                    extension = plugin.Extension,
-                    path = $"{host}/static/{day}/{plugin.Extension}/{timestamp}.{plugin.Extension}"
-                }
-            });
-
-        }
 
     }
 

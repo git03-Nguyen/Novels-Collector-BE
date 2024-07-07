@@ -9,9 +9,11 @@ using Microsoft.OpenApi.Models;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Serializers;
 using NovelsCollector.Application.Repositories;
+using NovelsCollector.Infrastructure.Identity;
 using NovelsCollector.Infrastructure.Persistence;
-using NovelsCollector.Infrastructure.Persistence.Entities;
+using NovelsCollector.Infrastructure.Persistence.Configurations;
 using NovelsCollector.Infrastructure.Persistence.Repositories;
+using NovelsCollector.Infrastructure.Services;
 using NovelsCollector.WebAPI.Extensions;
 using NovelsCollector.WebAPI.Services;
 using System.Text;
@@ -23,18 +25,18 @@ BsonSerializer.RegisterSerializer(new GuidSerializer(MongoDB.Bson.BsonType.Strin
 BsonSerializer.RegisterSerializer(new DateTimeSerializer(MongoDB.Bson.BsonType.String));
 BsonSerializer.RegisterSerializer(new DateTimeOffsetSerializer(MongoDB.Bson.BsonType.String));
 
-// Database settings
-builder.Services.Configure<Settings>(builder.Configuration.GetSection("DatabaseSettings"));
+// Database settings as singleton
 builder.Services.AddSingleton<MongoContext>();
 builder.Services.AddSingleton(typeof(IPluginRepository<>), typeof(PluginRepository<>));
+builder.Services.Configure<Settings>(builder.Configuration.GetSection("DatabaseSettings"));
 
 // MongoDbIdentityConfiguration
 var mongoIdentityConfigurations = new MongoDbIdentityConfiguration
 {
     MongoDbSettings = new MongoDbSettings
     {
-        ConnectionString = "mongodb://localhost:27017",
-        DatabaseName = "NovelsCollector"
+        ConnectionString = builder.Configuration["DatabaseSettings:ConnectionString"],
+        DatabaseName = builder.Configuration["DatabaseSettings:DatabaseName"]
     },
     IdentityOptionsAction = options =>
     {
@@ -63,6 +65,8 @@ builder.Services.ConfigureMongoDbIdentity<ApplicationUser, ApplicationRole, Guid
     .AddRoleManager<RoleManager<ApplicationRole>>()
     .AddDefaultTokenProviders();
 
+var settings = builder.Configuration.GetSection("DatabaseSettings").Get<Settings>();
+
 builder.Services.AddAuthentication(x =>
 {
     x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -77,10 +81,12 @@ builder.Services.AddAuthentication(x =>
         ValidateIssuer = false,
         RequireExpirationTime = false,
         ValidateIssuerSigningKey = true,
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("FBE2968244C56E34E98dsa_ahahah_dasdasdasd3B5C54E319123")),
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(settings.JwtKey)),
         ClockSkew = TimeSpan.Zero
     };
 });
+
+builder.Services.AddScoped<IdentityService>();
 
 // In-memory cache
 builder.Services.AddMemoryCache(options =>

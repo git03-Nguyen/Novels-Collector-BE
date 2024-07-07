@@ -1,5 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using NovelsCollector.Core.Services;
+using NovelsCollector.Application.UseCases.GetNovels;
+using NovelsCollector.Application.UseCases.ManagePlugins;
+using NovelsCollector.Domain.Entities.Plugins.Sources;
+using NovelsCollector.Infrastructure.Persistence.Entities;
 
 namespace NovelsCollector.WebAPI.UseCases.V1.GetNovels
 {
@@ -10,12 +13,12 @@ namespace NovelsCollector.WebAPI.UseCases.V1.GetNovels
     {
         #region Injected Services
         private readonly ILogger<SearchController> _logger;
-        private readonly SourcePluginsManager _sourcesPlugins;
+        private readonly IEnumerable<SourcePlugin> _sourcesPlugins;
 
-        public SearchController(ILogger<SearchController> logger, SourcePluginsManager sourcePluginManager)
+        public SearchController(ILogger<SearchController> logger, BasePluginsManager<SourcePlugin, ISourceFeature> sourcePluginManager)
         {
             _logger = logger;
-            _sourcesPlugins = sourcePluginManager;
+            _sourcesPlugins = sourcePluginManager.Installed;
         }
         #endregion
 
@@ -35,7 +38,8 @@ namespace NovelsCollector.WebAPI.UseCases.V1.GetNovels
             [FromQuery] string? keyword, [FromQuery] string? title, [FromQuery] string? author,
             [FromQuery] int page = 1)
         {
-            var (novels, totalPage) = await _sourcesPlugins.Search(source, keyword, title, author, page);
+            var (novels, totalPage) = await new SearchNovelsUC(_sourcesPlugins).Execute(source, keyword, title, author, page);
+
             return Ok(new
             {
                 data = novels,

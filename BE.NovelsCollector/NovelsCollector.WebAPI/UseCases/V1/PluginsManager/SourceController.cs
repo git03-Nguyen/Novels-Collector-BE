@@ -1,11 +1,14 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
-using NovelsCollector.Core.Services;
+using NovelsCollector.Application.UseCases.ManagePlugins;
+using NovelsCollector.Domain.Constants;
+using NovelsCollector.Domain.Entities.Plugins.Sources;
+using NovelsCollector.Infrastructure.Persistence.Entities;
 
 namespace NovelsCollector.WebAPI.UseCases.V1.PluginsManager
 {
-    [Authorize(Roles = "Quản trị viên")]
+    [Authorize(Roles = Roles.Administrator)]
     [ApiController]
     [Tags("07. Sources")]
     [Route("api/v1/source")]
@@ -13,13 +16,13 @@ namespace NovelsCollector.WebAPI.UseCases.V1.PluginsManager
     {
         #region Injected Services
         private readonly ILogger<SourceController> _logger;
-        private readonly SourcePluginsManager _pluginsManager;
+        private readonly BasePluginsManager<SourcePlugin, ISourceFeature> _pluginsManager;
         private readonly IMemoryCache _cacheService;
 
-        public SourceController(ILogger<SourceController> logger, SourcePluginsManager sourcePluginManager, IMemoryCache cacheService)
+        public SourceController(ILogger<SourceController> logger, BasePluginsManager<SourcePlugin, ISourceFeature> pluginsManager, IMemoryCache cacheService)
         {
             _logger = logger;
-            _pluginsManager = sourcePluginManager;
+            _pluginsManager = pluginsManager;
             _cacheService = cacheService;
         }
         #endregion
