@@ -2,13 +2,13 @@
 #### 📖 *A platform for searching and reading novels from multiple websites using hot-plugins in ASP.NET Core.* 
 *This is only the back-end part of the project. Please refer to https://github.com/thienan2003bt/Novels-Collector-FE for the front-end part. Thank you!*
 
-### Technology stack information:
+### 1. Technology stack information:
 - **Vietnamese name:** Website Tổng hợp và đọc tiểu thuyết trực tuyến
 - **Front-end:** React
 - **Back-end:** ASP.NET Core
 - **Database:** MongoDB
 
-### Installation guide:
+### 2. Installation guide:
 To get the project up and running for the first time, follow these steps:
 1. **Build the solution:**\
 	Navigate to the root directory of the project and run the following command to build the solution:
